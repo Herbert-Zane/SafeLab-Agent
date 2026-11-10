@@ -1,0 +1,4 @@
+# Evaluation cases are hashed (eval/cases_heldout/MANIFEST.md). Keep their bytes exactly as
+# committed on every checkout, whatever core.autocrlf says, so the hashes stay checkable.
+*.jsonl -text
+eval/cases_heldout/MANIFEST.md -text
