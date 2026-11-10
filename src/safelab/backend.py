@@ -40,9 +40,12 @@ a third ends the episode with ``finish`` and the reason (safe stop). Across
 turns, the refusals of each action (same name and string parameters, see
 ``reflexion.action_key``) are counted for the whole run; the
 ``critic.max_repeat_rejections``-th refusal of the same action (default 3)
-also ends the episode safely, with a ``refusal_limit`` event in the trace. The
-actor's and planner's own prompts are the same as in B; the critic's reason
-reaches them only as feedback on a refused proposal.
+also ends the episode safely, with a ``refusal_limit`` event in the trace, and
+the refusal before that one revises the plan. The actor's and planner's own
+prompts are the same as in B; the critic's reason reaches them as feedback on
+a refused proposal and, from then on, in the run's list of refused actions
+(``Reflexion.refusal_lines``), which every later plan revision and actor
+message carries. A run without a refusal has no such list.
 
 This module imports the platform, so it is only importable after
 ``safelab.bench.ensure_importable()``.
@@ -353,9 +356,10 @@ class SafeLabBackend:
                                  stages=self._stages())
             return False
         self.tracker.replans += 1
+        refusals = self.reflexion.refusal_lines()
         result = self.planner.make(system, snapshot, observation, notes=self.notes,
                                    reason=reason, tracker=self.tracker,
-                                   version=self.tracker.version+1)
+                                   version=self.tracker.version+1, refusals=refusals)
         if result.stages:
             self.tracker.adopt(result.stages, source="model")
         else:
@@ -364,7 +368,7 @@ class SafeLabBackend:
         done = self.tracker.advance(snapshot)
         self.events.emit("replan", source=self.tracker.source, version=self.tracker.version,
                          reason=reason, replans=self.tracker.replans, stages=self._stages(),
-                         errors=result.errors, done_on_adoption=done,
+                         refusals=refusals, errors=result.errors, done_on_adoption=done,
                          replies=[self._reply_record(r) for r in result.replies])
         return result.stages is not None
 
@@ -395,7 +399,7 @@ class SafeLabBackend:
             observation=message.observation, focus=self.tracker.focus(entity_ids),
             feedback=feedback, strategy=strategy,
             previous_fragment=self.last_fragment if message.feedback_kind == "invalid_reply"
-            else None, k=self.k)
+            else None, k=self.k, refusals=self.reflexion.refusal_lines())
         proposal = self.actor.propose(system=system, message=text)
         for _ in range(proposal.empty_retries):
             self.events.emit("reflect", **self.reflexion.empty_reply("actor").record())
@@ -453,8 +457,13 @@ class SafeLabBackend:
                                f"{verdict.reason}")
                 return out
             if assessment.strategy == "replan":
-                reason = (f"SafeLab's reviewer refused {assessment.same_kind} proposals in a row "
-                          f"for this step; the last reason: {verdict.reason}")
+                if assessment.same_kind >= self.reflexion.critic_limit:
+                    reason = (f"SafeLab's reviewer refused {assessment.same_kind} proposals in "
+                              f"a row for this step; the last reason: {verdict.reason}")
+                else:
+                    reason = (f"SafeLab's reviewer refused the same action "
+                              f"({assessment.signature}) {assessment.repeats} times in this "
+                              f"run; the last reason: {verdict.reason}")
                 self._replan(system, self.ledger.snapshot(), message.observation, reason,
                              keep_critic=True)
                 self._sync_stage()

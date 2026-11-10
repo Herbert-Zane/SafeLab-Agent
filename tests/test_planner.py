@@ -262,6 +262,22 @@ def test_a_replan_request_states_the_reason_and_what_is_done():
     assert "Stages already done: transfer_sample." in content
     assert "being revised because two refusals." in content
     assert "Notes from earlier runs" in content and "Recent steps (last 3 of 3)" in content
+    assert "reviewer" not in content
+
+
+def test_a_replan_request_lists_what_the_reviewer_refused_in_this_run():
+    tracker = tracked(TRANSFER, MIX)
+    _, ledger = transferred()
+    tracker.advance(ledger.snapshot())
+    planner, model, _ = make_planner(plan_text(MIX))
+    refusals = ["pour receiver=b target=a (refused 2 time(s)): pour would add x to b."]
+    planner.make(SYSTEM, ledger.snapshot(), None, reason="a mismatch", tracker=tracker,
+                 refusals=refusals)
+    content = model.calls[0]["messages"][0]["content"]
+    assert "Actions SafeLab's reviewer has refused in this run" in content
+    assert "- " + refusals[0] in content
+    assert "leave that part out of the plan" in content
+    assert content.index(refusals[0]) < content.index("being revised because a mismatch.")
 
 
 @pytest.mark.parametrize("text, expected", [

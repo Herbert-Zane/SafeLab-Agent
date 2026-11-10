@@ -53,6 +53,13 @@ def test_the_message_carries_plan_ledger_recent_steps_and_verbatim_feedback():
     assert "Recent steps (last 2 of 4):" in text and "  0: " not in text
     assert feedback in text and actor_module.RECOVERY_NOTES["remediate"] in text
     assert text.rstrip().endswith(actor_module.CLOSING)
+    assert "reviewer" not in text
+    refusal = "pour receiver=b target=a (refused 1 time(s)): pour would add x to b."
+    with_refusals = build_message(plan_text="Plan", snapshot=ledger.snapshot(),
+                                  observation=scene.obs(4), focus=set(), feedback=feedback,
+                                  refusals=[refusal])
+    assert actor_module.REFUSALS_HEADING in with_refusals and "- " + refusal in with_refusals
+    assert with_refusals.index(refusal) < with_refusals.index("Feedback on the previous turn:")
 
 
 def test_an_invalid_reply_shows_the_json_that_was_rejected():

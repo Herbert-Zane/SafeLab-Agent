@@ -15,7 +15,8 @@ critic_rejected      SafeLab's critic (condition C)           rewrite; replan at
                                                               Across turns: the same action
                                                               (``action_key``) refused
                                                               ``repeat_limit`` times in the
-                                                              run -> safe_terminate
+                                                              run -> safe_terminate; the
+                                                              refusal before that -> replan
 expectation_mismatch the planner's expected observations      replan
 api_error            the resilience layer ran out of retries  backend_error (to the platform)
 budget_exhausted     SafeLab's own cost total                 safe_terminate (finish + reason)
@@ -29,6 +30,15 @@ train entries and logs which ones it read. An entry records an action the
 platform refused, its error, and what was carried out before the same action
 succeeded; it is a statement of what happened, not advice.
 
+Refusal memory (condition C). The critic's reason for a refusal used to reach
+the actor only in the turn it happened, and the planner only when two refusals
+fell in one turn. A plan revised for any other reason then asked for the
+refused action again. ``Reflexion.refusals`` keeps, for the whole run, each
+refused action with its latest reason; ``refusal_lines`` renders them for the
+planner's revision request and the actor's message. They state what the critic
+did and why, in its own words. A run with no refusal (every run of condition B)
+gets no such text.
+
 No platform import.
 """
 from __future__ import annotations
@@ -36,6 +46,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from copy import deepcopy
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -116,6 +127,8 @@ class Reflexion:
         self.critic_rejections = 0
         #: action_key -> refusals in this run. Never reset: not by a pass, not by a replan.
         self.refused = {}
+        #: action_key -> {"action", "reason", "count"}: the latest refusal of each. Never reset.
+        self.refusals = {}
         self.failures = []            # (step, action, error) of refused actions
         self.history = []             # every Assessment, in order
 
@@ -157,18 +170,23 @@ class Reflexion:
 
         Within a step: rewrite, then replan, then safe_terminate. Across the run:
         the ``repeat_limit``-th refusal of the same action (``action_key``) is a
-        safe_terminate whatever the step count says.
+        safe_terminate whatever the step count says, and the refusal before it
+        is a replan: the plan still calls for an action that will not be passed.
         """
         self.critic_rejections += 1
         key = action_key(action)
         repeats = None
         if key is not None:
             repeats = self.refused[key] = self.refused.get(key, 0)+1
+            self.refusals[key] = {"action": deepcopy(action), "reason": reason,
+                                  "count": repeats}
         if self.repeat_limit and repeats is not None and repeats >= self.repeat_limit:
             strategy = "safe_terminate"
         elif self.critic_rejections > self.critic_limit:
             strategy = "safe_terminate"
         elif self.critic_rejections == self.critic_limit:
+            strategy = "replan"
+        elif self.repeat_limit > 2 and repeats == self.repeat_limit-1:
             strategy = "replan"
         else:
             strategy = "rewrite"
@@ -177,6 +195,11 @@ class Reflexion:
 
     def critic_passed(self):
         self.critic_rejections = 0
+
+    def refusal_lines(self):
+        """One line per action the critic has refused in this run, oldest first."""
+        return [f"{key} (refused {entry['count']} time(s)): {entry['reason']}"
+                for key, entry in self.refusals.items()]
 
     def api_error(self, detail):
         return self._note(Assessment("api_error", "backend_error", detail=detail))

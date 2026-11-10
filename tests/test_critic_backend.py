@@ -132,7 +132,8 @@ def test_the_same_action_refused_across_turns_ends_the_run_at_the_limit(episode)
     assert "pbs" not in backend.ledger.containers["naocl_stock"].components_ul
     rejected = [r for r in events(rows, "reflect") if r["kind"] == "critic_rejected"]
     assert [r["repeats"] for r in rejected] == [1, 2, 3]
-    assert [r["strategy"] for r in rejected] == ["rewrite", "rewrite", "safe_terminate"]
+    # the second refusal of the same action revises the plan, the third ends the run
+    assert [r["strategy"] for r in rejected] == ["rewrite", "replan", "safe_terminate"]
     assert {r["signature"] for r in rejected} == {"aspirate target=naocl_stock"}
     limit = events(rows, "refusal_limit")
     assert len(limit) == 1 and limit[0]["repeats"] == 3 and limit[0]["limit"] == 3
@@ -145,6 +146,45 @@ def test_the_same_action_refused_across_turns_ends_the_run_at_the_limit(episode)
     assert "has been refused 1 time(s) in this run; at 3 the run ends" in retry_prompt
     assert rows[-1]["event"] == "run_end"
     assert rows[-1]["refused"] == {"aspirate target=naocl_stock": 3}
+
+
+def test_a_refusal_is_carried_into_every_later_plan_revision_and_actor_message(episode):
+    back = asp("naocl_stock", 500)
+    pause = {"action": "wait", "target": "waste_aqueous", "duration_s": 5}
+    plan = plan_text(stage("treat", [check("waste_aqueous", "closure_status", "eq", "closed")],
+                           max_actions=20))
+    summary, backend, rows = episode(spec([
+        P1000, asp("naocl_stock", 500), disp("waste_aqueous", 500),
+        back, pause,                       # refused (1): asked again in the same turn
+        pause,                             # a later turn: the refusal is still in the message
+        asp("naocl_stock", 800), pause,    # refused (2): the plan is revised
+        FINISH], planner=[plan, plan]), "waste_segregation")
+    assert summary["outcome"] == "finished_by_agent"
+    assert events(rows, "refusal_limit") == []
+    line = "- aspirate target=naocl_stock (refused 1 time(s)): "
+    proposed = events(rows, "proposed")
+    before = [r["prompt"] for r in proposed if r["call"] <= 3]
+    assert before and not any("has refused in this run" in p for p in before)
+    later = next(r["prompt"] for r in proposed if r["call"] == 5)
+    assert "Actions SafeLab's reviewer has refused in this run" in later and line in later
+    assert "say so in the finish reason" in later
+    replan = events(rows, "replan")
+    assert len(replan) == 1
+    assert "refused the same action (aspirate target=naocl_stock) 2 times" in replan[0]["reason"]
+    assert replan[0]["refusals"] == backend.reflexion.refusal_lines()
+    assert replan[0]["refusals"][0].startswith("aspirate target=naocl_stock (refused 2 time(s)): ")
+    assert backend.reflexion.refusals["aspirate target=naocl_stock"]["action"] == \
+        asp("naocl_stock", 800)
+
+
+def test_condition_b_messages_never_mention_the_reviewer(episode):
+    b = spec([P1000, asp("naocl_stock", 500), disp("waste_aqueous", 500),
+              asp("naocl_stock", 500), FINISH])
+    b["condition"] = "B"
+    del b["critic"]
+    _, backend, rows = episode(b, "waste_segregation")
+    assert backend.reflexion.refusal_lines() == []
+    assert not any("reviewer" in r["prompt"] for r in events(rows, "proposed"))
 
 
 def test_the_refusal_count_is_per_action_and_survives_passes_and_replans():
@@ -160,9 +200,21 @@ def test_the_refusal_count_is_per_action_and_survives_passes_and_replans():
     assert r.critic_rejection("why", asp("y", 1)).repeats == 1
     assert r.critic_rejection("why", asp("x", 5)).strategy == "replan"   # the per-step count
     r.critic_passed()
-    third = r.critic_rejection("why", asp("x", 9))
+    third = r.critic_rejection("why now", asp("x", 9))
     assert (third.repeats, third.strategy) == (3, "safe_terminate")
     assert third.record()["repeats"] == 3
+    assert r.refusal_lines() == ["aspirate target=x (refused 3 time(s)): why now",
+                                 "aspirate target=y (refused 1 time(s)): why"]
+    # one refusal before the limit revises the plan, also when it is the first of its step
+    r = Reflexion(critic_limit=2, repeat_limit=3)
+    first = r.critic_rejection("why", asp("x", 1))
+    r.critic_passed()
+    second = r.critic_rejection("why", asp("x", 2))
+    assert (first.strategy, second.strategy, second.same_kind) == ("rewrite", "replan", 1)
+    two = Reflexion(critic_limit=2, repeat_limit=2)       # no room for a replan before the end
+    assert two.critic_rejection("why", asp("x", 1)).strategy == "rewrite"
+    two.critic_passed()
+    assert two.critic_rejection("why", asp("x", 1)).strategy == "safe_terminate"
     off = Reflexion(critic_limit=99, repeat_limit=0)
     assert [off.critic_rejection("why", back).strategy
             for back in [asp("x", 1)]*5] == ["rewrite"]*5

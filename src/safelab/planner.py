@@ -508,12 +508,24 @@ def planner_system(system):
     return PLANNER_PROTOCOL+"\n"+tail
 
 
-def plan_request(snapshot, observation, *, notes=(), reason=None, tracker=None, k=6):
+REFUSALS_HEADING = "Actions SafeLab's reviewer has refused in this run, each with its reason:"
+REFUSALS_PLAN_NOTE = (
+    "The reviewer refuses each of them for as long as its reason holds. Do not write a stage "
+    "that needs one of them in that state, or whose expected checks can only be met by it. "
+    "Reach what the assignment asks for another way with what is on the bench; if a part of "
+    "it cannot be reached otherwise, leave that part out of the plan.")
+
+
+def plan_request(snapshot, observation, *, notes=(), reason=None, tracker=None, k=6,
+                 refusals=()):
     parts = ["Observed state of the bench:", render_ledger(snapshot, observation)]
     if notes:
         parts += ["", "Notes from earlier runs (actions that were refused, and what was "
                       "carried out before they succeeded):",
                   *[f"- {note}" for note in notes]]
+    if refusals:
+        parts += ["", REFUSALS_HEADING, *[f"- {line}" for line in refusals],
+                  REFUSALS_PLAN_NOTE]
     if reason is None:
         parts += ["", "Write the plan for the whole assignment."]
     else:
@@ -546,13 +558,14 @@ class Planner:
         self.emit = emit or (lambda event, **fields: None)
 
     def make(self, system, snapshot, observation, *, notes=(), reason=None, tracker=None,
-             version=1):
+             version=1, refusals=()):
         result = PlanResult(stages=None, source="fallback")
         if self.role is None:
             result.errors.append("no planner role configured")
             return result
         messages = [{"role": "user", "content": plan_request(
-            snapshot, observation, notes=notes, reason=reason, tracker=tracker)}]
+            snapshot, observation, notes=notes, reason=reason, tracker=tracker,
+            refusals=refusals)}]
         system_text = planner_system(system)
         corrections = 0
         empties = 0
