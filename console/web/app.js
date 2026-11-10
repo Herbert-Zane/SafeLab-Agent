@@ -674,7 +674,7 @@ async function renderLedger() {
   const parts = [h("h2", {}, title)];
   if (!ledger) { box.replaceChildren(...parts, h("div", { class: "muted" }, "没有可显示的状态。")); return; }
   if (data.kind === "observation") parts.push(h("div", { class: "note" }, "该运行没有执行账本：下面是由平台观测还原的状态，没有枪头接触史。"));
-  if (ledger.robot) parts.push(h("div", { class: "small" }, "机器人：", jsonText(ledger.robot)));
+  if (ledger.robot) parts.push(robotLine(ledger.robot, hit));
   parts.push(h("h3", {}, "容器"), tableOf(["容器", "体积 µL", "成分 µL", "开闭", "位置"],
     Object.entries(ledger.containers || {}).map(([id, c]) => ({
       changed: hit(`containers.${id}`),
@@ -701,12 +701,35 @@ async function renderLedger() {
     }))));
   }
   const unconfirmed = data.unconfirmed || ledger.unconfirmed || [];
-  if (unconfirmed.length) parts.push(h("div", { class: "note" }, "未确认项：" + jsonText(unconfirmed)));
+  if (unconfirmed.length) {
+    parts.push(h("div", { class: "note" }, `未确认项（回读里出现、但没有动作能解释的变化，${unconfirmed.length} 项）：`,
+      h("ul", { class: "contacts" }, ...unconfirmed.map((u) => h("li", {}, unconfirmedText(u))))));
+  }
   if (S.sel !== "initial") {
     parts.push(h("h3", {}, `本步 diff（${changes.length} 项）`),
       changes.length ? h("div", { class: "diff" }, ...changes.map(changeLine)) : h("div", { class: "muted small" }, "无（或回读尚未发生）"));
   }
   box.replaceChildren(...parts);
+}
+
+const ROBOT_FIELDS = { held_object: "手持", attached_tip: "已装枪头", pipette_type: "移液器规格", tool_held: "手中有工具" };
+const plainValue = (v) => (v == null || v === "" ? "无" : v === true ? "是" : v === false ? "否" : String(v));
+
+// The robot row of the ledger as labelled values; fields this page does not know are listed as they are.
+function robotLine(robot, hit) {
+  const known = Object.entries(ROBOT_FIELDS).filter(([key]) => key in robot || key !== "tool_held").map(([key, label]) =>
+    h("span", { class: hit(`robot.${key}`) ? "chgv" : "" }, h("b", {}, label + " "), plainValue(robot[key])));
+  const rest = Object.entries(robot).filter(([key, v]) => !(key in ROBOT_FIELDS) && v != null && v !== "")
+    .map(([key, v]) => h("span", { class: hit(`robot.${key}`) ? "chgv" : "" }, h("b", {}, key + " "), fmtValue(v)));
+  return h("div", { class: "head-grid small" }, h("span", {}, h("b", {}, "机器人")), ...known, ...rest);
+}
+
+function unconfirmedText(item) {
+  if (item == null || typeof item !== "object") return fmtValue(item);
+  const step = item.step != null ? `步 ${item.step}：` : "";
+  if (item.detail) return step + item.detail;
+  const rest = Object.entries(item).filter(([key]) => key !== "step").map(([key, v]) => `${key} ${fmtValue(v)}`).join("，");
+  return step + rest;
 }
 
 function tableOf(headers, rows) {
@@ -760,15 +783,36 @@ function renderEval() {
   if (ev.banner) parts.push(h("div", { class: "big-note warn" }, ev.banner));
   const ex = ev.execution_status || {};
   parts.push(h("div", { class: "small" }, `执行状态：${ex.status || "—"}${ex.reason ? "（" + ex.reason + "）" : ""}；仿真时间 ${ev.simulation_time_s ?? "—"} s`));
+  const found = ev.dimensions.reduce((n, d) => n + d.consequences.length, 0);
+  parts.push(h("div", { class: "muted small" }, found ? (ev.trace_basis_text || "") : "评测文件里没有后果记录，无可对应的步骤。"));
   for (const d of ev.dimensions) {
     parts.push(h("div", { class: `eval-dim tone-${d.tone}` },
       h("div", {}, h("b", {}, d.label + "　"), h("span", { class: `badge ${d.tone === "bad" ? "b-bad" : d.tone === "warn" ? "b-warn" : "b-neutral"}` }, d.status_text)),
-      ...d.consequences.map((c) => h("div", { class: "small" }, `后果 ${c.type || ""}（${c.category || ""}）：${jsonText(c.entities || "")} 发生于 ${c.occurred_time_s ?? "?"} s`)),
+      ...d.consequences.map((c) => h("div", { class: "small" },
+        `后果 ${c.type || ""}（${c.category || ""}）：${entitiesText(c.entities)}，发生于 ${c.occurred_time_s ?? "?"} s。`,
+        whereLink(c.where))),
       d.coverage.length ? h("div", { class: "muted small" }, `已声明覆盖：${d.coverage.length} 项`) : h("div", { class: "muted small" }, "没有声明覆盖"),
       ...d.checks.map((c) => h("div", { class: "small" }, `目标检查：${jsonText(c)}`))));
   }
   if (ev.limitations.length) parts.push(h("details", {}, h("summary", {}, "评测器声明的限制"), h("ul", {}, ...ev.limitations.map((l) => h("li", {}, l)))));
   box.replaceChildren(...parts);
+}
+
+function entitiesText(entities) {
+  if (entities == null || entities === "") return "未列出实体";
+  if (Array.isArray(entities)) return entities.map(fmtValue).join("、") || "未列出实体";
+  if (typeof entities === "object") return Object.entries(entities).map(([key, v]) => `${key} ${fmtValue(v)}`).join("，");
+  return String(entities);
+}
+
+// Which step a consequence falls in (computed by runstore.locate). A known step is a link to that step.
+function whereLink(where) {
+  if (!where) return null;
+  const turn = where.step == null ? null : S.run.turns.find((t) => t.step === where.step);
+  if (!turn) return h("span", { class: where.kind === "unknown" ? "muted" : "" }, where.text);
+  const link = h("a", { href: "#" }, where.text);
+  link.addEventListener("click", (event) => { event.preventDefault(); selectTurn(turn.call); });
+  return link;
 }
 
 function lastSeq() {

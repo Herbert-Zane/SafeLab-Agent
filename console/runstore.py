@@ -30,8 +30,11 @@ from datetime import datetime
 from pathlib import Path
 
 RUN_FILES = ("agent_run.json", "agent_steps.jsonl", "agent_plan.json", "agent_conversation.json",
-             "agent_system_prompt.txt", "trajectory_evaluation.json", "safelab_trace.jsonl")
+             "agent_system_prompt.txt", "trajectory_evaluation.json", "safelab_trace.jsonl",
+             "actions.jsonl")
 TRACE = "safelab_trace.jsonl"
+#: The simulator's own action log (start and end time of every step), when the run has one.
+ACTIONS = "actions.jsonl"
 STEPS = "agent_steps.jsonl"
 RUN = "agent_run.json"
 EVALUATION = "trajectory_evaluation.json"
@@ -627,22 +630,92 @@ def usage_totals(turns, agent_run=None):
 
 # --------------------------------------------------------------------------- evaluation
 
-def _dimension(key, label, body):
+def _number(value):
+    return value if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+
+
+def step_windows(actions=None, steps=None):
+    """``(windows, basis)``: when each step ran, for placing a consequence on the timeline.
+
+    From the simulator's ``actions.jsonl`` when the run has one (``start_time_s`` and
+    ``end_time_s`` per step; basis ``"actions"``). Otherwise from the cumulative simulation
+    time the platform records after each step in ``agent_steps.jsonl`` (a step starts where
+    the one before it ended; basis ``"steps"``). ``([], None)`` when neither gives a time.
+    """
+    windows = []
+    for row in actions or []:
+        start, end = _number(row.get("start_time_s")), _number(row.get("end_time_s"))
+        if start is not None and end is not None:
+            windows.append({"step": row.get("step"), "action": action_label(row.get("action"))
+                            if isinstance(row.get("action"), dict) else row.get("action"),
+                            "start_s": start, "end_s": end})
+    if windows:
+        return windows, "actions"
+    previous = 0.
+    for row in steps or []:
+        end = _number((row.get("execution") or {}).get("simulation_time_s"))
+        if end is None:
+            continue
+        windows.append({"step": row.get("step_index"),
+                        "action": action_label(row.get("parsed_action")),
+                        "start_s": previous, "end_s": end})
+        previous = end
+    return windows, ("steps" if windows else None)
+
+
+def locate(time_s, windows):
+    """Where on the step timeline ``time_s`` falls: during a step, between two, or outside.
+
+    The same attribution the platform's ``scripts/consequence_trace.py`` prints, computed
+    from the run's own files. No time, or no step times: ``unknown``, shown as not assessed.
+    """
+    time_s = _number(time_s)
+    if time_s is None or not windows:
+        return {"kind": "unknown", "step": None,
+                "text": "未评估：缺少后果时间或步骤时间，无法对应到步骤"}
+    for row in windows:
+        if row["start_s"] <= time_s <= row["end_s"]:
+            return {"kind": "during", "step": row["step"],
+                    "text": f"发生在步 {row['step']}（{row['action']}）执行期间"}
+    before = [row for row in windows if row["end_s"] <= time_s]
+    after = [row for row in windows if row["start_s"] >= time_s]
+    if before and after:
+        return {"kind": "between", "step": before[-1]["step"],
+                "text": f"发生在步 {before[-1]['step']}（{before[-1]['action']}）结束之后、"
+                        f"步 {after[0]['step']}（{after[0]['action']}）开始之前"}
+    return {"kind": "outside", "step": None, "text": "不在已记录的步骤时间范围内"}
+
+
+def _dimension(key, label, body, windows=None):
     status = (body or {}).get("status")
     text, tone = STATUS_LABELS.get(status, (f"未识别状态：{status}（按未评估处理）", "warn"))
+    consequences = []
+    for item in (body or {}).get("consequences") or []:
+        if isinstance(item, dict):
+            item = {**item, "where": locate(item.get("occurred_time_s"), windows)}
+        consequences.append(item)
     return {"key": key, "label": label, "status": status, "status_text": text, "tone": tone,
-            "consequences": (body or {}).get("consequences") or [],
+            "consequences": consequences,
             "coverage": (body or {}).get("coverage") or [],
             "limitations": (body or {}).get("limitations") or [],
             "checks": (body or {}).get("checks") or []}
 
 
-def evaluation_view(source, evaluation):
+TRACE_BASIS_LABELS = {
+    "actions": "后果对应到步骤：按仿真动作日志 actions.jsonl 的起止时间。",
+    "steps": "后果对应到步骤：运行目录里没有 actions.jsonl，按每步结束时的累计仿真时间推算，"
+             "步与步之间的空档无法区分。",
+    None: "后果对应到步骤：未评估（运行目录里没有步骤时间）。",
+}
+
+
+def evaluation_view(source, evaluation, windows=None, basis=None):
     """What the evaluator panel shows. ``source`` is the dict from ``classify_source``.
 
     No evaluation file: a dry run says "not assessed"; a simulation says the
     report is not there yet. With a file: its dimensions, worded so that an
-    absent consequence is never read as "safe".
+    absent consequence is never read as "safe". ``windows`` and ``basis`` come from
+    ``step_windows``; with them every consequence says which step it falls in.
     """
     kind = source["kind"]
     if not isinstance(evaluation, dict):
@@ -660,13 +733,14 @@ def evaluation_view(source, evaluation):
     if kind != "simulation":
         banner = ("此评测来自计划级推演或来源不明的运行：结论成立的前提是每个动作都按所写执行，"
                   "不是仿真结果。")
-    dims = [_dimension("task_completion", "任务完成", evaluation.get("task_completion")),
+    dims = [_dimension("task_completion", "任务完成", evaluation.get("task_completion"), windows),
             _dimension("scientific_integrity", "科学完整性",
-                       evaluation.get("scientific_integrity")),
-            _dimension("safety", "安全", evaluation.get("safety"))]
+                       evaluation.get("scientific_integrity"), windows),
+            _dimension("safety", "安全", evaluation.get("safety"), windows)]
     execution = evaluation.get("execution_status") or {}
     return {"state": "present", "kind": kind, "tone": "neutral", "banner": banner,
             "headline": "评测器报告", "execution_status": execution,
+            "trace_basis": basis, "trace_basis_text": TRACE_BASIS_LABELS.get(basis),
             "dimensions": dims, "limitations": evaluation.get("limitations") or [],
             "consequence_ids": evaluation.get("consequence_ids") or [],
             "simulation_time_s": evaluation.get("simulation_time_s"),
@@ -800,7 +874,8 @@ def load_run(root, rid, now=None):
         "reviewer": reviewer, "has_trace": has_trace, "source": source, "state": state,
         "info": run_info, "initial": initial, "turns": turns,
         "plan": states, "usage": usage_totals(turns, agent_run),
-        "evaluation": evaluation_view(source, evaluation),
+        "evaluation": evaluation_view(source, evaluation,
+                                      *step_windows(read_jsonl(run_dir/ACTIONS), steps)),
         "t_start": t0, "t_end": t1, "duration_s": seconds_between(t0, t1),
         "reflection": (info or {}).get("reflection", []),
         "run_end": ({k: run_end.get(k) for k in ("calls", "unconfirmed", "assessments", "critic")}

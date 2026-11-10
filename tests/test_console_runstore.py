@@ -383,6 +383,80 @@ def test_a_simulation_without_a_report_says_it_is_missing():
     assert "尚未生成" in runstore.evaluation_view(source, None)["headline"]
 
 
+# ------------------------------------------------------------------ consequence -> step
+# Synthetic times only: no simulator artifact was available when this was written.
+
+ACTION_ROWS = [
+    {"step": 0, "action": "pick_up", "start_time_s": 0.0, "end_time_s": 2.0},
+    {"step": 1, "action": "pour", "start_time_s": 3.0, "end_time_s": 6.0},
+    {"step": 2, "action": "put_down", "start_time_s": 6.5, "end_time_s": 8.0},
+    {"step": 3, "action": "wait"},                       # no times: left out
+]
+
+
+def test_step_windows_prefer_the_simulator_action_log():
+    steps = [{"step_index": 0, "parsed_action": {"action": "pick_up"},
+              "execution": {"simulation_time_s": 99.0}}]
+    windows, basis = runstore.step_windows(ACTION_ROWS, steps)
+    assert basis == "actions"
+    assert [(w["step"], w["start_s"], w["end_s"]) for w in windows] == [
+        (0, 0.0, 2.0), (1, 3.0, 6.0), (2, 6.5, 8.0)]
+
+
+def test_step_windows_fall_back_to_cumulative_step_time():
+    steps = [
+        {"step_index": 0, "parsed_action": {"action": "pick_up", "target": "pipette"},
+         "execution": {"simulation_time_s": 2.0}},
+        {"step_index": 1, "parsed_action": None, "execution": None},     # an invalid reply
+        {"step_index": 2, "parsed_action": {"action": "pour"},
+         "execution": {"simulation_time_s": 5.5}},
+    ]
+    windows, basis = runstore.step_windows([], steps)
+    assert basis == "steps"
+    assert [(w["step"], w["start_s"], w["end_s"]) for w in windows] == [(0, 0.0, 2.0),
+                                                                         (2, 2.0, 5.5)]
+    assert runstore.step_windows([], [{"step_index": 0}]) == ([], None)
+
+
+@pytest.mark.parametrize("time_s, kind, step", [
+    (4.0, "during", 1), (3.0, "during", 1), (6.2, "between", 1), (2.5, "between", 0),
+    (9.0, "outside", None), (None, "unknown", None), ("soon", "unknown", None),
+])
+def test_a_consequence_time_is_placed_on_the_step_timeline(time_s, kind, step):
+    windows, _ = runstore.step_windows(ACTION_ROWS)
+    where = runstore.locate(time_s, windows)
+    assert (where["kind"], where["step"]) == (kind, step)
+
+
+def test_without_step_times_the_place_is_not_assessed():
+    where = runstore.locate(4.0, [])
+    assert where["kind"] == "unknown" and "未评估" in where["text"]
+
+
+def test_evaluator_consequences_carry_their_step(tmp_path):
+    evaluation = {**EVALUATION, "safety": {"status": "unsafe", "coverage": [], "consequences": [
+        {"type": "incompatible_mix", "category": "chemical", "occurred_time_s": 4.0,
+         "entities": ["a", "b"]},
+        {"type": "spill", "category": "chemical"}]}}
+    run = make_c_run(tmp_path, environment="simulation", with_eval=evaluation)
+    (run/"actions.jsonl").write_text(
+        "".join(json.dumps(row)+"\n" for row in ACTION_ROWS), encoding="utf-8")
+    view = runstore.load_run(tmp_path, "dry/C_test")["evaluation"]
+    safety = [d for d in view["dimensions"] if d["key"] == "safety"][0]
+    assert view["trace_basis"] == "actions" and "actions.jsonl" in view["trace_basis_text"]
+    assert safety["consequences"][0]["where"]["kind"] == "during"
+    assert safety["consequences"][0]["where"]["step"] == 1
+    assert safety["consequences"][1]["where"]["kind"] == "unknown"
+    assert safety["consequences"][0]["type"] == "incompatible_mix"
+
+
+def test_the_action_log_is_part_of_the_run_signature(tmp_path):
+    run = make_c_run(tmp_path, environment="simulation", with_eval=EVALUATION)
+    before = runstore.signature(run)
+    (run/"actions.jsonl").write_text(json.dumps(ACTION_ROWS[0])+"\n", encoding="utf-8")
+    assert runstore.signature(run) != before
+
+
 # ------------------------------------------------------------------ real runs
 
 def _real(name):

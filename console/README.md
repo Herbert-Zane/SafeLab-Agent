@@ -25,7 +25,7 @@ Ctrl+C 退出；由页面启动的子进程会一并结束。
 ## 数据来源与读取的文件
 
 运行目录里只读这些：`agent_run.json`、`agent_steps.jsonl`、`agent_plan.json`、`agent_conversation.json`、
-`agent_system_prompt.txt`、`trajectory_evaluation.json`、`safelab_trace.jsonl`。
+`agent_system_prompt.txt`、`trajectory_evaluation.json`、`safelab_trace.jsonl`、`actions.jsonl`（仿真的动作日志，有才读）。
 不读平台的 `configs/knowledge/`，也不读任务的 criteria；评测器内容只来自运行目录里已有的 `trajectory_evaluation.json`。
 
 页面顶部固定显示数据来源：
@@ -37,6 +37,11 @@ Ctrl+C 退出；由页面启动的子进程会一并结束。
 
 评测器面板的措辞规则：评测器的 `no_detected_consequence` 显示为“未检出后果（仅限已声明覆盖范围，不等于安全）”；
 `not_assessed`、`unknown` 和任何没见过的状态都显示为“未评估”。干跑旁边若有评测文件（计划级推演），会加黄色横幅说明它不是仿真结果。
+
+后果对应到哪一步：评测文件里每条后果带 `occurred_time_s` 时，面板写明它落在哪一步执行期间、哪两步之间，或不在记录范围内；
+能对应到步骤的是链接，点击跳到那一步。步骤的起止时间优先取 `actions.jsonl`（`start_time_s`、`end_time_s`），没有这个文件时
+按 `agent_steps.jsonl` 里每步结束时的累计仿真时间推算，并在面板上注明是推算。两者都没有，或后果没有时间，显示“未评估”。
+这与平台 `scripts/consequence_trace.py` 的归属方法相同，但控制台不调用平台脚本，只读运行目录里的文件。
 
 ## 面板
 
@@ -84,8 +89,9 @@ Ctrl+C 退出；由页面启动的子进程会一并结束。
 
 - 只做过静态检查和接口测试，以及在内置浏览器里的冒烟检查；没有做过多浏览器、多分辨率的视觉验收。
 - 仿真运行没有真实样本：`trajectory_evaluation.json` 的显示按平台 `evaluator.py` 的输出结构编写，没有拿真实仿真产物验证过。
-- 执行规划 S3.3 第 6 项里“用平台 `scripts/consequence_trace.py` 得到后果对应到哪一步”没有做：控制台不调用平台脚本；
-  评测器面板只列出评测文件里的后果记录。
+- “后果对应到哪一步”只用合成数据测过（`tests/test_console_runstore.py`），没有拿真实仿真产物验证过。
+  仿真运行目录里是否有 `actions.jsonl`、字段名是否如上，要等第一次仿真运行后核对；
+  平台脚本还会列出接触证据和注入的偏差，控制台没有做这两项。
 - 实时跟踪靠轮询文件，每次整文件重解析（约几百 KB 内无感）；日志特别大时会变慢。
 - “进行中”只按文件最近修改时间和有无 `run_end` 判断，进程被杀死的运行 120 秒后显示“日志已停止更新”。
 - `agent_conversation.json`、`agent_system_prompt.txt` 不在界面显示；模型回复与推理摘要在页面里截断为 4000 字符，完整内容见 `/api/step`。

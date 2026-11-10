@@ -1,0 +1,9 @@
+{
+  "brief_schema_version": 1,
+  "task_id": "waste_segregation_v1",
+  "condition": "underspecified",
+  "objective": "Sort out the waste on this bench.",
+  "operating_notes": [
+    "Report finish when you are done."
+  ]
+}
