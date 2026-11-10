@@ -29,6 +29,7 @@ import argparse
 import json
 import math
 import sys
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -77,10 +78,18 @@ def usage_of(verdict):
         return 0, 0., 0.
     get = (lambda key: usage.get(key)) if isinstance(usage, dict) \
         else (lambda key: getattr(usage, key, None))
-    tokens = get("tokens") or get("total_tokens") or 0
+    tokens = (get("tokens") or get("total_tokens")
+              or (get("input_tokens") or 0)+(get("output_tokens") or 0))
     cost = get("cost") or get("cost_usd") or 0.
     latency = get("latency") or get("latency_s") or 0.
     return tokens, cost, latency
+
+
+def actual_cost_of(verdict, cost):
+    """Cost with provider-reported cache hits at the cache-read price; ``cost`` if not given."""
+    usage = getattr(verdict, "usage", None)
+    actual = usage.get("actual_cost_usd") if isinstance(usage, dict) else None
+    return cost if actual is None else actual
 
 
 def compute_metrics(rows):
@@ -97,6 +106,8 @@ def compute_metrics(rows):
         "by_category": {}, "by_source": {},
         "mean_tokens": _mean([r["tokens"] for r in ok]),
         "mean_cost_usd": _mean([r["cost"] for r in ok]),
+        "mean_actual_cost_usd": _mean([r.get("actual_cost", r["cost"]) for r in ok]),
+        "total_actual_cost_usd": sum(r.get("actual_cost", r["cost"]) for r in ok),
         "mean_latency_s": _mean([r["latency"] for r in ok]),
         "total_cost_usd": sum(r["cost"] for r in ok),
     }
@@ -226,17 +237,19 @@ class Stub:
                        rule_ids=[str(basis)] if label == "unsafe" else [])
 
 
-#: The review model's own agent config, so the critic sends the same request
-#: parameters as condition A does with that model.
-MODEL_CONFIGS = {"deepseek-flash": common.EVAL_DIR.parent/"configs/agents/deepseek_flash.json",
-                 "deepseek-v4-pro": common.EVAL_DIR.parent/"configs/agents/deepseek_v4_pro.json"}
+#: The condition C agent config whose critic role is that review model, so the benchmark
+#: scores the critic with the request parameters condition C actually sends (the critic's
+#: ``reasoning_effort`` differs from condition A's since 2026-11-09, see the critic CHANGELOG).
+MODEL_CONFIGS = {
+    "deepseek-flash": common.EVAL_DIR.parent/"configs/agents/safelab_C_flash.json",
+    "deepseek-v4-pro": common.EVAL_DIR.parent/"configs/agents/safelab_C_flash_procritic.json"}
 
 
 def make_config(base, model):
-    """``base`` for the rules mode; the model's agent config when a model is named.
+    """``base`` for the rules mode; the condition C config when a review model is named.
 
-    ``Critic.from_config`` reads a plain platform agent config as "its backend is
-    the critic's model", so a bare model name in ``base`` would be ignored.
+    ``Critic.from_config`` takes the model from that config's ``backend.roles.critic``;
+    a bare model name in ``base`` would be ignored.
     """
     if model is None:
         return dict(base)
@@ -267,23 +280,37 @@ def review_one(critic, case):
         if decision not in ("pass", "block", "rewrite"):
             raise ValueError(f"unexpected decision {decision!r}")
         tokens, cost, latency = usage_of(out)
+        actual = actual_cost_of(out, cost)
         error = None
     except Exception as exc:  # noqa: BLE001 - one bad call must not stop the run
-        out, decision, tokens, cost, latency = None, "error", 0, 0., 0.
+        out, decision, tokens, cost, latency, actual = None, "error", 0, 0., 0., 0.
         error = f"{type(exc).__name__}: {exc}"
     wall = time.perf_counter()-start
     return {"id": case["id"], "label": case["label"], "category": case["category"],
             "source": case["source"], "decision": decision, "tokens": tokens, "cost": cost,
-            "latency": latency or wall, "wall_s": wall, "error": error,
+            "actual_cost": actual, "latency": latency or wall, "wall_s": wall, "error": error,
             "rule_ids": list(getattr(out, "rule_ids", []) or []),
             "channel": getattr(out, "channel", None),
             "reason": (getattr(out, "reason", "") or "")[:300]}
 
 
 def run_config(mode, model, cases, base, stub, workers):
-    critic = make_critic(mode, model, base, stub)
+    """One critic per worker thread.
+
+    A critic prices a review from its own usage meter (the records added since the review
+    began), so a critic shared between threads would charge each case for the calls the
+    other threads made in the meantime.
+    """
+    make_critic(mode, model, base, stub)     # fail here, not inside a worker
+    local = threading.local()
+
+    def review(case):
+        if not hasattr(local, "critic"):
+            local.critic = make_critic(mode, model, base, stub)
+        return review_one(local.critic, case)
+
     with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
-        return list(pool.map(lambda case: review_one(critic, case), cases))
+        return list(pool.map(review, cases))
 
 
 def pct(block):
@@ -307,8 +334,9 @@ def report_markdown(results, meta):
             continue
         out += [f"## {section}", "",
                 "| config | recall (unsafe caught) | false block (safe blocked) | "
-                "reference false block | G2 | USD/call | s/call | errors |",
-                "|---|---|---|---|---|---|---|---|"]
+                "reference false block | G2 | USD/call (list) | USD/call (cache-adjusted) | "
+                "s/call | errors |",
+                "|---|---|---|---|---|---|---|---|---|"]
         for name, per in results.items():
             m = per.get(key)
             if not m:
@@ -316,8 +344,11 @@ def report_markdown(results, meta):
             gate = {True: "pass", False: "fail", None: "n/a"}[g2(m)] if key == "main" else "-"
             cost = "n/a" if m["mean_cost_usd"] is None else f"{m['mean_cost_usd']:.5f}"
             lat = "n/a" if m["mean_latency_s"] is None else f"{m['mean_latency_s']:.2f}"
+            actual = m.get("mean_actual_cost_usd")
+            actual = "n/a" if actual is None else f"{actual:.5f}"
             out.append(f"| {name} | {pct(m['recall'])} | {pct(m['false_block'])} | "
-                       f"{pct(m['reference_false_block'])} | {gate} | {cost} | {lat} | "
+                       f"{pct(m['reference_false_block'])} | {gate} | {cost} | {actual} | "
+                       f"{lat} | "
                        f"{m['errors']} |")
         out += ["", f"### {section}: by category", "",
                 "| config | category | metric | result |", "|---|---|---|---|"]

@@ -198,15 +198,19 @@ def test_condition_b_is_never_reviewed(episode):
 # -- configs ----------------------------------------------------------------------------
 
 
-def test_the_c_flash_config_uses_condition_a_requests_for_every_role():
+def test_the_c_flash_config_uses_condition_a_requests_except_the_critic_effort():
+    """Planner and actor send condition A's request; the critic differs in one field only."""
     a = json.loads(A_CONFIG.read_text(encoding="utf-8"))["backend"]
     config = json.loads(C_CONFIG.read_text(encoding="utf-8"))
     backend = config["backend"]
     assert backend["condition"] == "C" and backend["critic"]["mode"] == "dual"
     assert backend["critic"]["llm_trigger"] == "risk"
     for role in ("planner", "actor", "critic"):
-        role_spec = backend["roles"][role]
+        role_spec = json.loads(json.dumps(backend["roles"][role]))
         assert role_spec["provider"] == "openai_compatible_reasoning"
+        if role == "critic":
+            assert role_spec["extra_body"]["reasoning_effort"] == "low"
+            role_spec["extra_body"]["reasoning_effort"] = a["extra_body"]["reasoning_effort"]
         assert {k: v for k, v in role_spec.items() if k != "provider"} == \
             {k: v for k, v in a.items() if k != "provider"}, role
     assert config["limits"]["max_cost_usd"] <= 0.5
