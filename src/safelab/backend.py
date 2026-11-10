@@ -435,6 +435,7 @@ class SafeLabBackend:
                 return out
             if verdict.decision == "rewrite":
                 self.reflexion.critic_passed()
+                self.reflexion.critic_rewrite(verdict.reason, action)
                 self.critic_note = verdict.feedback
                 text = json.dumps(verdict.rewrite, ensure_ascii=False)
                 out.update(action=deepcopy(verdict.rewrite), text=f"```json\n{text}\n```",

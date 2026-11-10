@@ -92,6 +92,10 @@ def test_a_used_tip_is_kept_out_of_the_shared_ethanol_and_the_p1000_tip_takes_ov
     assert trace.chain_gaps(rows) == []
     next_prompt = events(rows, "proposed")[4]["prompt"]
     assert "SafeLab's reviewer replaced" in next_prompt and "p1000_tip (P1000)" in next_prompt
+    # a replaced proposal is remembered for the rest of the run, without counting to a limit
+    remembered = "- aspirate target=ethanol_95 (refused 1 time(s)): "
+    assert all(remembered in r["prompt"] for r in events(rows, "proposed")[4:])
+    assert backend.reflexion.refused == {} and events(rows, "refusal_limit") == []
     end = rows[-1]
     assert end["event"] == "run_end" and end["critic"]["reviews"] == 7
     assert backend.record()["components"]["critic"] == "rules_llm_gate:rules"

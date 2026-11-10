@@ -34,7 +34,8 @@ Refusal memory (condition C). The critic's reason for a refusal used to reach
 the actor only in the turn it happened, and the planner only when two refusals
 fell in one turn. A plan revised for any other reason then asked for the
 refused action again. ``Reflexion.refusals`` keeps, for the whole run, each
-refused action with its latest reason; ``refusal_lines`` renders them for the
+action the critic refused or replaced with its latest reason (a replaced
+proposal was not carried out either); ``refusal_lines`` renders them for the
 planner's revision request and the actor's message. They state what the critic
 did and why, in its own words. A run with no refusal (every run of condition B)
 gets no such text.
@@ -178,8 +179,7 @@ class Reflexion:
         repeats = None
         if key is not None:
             repeats = self.refused[key] = self.refused.get(key, 0)+1
-            self.refusals[key] = {"action": deepcopy(action), "reason": reason,
-                                  "count": repeats}
+            self._remember(key, action, reason)
         if self.repeat_limit and repeats is not None and repeats >= self.repeat_limit:
             strategy = "safe_terminate"
         elif self.critic_rejections > self.critic_limit:
@@ -196,8 +196,23 @@ class Reflexion:
     def critic_passed(self):
         self.critic_rejections = 0
 
+    def critic_rewrite(self, reason, action):
+        """Condition C: the critic replaced the proposal with another action.
+
+        The proposal was not carried out, so it is remembered like a refusal.
+        It does not count towards either limit: the turn went on with the
+        critic's replacement.
+        """
+        key = action_key(action)
+        if key is not None:
+            self._remember(key, action, reason)
+
+    def _remember(self, key, action, reason):
+        count = self.refusals.get(key, {}).get("count", 0)+1
+        self.refusals[key] = {"action": deepcopy(action), "reason": reason, "count": count}
+
     def refusal_lines(self):
-        """One line per action the critic has refused in this run, oldest first."""
+        """One line per action the critic has refused or replaced in this run, oldest first."""
         return [f"{key} (refused {entry['count']} time(s)): {entry['reason']}"
                 for key, entry in self.refusals.items()]
 
