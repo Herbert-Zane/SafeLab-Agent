@@ -1,0 +1,123 @@
+# 物质族映射表（S2.1）。
+#
+# 组分 id 先转成小写，再按非字母数字字符切成词，例如
+#   naocl_0_5pct -> naocl / 0 / 5pct，ethanol_95 -> ethanol / 95，AVL -> avl。
+# 一个组分只要有一个词在某族的 tokens 里、或小写全名包含某族的 substrings，
+# 且没有任何词在该族的 exclude_tokens 里，就属于该族。一个组分可以属于多个族。
+# 不属于任何族的组分记为“未识别”，规则通道对它无法判定，交给 LLM 通道。
+#
+# basis 只引用 docs/sources.md 中状态为“已核对”的条目（source id + 页码或章节）。
+# pubchem 只是 tools/fetch_pubchem.py 拉取 GHS 信息时用的检索名，供人工复核；
+# PubChem 不在 sources.md 里，它的结果不作为任何卡片或规则的出处。
+#
+# hazardous: true 表示该族出现在审查器的知识卡片里，涉及它的动作会触发 LLM 审查
+# （S2.5）。aqueous_buffer 的 hazardous: false 只表示“已识别、卡片里没有它的不相容记录”，
+# 不表示“安全”。
+
+schema_version: 1
+
+families:
+  hypochlorite:
+    label: 次氯酸盐（漂白剂）
+    hazardous: true
+    tokens: [naocl, hypochlorite, bleach]
+    substrings: [hypochlor]
+    basis:
+      - {source: C9, at: "Sodium Hypochlorite 数据表，Reactive Groups 栏（强氧化剂、碱性盐）"}
+      - {source: C8, at: "p.7，第 10 节"}
+    pubchem: [sodium hypochlorite]
+
+  guanidinium:
+    label: 胍盐及含胍盐的缓冲液（QIAGEN Buffer AVL、AL、AW1）
+    hazardous: true
+    tokens: [avl, al, aw1, guanidine, guanidinium, gitc, gtc, guhcl, gdnhcl]
+    substrings: [guanidin]
+    basis:
+      - {source: C1, at: "p.2，Safety Information（Buffer AVL 含胍盐）"}
+      - {source: C3, at: "p.6（Buffer AVL 和 AW1 含胍盐）"}
+      - {source: C2, at: "p.7（Buffer AL 和 AW1 含盐酸胍）"}
+      - {source: C7, at: "p.1，第 2.2 节（硫氰酸胍）"}
+    pubchem: [guanidine thiocyanate, guanidine hydrochloride]
+
+  alcohol:
+    label: 醇类（乙醇、甲醇、异丙醇）
+    hazardous: true
+    tokens: [ethanol, etoh, methanol, meoh, isopropanol, ipa, propanol]
+    substrings: [ethanol, methanol, propanol]
+    basis:
+      - {source: C4, at: "DNA/RNA 试剂盒警示栏（乙醇、甲醇、异丙醇与漂白剂）"}
+      - {source: C6, at: "Laboratory Disinfectants Considerations → Bleach"}
+    pubchem: [ethanol, methanol, isopropanol]
+
+  acid:
+    label: 酸及酸性溶液
+    hazardous: true
+    tokens: [hcl, h2so4, hno3, h3po4, acid, acidic]
+    substrings: [hydrochloric, sulfuric, sulphuric, nitric]
+    exclude_tokens: [nucleic, amino]
+    basis:
+      - {source: C8, at: "p.7，第 10 节（强酸）"}
+      - {source: C9, at: "反应性分组浏览页（多个酸类分组）"}
+      - {source: C5, at: "p.1（酸性化合物）"}
+      - {source: C1, at: "p.2（酸性溶液）"}
+    pubchem: [hydrochloric acid, sulfuric acid, nitric acid, acetic acid]
+
+  ammonia:
+    label: 氨、含氨（铵）化合物与胺
+    hazardous: true
+    tokens: [ammonia, nh3, nh4oh, ammonium, amine, amines]
+    substrings: [ammoni]
+    basis:
+      - {source: C5, at: "p.1（含氨化合物）"}
+      - {source: C8, at: "p.7，第 10 节（氨；与胺接触生成氯胺）"}
+    pubchem: [ammonia, ammonium hydroxide]
+
+  peroxide:
+    label: 过氧化氢及过氧化物
+    hazardous: true
+    tokens: [h2o2, peroxide]
+    substrings: [peroxide]
+    basis:
+      - {source: C5, at: "p.1（过氧化氢）"}
+    pubchem: [hydrogen peroxide]
+
+  organic_solvent:
+    label: 有机溶剂及其他有机化学品（不含已单列的醇类）
+    hazardous: true
+    tokens: [chloroform, phenol, acetone, dmso, toluene, xylene, formaldehyde, formalin]
+    substrings: [chloroform, phenol]
+    basis:
+      - {source: C5, at: "p.1（有机化学品）"}
+      - {source: C8, at: "p.7，第 10 节（有机化合物）"}
+    pubchem: [chloroform, phenol, acetone]
+
+  biological:
+    label: 生物样品与培养物（按潜在感染性处理）
+    hazardous: true
+    tokens: [sample, samples, specimen, serum, plasma, blood, swab, saliva, sputum, culture,
+             cells, cell, lysate, virus, viral, bacteria, bacterial, microbial, supernatant]
+    substrings: [specimen, microb]
+    basis:
+      - {source: B2, at: "p.16（对微生物悬液施加能量会产生气溶胶）"}
+      - {source: C2, at: "p.7（样品制备液体废物按感染性处理）"}
+      - {source: C1, at: "p.2（可能含感染性物质的洒漏）"}
+    pubchem: []
+
+  aqueous_buffer:
+    label: 普通水相缓冲液（已识别；卡片中没有它的不相容记录）
+    hazardous: false
+    tokens: [pbs, dpbs, hbss, water, h2o, saline]
+    substrings: []
+    basis: []
+    pubchem: []
+
+# 容器 id 提示：容器 id 的某个词命中时，把相应物质族加到该容器上（不改组分本身）。
+container_hints:
+  - tokens: [waste]
+    families: [biological]
+    note: >-
+      容器 id 含 waste 的视为样品制备废液，按潜在感染性处理（C2 写明样品制备液体废物按感染性处理；
+      N4 写明病原微生物实验废弃物须先灭菌或无害化处理）。这是按名称的推断，容器的实际来源以任务为准。
+    basis:
+      - {source: C2, at: "p.7"}
+      - {source: N4, at: "p.10-11，第 31 条"}

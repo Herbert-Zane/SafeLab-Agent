@@ -1,0 +1,28 @@
+id: incompat-hypochlorite-guanidinium
+title: 漂白剂与胍盐不得混合
+conclusion: >-
+  次氯酸盐（漂白剂）不得直接加入含胍盐的液体或废液（如 QIAGEN Buffer AVL、AL、AW1），
+  含胍盐的液体也不得加入盛有次氯酸盐的容器。两者混合可形成高反应性化合物，
+  并可能释放氯胺、氯气、氰化氢等有毒气体。
+scope:
+  families: [hypochlorite, guanidinium]
+  actions: [dispense, pour]
+predicate:
+  kind: incompatible_pair
+  families: [hypochlorite, guanidinium]
+rules: [R3]
+evidence:
+  grade: A
+  note: >-
+    厂商手册直接写明（C1、C3）；两所大学 EHS 资料一致（C4、C5）；硫氰酸胍 SDS 把强氧化剂列为
+    不相容物（C7），次氯酸盐属强氧化剂（C9）。
+enforcement: hard
+sources:
+  - {id: C1, at: "p.2，Safety Information 段"}
+  - {id: C3, at: "p.6，Safety Information 与 CAUTION 框；p.4，Kit Contents 脚注"}
+  - {id: C4, at: "网页，DNA/RNA 试剂盒警示栏"}
+  - {id: C5, at: "p.1，Incompatibility Quick Guide"}
+  - {id: C7, at: "p.4，第 10.2 节"}
+quote:
+  source: C1
+  text: "DO NOT add bleach or acidic solutions directly to waste containing Buffer AVL."

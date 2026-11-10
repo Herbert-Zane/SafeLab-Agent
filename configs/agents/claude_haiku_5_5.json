@@ -1,0 +1,29 @@
+{
+  "agent_schema_version": 1,
+  "id": "claude-haiku-5-5-effort-high",
+  "backend": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "api_key_env": "ANTHROPIC_API_KEY",
+    "max_tokens": 8000,
+    "effort": "high",
+    "thinking_display": "summarized",
+    "prompt_caching": true,
+    "request_timeout_s": 300,
+    "max_retries": 3
+  },
+  "limits": {
+    "max_steps": 40,
+    "max_consecutive_invalid_replies": 3,
+    "max_invalid_replies": 10,
+    "max_failed_actions": 10,
+    "max_total_tokens": 2000000,
+    "max_cost_usd": 1.0,
+    "wall_clock_s": 3600
+  },
+  "policy": {
+    "conversation": "accumulate",
+    "history_window": 12,
+    "on_action_failure": "report"
+  }
+}

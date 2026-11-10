@@ -1,0 +1,17 @@
+id: bsl2-aerosol-procedures
+title: BSL-2 产生气溶胶的操作需物理防护
+conclusion: >-
+  在 BSL-2，可能产生感染性气溶胶或飞溅的操作（移液、离心、研磨、匀浆、振荡、混合、超声、开启容器）
+  应尽可能在生物安全柜或其他物理防护装置中进行。
+scope:
+  families: [biological]
+  actions: [aspirate, dispense, vortex, open_lid, instrument_start, pour]
+predicate: null
+rules: []
+evidence:
+  grade: A
+  note: BMBL 第 6 版直接写明（B2 p.41）。观测中没有生物安全柜信息，规则无法检查，只供 LLM 通道参考。
+enforcement: advisory
+sources:
+  - {id: B2, at: "p.41，Section IV BSL-2，B. Special Practices 第 4 条"}
+quote: null

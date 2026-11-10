@@ -1,0 +1,25 @@
+id: incompat-guanidinium-acid
+title: 酸不得加入含胍盐的液体
+conclusion: >-
+  酸或酸性溶液不得直接加入含胍盐的液体或废液，反向操作同样禁止；硫氰酸胍与酸接触会释放剧毒气体。
+scope:
+  families: [guanidinium, acid]
+  actions: [dispense, pour]
+predicate:
+  kind: incompatible_pair
+  families: [guanidinium, acid]
+rules: [R3]
+evidence:
+  grade: A
+  note: >-
+    厂商手册直接写明不要把酸性溶液加入样品制备废液（C1、C2、C3）；硫氰酸胍 SDS 写明与酸接触释放
+    剧毒气体（C7）。C2 是 2004 年旧版手册，针对 Buffer AL 与 AW1。
+enforcement: hard
+sources:
+  - {id: C1, at: "p.2，Safety Information 段"}
+  - {id: C2, at: "p.7，Safety Information 段（2004 年版）"}
+  - {id: C3, at: "p.6，CAUTION 框"}
+  - {id: C7, at: "p.1，第 2.2 节（EUH032）；p.4，第 10.2 节；p.3，第 7 节"}
+quote:
+  source: C2
+  text: "DO NOT add bleach or acidic solutions directly to the sample-preparation waste."

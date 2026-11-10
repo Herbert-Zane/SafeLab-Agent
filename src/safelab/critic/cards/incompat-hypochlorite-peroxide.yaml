@@ -1,0 +1,20 @@
+id: incompat-hypochlorite-peroxide
+title: 漂白剂与过氧化氢、氧化剂、还原剂、金属不得混合
+conclusion: >-
+  次氯酸盐不得与过氧化氢、其他氧化剂、还原剂或金属混合，存放时也要远离这些物质。
+  规则通道只能检查其中有物质族映射的过氧化氢；其余几类交给 LLM 通道判断。
+scope:
+  families: [hypochlorite, peroxide]
+  actions: [dispense, pour]
+predicate:
+  kind: incompatible_pair
+  families: [hypochlorite, peroxide]
+rules: [R3]
+evidence:
+  grade: A
+  note: 大学 EHS 不相容速查表直接列出（C5）；次氯酸钠 SDS 第 7、10 节一致（C8）。
+enforcement: hard
+sources:
+  - {id: C5, at: "p.1，Incompatibility Quick Guide"}
+  - {id: C8, at: "p.7，第 10 节；p.4-5，第 7 节"}
+quote: null

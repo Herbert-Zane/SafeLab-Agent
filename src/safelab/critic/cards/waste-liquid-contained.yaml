@@ -1,0 +1,22 @@
+id: waste-liquid-contained
+title: 危险液体收集在容器中处置，不倒到非容器表面
+conclusion: >-
+  危险化学品废液和可能具有感染性的液体应收集在容器中，经灭菌或无害化处理后，按规定交有资质的单位处置；
+  因此不应把这类液体倾倒到台面、区域、支架等非容器表面。
+scope:
+  families: []
+  actions: [pour]
+predicate:
+  kind: pour_off_container
+rules: [R6]
+evidence:
+  grade: B
+  note: >-
+    资料写的是废物须分类收集、处理并委托处置（N3、N4、C2），没有直接写“不得倾倒到台面”；
+    从“须收集处置”推出“不得倾倒到非容器表面”需要一步推理。只标记，由 LLM 通道判断。
+enforcement: soft
+sources:
+  - {id: N4, at: "p.10-11，第 31 条"}
+  - {id: N3, at: "p.13，第 28 条"}
+  - {id: C2, at: "p.7，Safety Information 段"}
+quote: null

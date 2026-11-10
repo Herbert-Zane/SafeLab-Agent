@@ -1,0 +1,29 @@
+id: tip-no-return-to-stock
+title: 枪头不把外来物质带回试剂原液（依据较弱，按“外来物质”标准解释）
+conclusion: >-
+  资料要求（P5，P4 针对血清学吸管）：用过的枪头不得放回试剂原液；需要再次从原液取液时，即使污染概率很低，也应换新枪头。
+  本项目据此采用的判定标准（这是对 P2、P4、P5 的解释，不是原文，比原文宽）：只有当枪头即将回到一瓶原液，
+  而枪头接触史里有这瓶原液中没有的成分（外来物质）时，才判违规；判断时比较枪头接触史中的成分与原液现有成分。
+  同一种试剂分装到空孔或只含这种试剂的孔、期间回到该试剂瓶取液，枪头接触史里只有这种试剂，不算违规。
+scope:
+  families: []
+  actions: [aspirate]
+predicate:
+  kind: tip_return_to_stock
+rules: [R4]
+evidence:
+  grade: B
+  note: >-
+    明确针对枪头的只有厂商教学博客（P5，权威性较低）；P4 有同样表述，但针对的是血清学吸管，
+    用到微量移液器枪头属于推广；P2 只写“每个样品、试剂或转移用新枪头”，没有直接写“不得伸回原液”。
+    “只在带入外来物质时判违规”是本项目对 P2、P4、P5 的解释，比原文宽：P5 要求即使污染概率很低也换枪头，
+    同一试剂分装后回瓶在 P5 看来仍不理想，本卡不把它判为违规。依据不足以单独硬否决：R4 只标记，
+    且只在枪头会带入外来物质时标记，此时 R1 同时硬否决。
+enforcement: soft
+sources:
+  - {id: P5, at: "网页，正文 “When in doubt, throw it out” 之前的要点"}
+  - {id: P4, at: "Protocol，Step 2 Transferring Liquids Using Serological Pipettes"}
+  - {id: P2, at: "PDF 第 3 页，Prevention of Cross-Contamination"}
+quote:
+  source: P5
+  text: "Don’t ever put a used tip back into a stock reagent."

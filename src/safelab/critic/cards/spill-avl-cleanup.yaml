@@ -1,0 +1,16 @@
+id: spill-avl-cleanup
+title: 含 AVL 液体洒漏的处理顺序
+conclusion: >-
+  含 Buffer AVL 的液体洒漏时，先用实验室清洁剂和水清洁；如果可能含感染性物质，再用 1%（v/v）次氯酸钠处理。
+scope:
+  families: [guanidinium, hypochlorite]
+  actions: [pour, dispense]
+predicate: null
+rules: []
+evidence:
+  grade: A
+  note: 厂商产品说明直接写明（C1）。平台没有“洒漏”动作，只供 LLM 通道参考。
+enforcement: advisory
+sources:
+  - {id: C1, at: "p.2，Safety Information 段"}
+quote: null

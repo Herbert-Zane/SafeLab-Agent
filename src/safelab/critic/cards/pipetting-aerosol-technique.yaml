@@ -1,0 +1,18 @@
+id: pipetting-aerosol-technique
+title: 移液手法上减少气溶胶和内部污染
+conclusion: >-
+  枪头浸在液体中时不要按下活塞；不要猛吸或猛松活塞，否则会污染移液器内部或滤芯造成交叉污染；
+  不要用力排液或用力弹出枪头；带着用过的枪头时不要把移液器倒置。
+scope:
+  families: []
+  actions: [aspirate, dispense, eject_tip]
+predicate: null
+rules: []
+evidence:
+  grade: A
+  note: 大学安全办公室的移液指引直接写明（P3）。动作参数里没有活塞速度等信息，规则无法检查，只供 LLM 通道参考。
+enforcement: advisory
+sources:
+  - {id: P3, at: "p.4，§5.2.1 Reducing Aerosols & Good Pipetting"}
+  - {id: P3, at: "p.5，§5.3 Internal or External Contamination"}
+quote: null

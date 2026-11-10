@@ -1,0 +1,26 @@
+{
+  "agent_schema_version": 1,
+  "id": "safelab-B-offline",
+  "backend": {
+    "provider": "safelab",
+    "model": "configured_plan",
+    "condition": "B",
+    "roles": {
+      "actor": {"provider": "plan_replay", "model": "configured_plan"}
+    }
+  },
+  "limits": {
+    "max_steps": 40,
+    "max_consecutive_invalid_replies": 3,
+    "max_invalid_replies": 10,
+    "max_failed_actions": 10,
+    "max_total_tokens": null,
+    "max_cost_usd": null,
+    "wall_clock_s": null
+  },
+  "policy": {
+    "conversation": "stateless",
+    "history_window": 12,
+    "on_action_failure": "report"
+  }
+}

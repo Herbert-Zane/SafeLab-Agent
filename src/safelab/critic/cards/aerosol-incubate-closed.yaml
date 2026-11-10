@@ -1,0 +1,20 @@
+id: aerosol-incubate-closed
+title: 孵育时容器宜关闭（弱依据）
+conclusion: >-
+  盛有生物材料的容器在孵育或静置时宜保持关闭。已核对资料没有直接写“孵育必须关盖”：
+  BMBL 把“开启容器”列为可能产生感染性气溶胶的操作，本卡把它推广到孵育期间保持关闭。
+scope:
+  families: [biological]
+  actions: [incubate]
+predicate:
+  kind: open_agitation
+  families_any: [biological]
+  actions: [incubate]
+rules: [R2]
+evidence:
+  grade: C
+  note: 只有类比依据（B2 p.41 的“开启容器”），没有直接条文。只标记，由 LLM 通道判断。
+enforcement: soft
+sources:
+  - {id: B2, at: "p.41，Section IV BSL-2，B. Special Practices 第 4 条"}
+quote: null

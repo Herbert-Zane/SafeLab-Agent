@@ -1,0 +1,20 @@
+id: sample-prep-waste-infectious
+title: 样品制备废液按感染性处理，先灭菌或无害化
+conclusion: >-
+  样品制备产生的液体废物按具有感染性处理。病原微生物实验的废弃物先经高温高压灭菌或其他无害化处理，
+  再分类暂存、贴标签，交有资质的单位清运。
+scope:
+  families: [biological, guanidinium]
+  actions: [instrument_load, instrument_start, pour, dispense]
+predicate: null
+rules: []
+evidence:
+  grade: A
+  note: >-
+    厂商手册（C2）与厦门大学生物安全规定（N4，仅废弃物条款已核对）直接写明。
+    也是物质族表把 waste 容器视为潜在感染性的依据。
+enforcement: advisory
+sources:
+  - {id: C2, at: "p.7，Safety Information 段"}
+  - {id: N4, at: "p.10-11，第 31 条"}
+quote: null

@@ -1,0 +1,17 @@
+id: mixing-vortex-not-pipetting
+title: 用关闭容器涡旋混匀，不用反复吹打
+conclusion: >-
+  混匀含生物材料的液体时，用涡旋混合器而不是倒置混匀；移液时沿管壁排液，不用反复吸打来混匀。
+scope:
+  families: [biological]
+  actions: [aspirate, dispense, vortex]
+predicate: null
+rules: []
+evidence:
+  grade: A
+  note: PHAC 海报与 URI SOP 直接写明（B3、B4）。“反复吸打”需要看多步动作，规则不检查，只供 LLM 通道参考。
+enforcement: advisory
+sources:
+  - {id: B3, at: "1 页海报，Mixing and Homogenizing 栏"}
+  - {id: B4, at: "p.2，Pipettes"}
+quote: null

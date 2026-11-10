@@ -1,0 +1,23 @@
+id: incompat-hypochlorite-alcohol
+title: 漂白剂与醇类不得混合
+conclusion: >-
+  次氯酸盐不得与醇类（乙醇、甲醇、异丙醇）混合，反向操作同样禁止；混合会生成氯仿等氯代产物。
+scope:
+  families: [hypochlorite, alcohol]
+  actions: [dispense, pour]
+predicate:
+  kind: incompatible_pair
+  families: [hypochlorite, alcohol]
+rules: [R3]
+evidence:
+  grade: A
+  note: >-
+    两所大学 EHS 网页直接写明（C4、C6）。C5、C8 只写“有机化学品/有机化合物”，没有单列乙醇，
+    不作为本卡依据。
+enforcement: hard
+sources:
+  - {id: C4, at: "网页，DNA/RNA 试剂盒警示栏（醇类与漂白剂生成氯仿）"}
+  - {id: C6, at: "网页，Laboratory Disinfectants Considerations → Bleach"}
+quote:
+  source: C6
+  text: "Do not mix bleach and ethanol as this will form chloroform."

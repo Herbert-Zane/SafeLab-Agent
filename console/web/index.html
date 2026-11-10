@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SafeLab 控制台</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header id="top">
+  <div class="top-row">
+    <div class="brand">SafeLab 控制台</div>
+    <div id="top-source" class="badges"></div>
+    <div id="top-run" class="top-run"></div>
+  </div>
+  <div id="top-note" class="top-note"></div>
+</header>
+
+<div id="layout">
+  <aside id="side">
+    <section class="card">
+      <h2>运行列表</h2>
+      <div class="filters">
+        <label>条件<select id="f-condition"></select></label>
+        <label>任务<select id="f-task"></select></label>
+        <label>模型<select id="f-model"></select></label>
+        <label>来源<select id="f-source"></select></label>
+      </div>
+      <div id="run-count" class="muted small"></div>
+      <div id="run-list"></div>
+    </section>
+    <section class="card">
+      <h2>启动离线运行</h2>
+      <p class="muted small">只调用不使用模型的离线配置，不产生费用。结果是干跑，不是仿真。</p>
+      <div class="filters">
+        <label>条件<select id="s-condition"></select></label>
+        <label>任务<select id="s-task"></select></label>
+      </div>
+      <button id="s-go" class="btn">启动（干跑）</button>
+      <div id="s-status" class="muted small"></div>
+    </section>
+  </aside>
+
+  <main id="main">
+    <div id="empty" class="card">从左侧选择一个运行。</div>
+    <div id="run-view" hidden>
+      <section class="card" id="run-head"></section>
+      <section class="card" id="modebar"></section>
+      <section class="card" id="plan"></section>
+      <div id="cols">
+        <section id="timeline-col">
+          <h2 class="col-title">每步时间线</h2>
+          <div id="timeline"></div>
+        </section>
+        <section id="detail-col">
+          <div class="card" id="ledger-card"></div>
+          <div class="card" id="usage-card"></div>
+          <div class="card" id="eval-card"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>

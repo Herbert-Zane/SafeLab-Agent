@@ -1,0 +1,22 @@
+id: waste-no-incompatible-mixing
+title: 废液收集不得混入不相容物
+conclusion: >-
+  在产生地收集废液时，不得把不相容的废物混在一起，不相容废物的容器要物理分开；
+  漂白剂废液应与核酸提取试剂盒的废液分开收集。
+scope:
+  families: []
+  actions: [dispense, pour]
+predicate: null
+rules: [R3]
+evidence:
+  grade: A
+  note: >-
+    权威手册直接写明（C10 §8.B.4.1）；大学 EHS 网页要求漂白剂废液与试剂盒废液分开收集（C4）。
+    本卡没有自己的谓词：规则 R3 在接收容器是废液容器时，把它与具体的不相容对卡片一并引用。
+enforcement: advisory
+sources:
+  - {id: C10, at: "p.191，§8.B.4.1 Accumulation of Waste at the Location of Generation"}
+  - {id: C4, at: "网页，Disposal 栏"}
+quote:
+  source: C10
+  text: "Take care not to mix incompatible waste."

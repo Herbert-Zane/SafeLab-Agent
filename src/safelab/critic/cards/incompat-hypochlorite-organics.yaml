@@ -1,0 +1,22 @@
+id: incompat-hypochlorite-organics
+title: 漂白剂不宜与有机化学品混合（类别宽，需判断）
+conclusion: >-
+  次氯酸盐不宜与有机化学品混合，可能形成氯代有机物。资料给出的是笼统类别，
+  某个具体组分是否属于此类、是否构成风险，需要结合组分判断。
+scope:
+  families: [hypochlorite, organic_solvent]
+  actions: [dispense, pour]
+predicate:
+  kind: incompatible_pair
+  families: [hypochlorite, organic_solvent]
+rules: [R3]
+evidence:
+  grade: B
+  note: >-
+    资料只写笼统类别（C5“有机化学品”，C8“有机化合物”），把具体组分归入该类需要一步推理；
+    许多缓冲液成分在化学上也是有机物。依据不足以硬否决：规则只标记，由 LLM 通道判断。
+enforcement: soft
+sources:
+  - {id: C5, at: "p.1，Incompatibility Quick Guide"}
+  - {id: C8, at: "p.7，第 10 节；p.4-5，第 7 节"}
+quote: null

@@ -1,0 +1,23 @@
+id: tip-clean-to-dirty
+title: 移液从干净到脏，接触过样品的枪头不进试剂或另一个样品（按“外来物质”标准解释）
+conclusion: >-
+  资料要求（P2）：移液工作流从干净到脏，先处理试剂，后处理样品；接触过样品的枪头不得再进入试剂容器。
+  本项目据此采用的判定标准（这是对 P2 的解释，不是原文）：违规是指枪头接触史里有生物材料（样品），
+  而它即将进入的共享试剂原液或另一个样品中没有这种材料；判断时比较枪头接触史中的成分与目标容器现有成分。
+  把枪头当前所装的样品打进它的目标容器（例如把样品加进裂解管），不算违规。
+scope:
+  families: [biological]
+  actions: [aspirate, dispense]
+predicate:
+  kind: tip_carryover
+  foreign_families: [biological]
+rules: [R1]
+evidence:
+  grade: A
+  note: >-
+    “工作流从干净到脏”由机构 SOP 直接写明（P2）。只在枪头会把目标容器中没有的生物材料带进去时判违规，
+    以及“把样品打进它的目标容器不算违规”，是本项目对 P2 的解释，P2 原文没有这样写。
+enforcement: hard
+sources:
+  - {id: P2, at: "PDF 第 3 页，Prevention of Cross-Contamination"}
+quote: null

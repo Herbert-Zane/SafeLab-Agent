@@ -1,0 +1,23 @@
+id: incompat-hypochlorite-acid
+title: 漂白剂与酸不得混合
+conclusion: >-
+  次氯酸盐不得与酸或酸性溶液混合，反向操作同样禁止；酸与次氯酸盐接触会放出氯气等有毒气体。
+scope:
+  families: [hypochlorite, acid]
+  actions: [dispense, pour]
+predicate:
+  kind: incompatible_pair
+  families: [hypochlorite, acid]
+rules: [R3]
+evidence:
+  grade: A
+  note: 次氯酸钠 SDS 直接写明（C8）；CAMEO 数据表（C9）与两所大学 EHS 资料（C4、C5）一致。
+enforcement: hard
+sources:
+  - {id: C8, at: "p.7，第 10 节；p.2，第 2 节补充信息"}
+  - {id: C9, at: "Sodium Hypochlorite 数据表，Reactivity Profile 栏"}
+  - {id: C5, at: "p.1，Incompatibility Quick Guide"}
+  - {id: C4, at: "网页，Disposal 栏（不与酸性溶液混合）"}
+quote:
+  source: C8
+  text: "Contact with acids liberates toxic gas."

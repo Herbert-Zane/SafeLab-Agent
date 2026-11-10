@@ -1,0 +1,32 @@
+name: ci
+
+# Unit tests only. The BSLBench platform is a private repository this workflow
+# cannot check out, so every test that needs it skips itself; nothing here
+# calls a model API or spends money.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test tools
+        run: python -m pip install "pytest>=8" "ruff>=0.6" "pyyaml>=6"
+      - name: Lint
+        run: python -m ruff check src tests scripts eval
+      - name: Unit tests (platform-dependent tests skip)
+        run: python -m pytest -q -rs

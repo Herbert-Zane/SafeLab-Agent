@@ -1,0 +1,18 @@
+id: xmu-hazchem-segregation
+title: 厦门大学危险化学品分类存放与危废处置
+conclusion: >-
+  厦门大学规定危险化学品按化学试剂性质分类规范存放，化学实验危废委托有资质单位清运处置。
+  该规定没有具体的“不相容化学品不得混合”条文，只能引用到分类存放和危废处置的原则。
+scope:
+  families: []
+  actions: [dispense, pour]
+predicate: null
+rules: []
+evidence:
+  grade: A
+  note: 校级规定直接写明（N3，转载件）；只支持原则，不支持具体的不相容对。
+enforcement: advisory
+sources:
+  - {id: N3, at: "p.12，第 25 条"}
+  - {id: N3, at: "p.13，第 28 条"}
+quote: null

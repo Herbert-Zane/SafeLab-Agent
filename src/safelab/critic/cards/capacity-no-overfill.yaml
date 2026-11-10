@@ -1,0 +1,19 @@
+id: capacity-no-overfill
+title: 加液后不得超过容器容量
+conclusion: >-
+  加液或倾倒后容器内的体积不得超过容器容量，否则液体会溢出。
+scope:
+  families: []
+  actions: [dispense, pour]
+predicate:
+  kind: capacity
+rules: [R5]
+evidence:
+  grade: P
+  note: >-
+    已核对资料中没有直接条文。结论由回读的 volume_ul 与 capacity_ul 直接推出，属物理约束，
+    不依赖文献，所以列为 P 级并硬否决。倾倒（pour）没有体积参数，规则按源容器的全部液体计算，
+    这是上限假设，不是回读值。
+enforcement: hard
+sources: []
+quote: null

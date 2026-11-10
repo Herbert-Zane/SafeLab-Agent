@@ -1,0 +1,22 @@
+id: aerosol-settle-before-opening
+title: 混合或离心后先静置再开盖
+conclusion: >-
+  含生物材料的容器在混合、匀浆或离心后不要立即开盖，应先静置，让可能产生的气溶胶沉降。
+  各资料给出的等待时间不同：PHAC 海报写混合后等几秒、离心后等 5 分钟，URI SOP 写混合后等 20 分钟。
+scope:
+  families: [biological]
+  actions: [open_lid, plate_unseal]
+predicate:
+  kind: open_after_agitation
+  families_any: [biological]
+rules: [R2]
+evidence:
+  grade: A
+  note: >-
+    两份资料直接写明（B3、B4），但等待时长不一致，平台也观测不到实际静置时长，规则只能判断
+    “上一个动作就是对它的涡旋”。因此只标记，由 LLM 通道判断。
+enforcement: soft
+sources:
+  - {id: B3, at: "1 页海报，Opening Tubes、Mixing and Homogenizing、Centrifugation 栏"}
+  - {id: B4, at: "p.1，Mixing Operations"}
+quote: null

@@ -1,0 +1,36 @@
+{
+  "agent_schema_version": 1,
+  "id": "safelab-B-scripted-waste-segregation",
+  "backend": {
+    "provider": "safelab",
+    "model": "scripted",
+    "condition": "B",
+    "roles": {
+      "actor": {
+        "provider": "scripted",
+        "model": "scripted",
+        "replies": [
+          "```json\n{\"action\": \"attach_tip\", \"pipette_type\": \"P1000\"}\n```",
+          "```json\n{\"action\": \"aspirate\", \"target\": \"naocl_stock\", \"volume_ul\": 500}\n```",
+          "```json\n{\"action\": \"dispense\", \"target\": \"waste_aqueous\", \"volume_ul\": 500}\n```",
+          "```json\n{\"action\": \"eject_tip\", \"target\": \"waste\"}\n```",
+          "```json\n{\"action\": \"finish\", \"reason\": \"Scripted smoke episode complete.\"}\n```"
+        ]
+      }
+    }
+  },
+  "limits": {
+    "max_steps": 40,
+    "max_consecutive_invalid_replies": 3,
+    "max_invalid_replies": 10,
+    "max_failed_actions": 10,
+    "max_total_tokens": null,
+    "max_cost_usd": null,
+    "wall_clock_s": null
+  },
+  "policy": {
+    "conversation": "stateless",
+    "history_window": 12,
+    "on_action_failure": "report"
+  }
+}

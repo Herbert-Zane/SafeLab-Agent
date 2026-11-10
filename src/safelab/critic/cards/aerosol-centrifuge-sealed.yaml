@@ -1,0 +1,22 @@
+id: aerosol-centrifuge-sealed
+title: 离心生物材料须用密封管和安全杯
+conclusion: >-
+  离心含生物材料的样品时使用不易碎、带 O 形圈螺旋盖的管和密封安全杯或密封转子；
+  离心结束后等待气溶胶沉降再开盖。规则只能检查管是否关闭，安全杯是否密封无法观测。
+scope:
+  families: [biological]
+  actions: [instrument_start]
+predicate:
+  kind: open_agitation
+  families_any: [biological]
+  device_keywords: [centrifug]
+rules: [R2]
+evidence:
+  grade: A
+  note: 大学生物安全 SOP 与 PHAC 海报直接写明（B4、B3）；BMBL 把离心安全杯和密封转子列为防护设备（B2 p.17）。
+enforcement: hard
+sources:
+  - {id: B4, at: "p.1，Centrifuge Operations"}
+  - {id: B3, at: "1 页海报，Centrifugation 栏"}
+  - {id: B2, at: "p.17，安全设备（离心安全杯、密封转子）"}
+quote: null

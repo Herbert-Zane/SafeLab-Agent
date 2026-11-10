@@ -1,0 +1,18 @@
+id: hypochlorite-strong-oxidizer
+title: 次氯酸钠属强氧化剂
+conclusion: >-
+  次氯酸钠溶液的反应性分组是强氧化剂、碱性盐、水和水溶液；受热或与酸接触会放出含氯有毒烟气，
+  与硫酸反应放热并放出氯气。物质族表把次氯酸盐归为强氧化剂即依据于此。
+scope:
+  families: [hypochlorite]
+  actions: []
+predicate: null
+rules: []
+evidence:
+  grade: A
+  note: CAMEO Chemicals 数据表直接给出（C9）；SDS 第 10 节一致（C8）。
+enforcement: advisory
+sources:
+  - {id: C9, at: "Sodium Hypochlorite 数据表，Reactive Groups 与 Reactivity Profile 栏"}
+  - {id: C8, at: "p.7，第 10 节"}
+quote: null

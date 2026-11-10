@@ -1,0 +1,19 @@
+id: incompat-hypochlorite-ammonia
+title: 漂白剂与氨、含氨化合物不得混合
+conclusion: >-
+  次氯酸盐不得与氨、含氨（铵）化合物或胺类混合，反向操作同样禁止；次氯酸盐与胺接触会生成氯胺。
+scope:
+  families: [hypochlorite, ammonia]
+  actions: [dispense, pour]
+predicate:
+  kind: incompatible_pair
+  families: [hypochlorite, ammonia]
+rules: [R3]
+evidence:
+  grade: A
+  note: 次氯酸钠 SDS 第 10 节直接写明（C8）；大学 EHS 不相容速查表一致（C5）。
+enforcement: hard
+sources:
+  - {id: C8, at: "p.7，第 10 节"}
+  - {id: C5, at: "p.1，Incompatibility Quick Guide"}
+quote: null

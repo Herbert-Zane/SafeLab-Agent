@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safelab"
+version = "0.1.0"
+description = "SafeLab-Agent: a self-reflective embodied safety agent for hazardous laboratory protocols"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+# The agent runs inside the BSLBench platform process (a separate, private
+# repository located through SAFELAB_BENCH_ROOT), which brings its own model
+# SDKs. PyYAML reads the critic's knowledge cards.
+dependencies = ["pyyaml>=6"]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"safelab.critic" = ["*.yaml", "cards/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+# The default run skips tests marked slow (those that replay whole protocols in the platform's
+# dry run). Everything: pytest -m "slow or not slow"
+addopts = "-m 'not slow'"
+markers = ["slow: needs the platform and takes seconds to minutes; run with -m 'slow or not slow'"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests", "scripts"]
+extend-exclude = ["runs"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["safelab"]
+known-third-party = ["agent_interface", "sim"]
