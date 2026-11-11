@@ -120,3 +120,25 @@ def test_a_rendered_message_adds_no_judgement_to_the_facts():
     text = build_message(plan_text=tracker.render(ledger.snapshot()), snapshot=ledger.snapshot(),
                          observation=scene.obs(4), focus=set(), strategy="remediate")
     assert PRIMING.search(text) is None
+
+
+def test_a_device_line_lists_the_presses_of_its_controls_that_were_carried_out():
+    from safelab.summary import control_presses, device_line
+    press = {"action": "press_button", "target": "vortex_station", "control": "power"}
+    snapshot = {"actions": [
+        {"step": 7, "status": "complete", "action": press},
+        {"step": 9, "status": "failed", "action": press},
+        {"step": 16, "status": "complete", "action": press},
+        {"step": 17, "status": "complete", "action": {"action": "press_button", "target": "timer"}},
+        {"step": 18, "status": "complete", "action": {"action": "vortex", "target": "tube"}}]}
+    presses = control_presses(snapshot)
+    assert presses == {"vortex_station": {"power": [7, 16]}, "timer": {"button": [17]}}
+    row = {"device_type": "vortex", "status": "complete", "active": False}
+    plain = "vortex_station (device vortex): complete; inactive"
+    assert device_line("vortex_station", row) == plain
+    assert device_line("vortex_station", row, presses["vortex_station"]).endswith(
+        "inactive; power pressed 2 time(s) in this run (step 7, 16)")
+    devices = {"vortex_station": row}
+    text = render_ledger({"devices": devices, **snapshot})
+    assert "power pressed 2 time(s) in this run (step 7, 16)" in text
+    assert "pressed" not in render_ledger({"devices": devices, "actions": []})

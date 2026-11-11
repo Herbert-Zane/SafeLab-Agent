@@ -65,7 +65,25 @@ def tip_line(entity_id, row, *, contacts=True):
     return "; ".join(parts)
 
 
-def device_line(entity_id, row):
+def control_presses(snapshot):
+    """Completed ``press_button`` actions by device and control: {device: {control: [steps]}}.
+
+    The platform's observation does not say whether a device's switch is on, so
+    the ledger offers the one thing it does know: which presses were carried out.
+    """
+    out = {}
+    for row in snapshot.get("actions") or []:
+        action = row.get("action") or {}
+        if row.get("status") != "complete" or action.get("action") != "press_button":
+            continue
+        if not isinstance(action.get("target"), str):
+            continue
+        control = action.get("control") if isinstance(action.get("control"), str) else "button"
+        out.setdefault(action["target"], {}).setdefault(control, []).append(row.get("step"))
+    return out
+
+
+def device_line(entity_id, row, presses=None):
     parts = [f"{entity_id} (device {row.get('device_type') or '?'}): {row.get('status') or '?'}"]
     if row.get("active") is not None:
         parts.append("active" if row["active"] else "inactive")
@@ -73,6 +91,9 @@ def device_line(entity_id, row):
         parts.append(f"program {row['program']}")
     if row.get("loaded_entities") is not None:
         parts.append(f"loaded: {', '.join(row['loaded_entities']) or 'nothing'}")
+    for control, steps in sorted((presses or {}).items()):
+        listed = ", ".join(str(step) for step in steps)
+        parts.append(f"{control} pressed {len(steps)} time(s) in this run (step {listed})")
     return "; ".join(parts)
 
 
@@ -111,6 +132,7 @@ def render_ledger(snapshot, observation=None, *, focus=None):
     devices = snapshot.get("devices") or {}
     robot = snapshot.get("robot") or {}
     attached = robot.get("attached_tip")
+    presses = control_presses(snapshot)
     if focus is None:
         focus = set(containers) | set(tips) | set(devices)
     focus = set(focus) | ({attached} if attached else set())
@@ -125,7 +147,7 @@ def render_ledger(snapshot, observation=None, *, focus=None):
     for entity_id in sorted(focus & set(tips)):
         lines.append(tip_line(entity_id, tips[entity_id]))
     for entity_id in sorted(focus & set(devices)):
-        lines.append(device_line(entity_id, devices[entity_id]))
+        lines.append(device_line(entity_id, devices[entity_id], presses.get(entity_id)))
     fresh = sorted(tid for tid, tip in tips.items() if tip.get("status") == "fresh")
     lines.append("tips never attached in this run: "
                  + (", ".join(f"{tid} ({tips[tid].get('tip_type')})" for tid in fresh)
@@ -137,7 +159,7 @@ def render_ledger(snapshot, observation=None, *, focus=None):
     for entity_id in sorted(set(tips)-focus):
         others.append(tip_line(entity_id, tips[entity_id], contacts=False))
     for entity_id in sorted(set(devices)-focus):
-        others.append(device_line(entity_id, devices[entity_id]))
+        others.append(device_line(entity_id, devices[entity_id], presses.get(entity_id)))
     others += _other_rows(observation, focus)
     out = ["  "+line for line in lines]
     if others:
