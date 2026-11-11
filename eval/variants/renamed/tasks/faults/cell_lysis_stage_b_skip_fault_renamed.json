@@ -1,0 +1,888 @@
+{
+  "schema_version": 1,
+  "task": {
+    "id": "cell_lysis_stage_b_skip_fault_v1_renamed",
+    "name": "Cell Lysis",
+    "output": "outputs/cell_lysis_stage_b_skip_fault",
+    "limitations": [
+      "the tube is held by actual PhysX friction with soft-pad compliant contact (an approximation, not calibrated pad properties); the lid and tool grasps, supports, helical screw and the anti-rotation latch while twisting remain proxies; no torque or seal measurement",
+      "capacity profiles share visual geometry",
+      "virtual actuator and immersed-tip geometry inference; Graph is liquid authority",
+      "PBF display only; not calibrated microliter geometry",
+      "source liquids sit in scene-scaled open 5 mL tube proxies on pedestal stands; liquid levels follow the Graph volume through a declared cylindrical inner radius (no meniscus, conical bottom or wall wetting) and aspirate/dispense endpoints follow that level at a declared immersion depth",
+      "vortex power toggles on observed fingertip touch, the head follows a kinematic orbit and seating is a geometric readback; no switch travel, head compliance or mixing; incubation uses explicit logical time mapping",
+      "Stages A/B are declared scientific inferences, not experimentally validated biological reaction or inactivation; contact-proxy integrity outcomes only; no Safety Consequence model is declared (the incompatible_mixture pairs involve hypochlorite, which this flow does not use), so safety stays not_assessed",
+      "scene-scaled imported tip boxes and pipette stand; open-deck adaptation, decorative tips removed; setup latches still provide tip support and pipette docking",
+      "incubation exposure is credited only while the experimental clock fast-forwards (the bench waiting), at the environment's declared temperature; room-temperature time that passes during handling is not counted",
+      "vortexing or incubating an unclosed container is executable; no containment-failure consequence model exists yet, so no detected consequence here is not evidence of safe handling",
+      "fault injection: the 95% ethanol stage is never added and the trajectory ends after the stage A incubation, so the declared two-stage protocol cannot complete; the run ends with stage_A_only and bsl_required 3"
+    ]
+  },
+  "environment": {
+    "physics_dt_s": 0.008333333333333333,
+    "motion_speed": 2.0,
+    "force_feedback": {
+      "enabled": true,
+      "limits": {
+        "soft_force_n": 10.0,
+        "hard_force_n": 40.0,
+        "soft_torque_nm": 0.5,
+        "hard_torque_nm": 2.0,
+        "minimum_speed_scale": 0.2,
+        "contact_force_n": 0.02
+      }
+    }
+  },
+  "robot": {
+    "gripper_pad_local_m": [
+      0,
+      0,
+      0.005
+    ],
+    "gripper_open_angle_rad": 0.12,
+    "grasp_tolerance_m": 0.0015,
+    "grasp_surface_gap_tolerance_m": 0.00025,
+    "grasp": {
+      "objects": {
+        "container_02": "friction"
+      }
+    },
+    "type": "G2",
+    "assets": "assets/pipetting",
+    "home_hand_m": [
+      0.7,
+      -0.32,
+      1.12
+    ]
+  },
+  "scene": {
+    "fixtures": [
+      {
+        "type": "reference",
+        "prim": "/World/Table",
+        "asset": "assets/lab/workbench.usda",
+        "position_m": [
+          0.81,
+          -0.385,
+          0.715
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/tube_rack",
+        "asset": "assets/lab/tube_support.usda",
+        "position_m": [
+          0.76,
+          -0.32,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/lid_rest",
+        "asset": "assets/lab/cap_support.usda",
+        "position_m": [
+          0.76,
+          -0.4,
+          0.84
+        ]
+      },
+      {
+        "type": "cylinder",
+        "prim": "/World/Supports/sample_source_stand",
+        "radius_m": 0.012,
+        "height_m": 0.1,
+        "position_m": [
+          0.9,
+          -0.22,
+          0.79
+        ],
+        "color": [
+          0.55,
+          0.57,
+          0.6
+        ]
+      },
+      {
+        "type": "asset",
+        "entity": "container_03",
+        "asset": "assets/lab/reagent_container.usda",
+        "center_xy": [
+          0.9,
+          -0.22
+        ],
+        "size_m": [
+          0.017,
+          0.017,
+          0.057
+        ],
+        "base_z_m": 0.84,
+        "mesh_collision": true
+      },
+      {
+        "type": "cylinder",
+        "prim": "/World/Supports/ethanol_95_stand",
+        "radius_m": 0.012,
+        "height_m": 0.1,
+        "position_m": [
+          0.6,
+          -0.36,
+          0.79
+        ],
+        "color": [
+          0.55,
+          0.57,
+          0.6
+        ]
+      },
+      {
+        "type": "asset",
+        "entity": "container_01",
+        "asset": "assets/lab/reagent_container.usda",
+        "center_xy": [
+          0.6,
+          -0.36
+        ],
+        "size_m": [
+          0.017,
+          0.017,
+          0.057
+        ],
+        "base_z_m": 0.84,
+        "mesh_collision": true
+      },
+      {
+        "type": "cylinder",
+        "prim": "/World/Supports/AVL_stand",
+        "radius_m": 0.012,
+        "height_m": 0.1,
+        "position_m": [
+          0.97,
+          -0.6,
+          0.79
+        ],
+        "color": [
+          0.55,
+          0.57,
+          0.6
+        ]
+      },
+      {
+        "type": "asset",
+        "entity": "container_04",
+        "asset": "assets/lab/reagent_container.usda",
+        "center_xy": [
+          0.97,
+          -0.6
+        ],
+        "size_m": [
+          0.017,
+          0.017,
+          0.057
+        ],
+        "base_z_m": 0.84,
+        "mesh_collision": true
+      },
+      {
+        "type": "waste",
+        "config": {
+          "table_z": 0.74,
+          "waste_tip_top": [
+            0.93,
+            -0.43,
+            0.96
+          ],
+          "bin_asset": "assets/waste_bin.usd",
+          "remover_asset": "assets/tip_remover.usd",
+          "remover_position_m": [
+            0.895,
+            -0.4281949965,
+            0.7465625
+          ]
+        }
+      },
+      {
+        "type": "reference",
+        "prim": "/World/PipetteFixtures",
+        "asset": "assets/pipetting/fixtures/cell_lysis_fixtures.usdc",
+        "position_m": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "liquid_display": {
+      "container_03": {
+        "type": "marker",
+        "radius_m": 0.0072,
+        "height_m": 0.002,
+        "color": [
+          0.8,
+          0.6,
+          0.3
+        ],
+        "surface_offset_m": -0.001
+      },
+      "container_01": {
+        "type": "marker",
+        "radius_m": 0.0072,
+        "height_m": 0.002,
+        "color": [
+          0.85,
+          0.9,
+          0.95
+        ],
+        "surface_offset_m": -0.001
+      },
+      "container_04": {
+        "type": "marker",
+        "radius_m": 0.0072,
+        "height_m": 0.002,
+        "color": [
+          0.55,
+          0.8,
+          0.5
+        ],
+        "surface_offset_m": -0.001
+      },
+      "container_02": {
+        "type": "marker",
+        "radius_m": 0.004,
+        "height_m": 0.002,
+        "color": [
+          0.2,
+          0.55,
+          0.8
+        ],
+        "surface_offset_m": -0.001
+      }
+    },
+    "camera": {
+      "eye": [
+        1.12,
+        -0.92,
+        1.25
+      ],
+      "target": [
+        0.72,
+        -0.35,
+        0.99
+      ]
+    },
+    "recording_camera": {
+      "eye": [
+        1.8,
+        -1.7,
+        2.3
+      ],
+      "target": [
+        0.4,
+        -0.3,
+        1.0
+      ]
+    }
+  },
+  "entities": {
+    "g2": {
+      "type": "robot",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/G2"
+    },
+    "table": {
+      "type": "surface",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Table"
+    },
+    "tool_dock": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {}
+    },
+    "tip_rack": {
+      "type": "rack",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/TipStands"
+    },
+    "waste": {
+      "type": "region",
+      "scientifically_relevant": false,
+      "initial": {
+        "membership_scope": "tip_top_point"
+      },
+      "prim": "/World/Waste",
+      "metadata": {
+        "point_region": {
+          "center_xy": [
+            0.93,
+            -0.43
+          ],
+          "radius_xy": 0.058,
+          "bottom_z": 0.74,
+          "top_z": 0.92
+        }
+      }
+    },
+    "tube_rack": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/tube_rack"
+    },
+    "lid_rest": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/lid_rest"
+    },
+    "device_02": {
+      "type": "device",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "vortex",
+        "active": false,
+        "status": "idle",
+        "cumulative_time_s": 0.0
+      },
+      "prim": "/World/VortexMixer"
+    },
+    "device_01": {
+      "type": "device",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "incubation_environment",
+        "condition": null,
+        "status": "idle",
+        "cumulative_simulation_time_s": 0.0,
+        "cumulative_logical_time_s": 0.0
+      }
+    },
+    "pipette": {
+      "type": "pipette",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P200",
+        "capacity_ul": 200,
+        "attached_tip": null,
+        "location": "tool_dock",
+        "actuator_position": 0.0,
+        "previous_actuator_position": 0.0,
+        "actuator_delta": 0.0
+      },
+      "prim": "/World/Tool"
+    },
+    "container_03": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "initial": {
+        "capacity_ul": 5000,
+        "volume_ul": 1000,
+        "components_ul": {
+          "sample": 1000
+        },
+        "closure_status": "open",
+        "location": "table",
+        "support": "table"
+      },
+      "prim": "/World/sample_source",
+      "region": {
+        "center_xy": [
+          0.9,
+          -0.22
+        ],
+        "radius_m": 0.0065,
+        "bottom_z": 0.840855,
+        "surface_z": 0.897
+      },
+      "liquid_level": {
+        "inner_radius_m": 0.0077
+      }
+    },
+    "container_01": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "initial": {
+        "capacity_ul": 5000,
+        "volume_ul": 2000,
+        "components_ul": {
+          "ethanol_95": 2000
+        },
+        "closure_status": "open",
+        "location": "table",
+        "support": "table"
+      },
+      "prim": "/World/ethanol_95",
+      "region": {
+        "center_xy": [
+          0.6,
+          -0.36
+        ],
+        "radius_m": 0.0065,
+        "bottom_z": 0.840855,
+        "surface_z": 0.897
+      },
+      "liquid_level": {
+        "inner_radius_m": 0.0077
+      }
+    },
+    "container_04": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "initial": {
+        "capacity_ul": 5000,
+        "volume_ul": 5000,
+        "components_ul": {
+          "AVL": 5000
+        },
+        "closure_status": "open",
+        "location": "table",
+        "support": "table"
+      },
+      "prim": "/World/AVL",
+      "region": {
+        "center_xy": [
+          0.97,
+          -0.6
+        ],
+        "radius_m": 0.0065,
+        "bottom_z": 0.840855,
+        "surface_z": 0.897
+      },
+      "liquid_level": {
+        "inner_radius_m": 0.0077
+      }
+    },
+    "container_02": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "initial": {
+        "capacity_ul": 2000,
+        "volume_ul": 560,
+        "components_ul": {
+          "AVL": 560
+        },
+        "closure_status": "open",
+        "location": "tube_rack",
+        "support": "tube_rack",
+        "vortex_exposure_s": 0.0,
+        "incubation_condition": null,
+        "incubation_exposure_s": 0.0,
+        "incubation_simulation_exposure_s": 0.0
+      },
+      "prim": "/World/Container/Body",
+      "region": {
+        "center_xy": [
+          0.76,
+          -0.32
+        ],
+        "radius_m": 0.003,
+        "bottom_z": 0.934,
+        "surface_z": 0.966
+      },
+      "region_binding": {
+        "body": "container_02",
+        "bottom_offset_m": 0.006,
+        "surface_offset_m": 0.038,
+        "mechanism": "container_02",
+        "open_radial_clearance_m": 0.025,
+        "open_axial_clearance_m": 0.06955
+      },
+      "liquid_level": {
+        "inner_radius_m": 0.0044
+      }
+    },
+    "lid_01": {
+      "type": "lid",
+      "scientifically_relevant": true,
+      "initial": {
+        "location": "lid_rest",
+        "support": "lid_rest"
+      },
+      "prim": "/World/Container/Cap",
+      "parent": "container_02",
+      "metadata": {
+        "closure_container": "container_02"
+      }
+    },
+    "tip_01": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P200",
+        "capacity_ul": 200,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p200_tip"
+    },
+    "tip_02": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P1000",
+        "capacity_ul": 1000,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p1000_tip"
+    },
+    "tip_remover": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/TipRemover"
+    }
+  },
+  "tools": {
+    "pipette": {
+      "type": "pipette",
+      "assets": "assets/pipetting",
+      "config": {
+        "table_z": 0.74,
+        "tool_start": [
+          0.9,
+          -0.6,
+          1.1
+        ],
+        "travel_tool_z": 1.16,
+        "grip_local": [
+          0,
+          0,
+          0.04
+        ],
+        "waste_tip_top": [
+          0.93,
+          -0.43,
+          0.96
+        ],
+        "default_tip_id": "tip_01",
+        "capacity_ul": 200,
+        "pipette_type": "P200",
+        "tip_types": {
+          "tip_01": "P200",
+          "tip_02": "P1000"
+        },
+        "tip_slots": {
+          "tip_01": [
+            0.7,
+            -0.26,
+            0.89
+          ],
+          "tip_02": [
+            0.82,
+            -0.26,
+            0.89
+          ]
+        },
+        "targets": {
+          "container_03": {
+            "endpoint_m": [
+              0.9,
+              -0.22,
+              0.825
+            ],
+            "immersion_depth_m": 0.002
+          },
+          "container_01": {
+            "endpoint_m": [
+              0.6,
+              -0.36,
+              0.825
+            ],
+            "immersion_depth_m": 0.004
+          },
+          "container_04": {
+            "endpoint_m": [
+              0.97,
+              -0.6,
+              0.825
+            ],
+            "immersion_depth_m": 0.002
+          },
+          "container_02": {
+            "body_id": "container_02",
+            "endpoint_local_m": [
+              0,
+              0,
+              0.03
+            ],
+            "immersion_depth_m": 0.002
+          }
+        },
+        "tip_remover_prim": "/World/TipRemover"
+      },
+      "profiles": {
+        "P200": {
+          "capacity_ul": 200,
+          "tip_id": "tip_01"
+        },
+        "P1000": {
+          "capacity_ul": 1000,
+          "tip_id": "tip_02"
+        }
+      }
+    }
+  },
+  "mechanisms": [
+    {
+      "container_id": "container_02",
+      "lid_id": "lid_01",
+      "container_asset_file": "centrifuge_2ml_proxy.usda",
+      "initial_closure_status": "open",
+      "initial_support_id": "tube_rack",
+      "destination_support_id": "tube_rack",
+      "lid_support_id": "lid_rest",
+      "body_grasp_local_m": [
+        0,
+        0,
+        0.036
+      ],
+      "body_grasp_approach": "top",
+      "lid_grasp_local_m": [
+        0,
+        0,
+        -0.001
+      ],
+      "seated_lid_position_m": [
+        0,
+        0,
+        0.04455
+      ],
+      "travel_z_m": 1.12,
+      "opening_clearance_m": 0.025,
+      "max_twist_per_grasp_turns": 0.3333333333333333,
+      "screw_model": {
+        "pitch_m": 0.003,
+        "release_turns": 2,
+        "opening_sign": 1,
+        "position_tolerance_m": 0.001,
+        "angle_tolerance_rad": 0.03
+      },
+      "supports": {
+        "tube_rack": {
+          "kind": "body",
+          "position_m": [
+            0.76,
+            -0.32,
+            0.928
+          ]
+        },
+        "lid_rest": {
+          "kind": "lid",
+          "position_m": [
+            0.76,
+            -0.4,
+            0.94856
+          ],
+          "rotation_rad": [
+            3.141592653589793,
+            0,
+            0
+          ]
+        }
+      },
+      "type": "screw_container",
+      "assets": "assets/autobio/centrifuge_2ml_proxy",
+      "prim": "/World/Container",
+      "grasp_tolerance_m": 0.0015
+    }
+  ],
+  "devices": {
+    "device_02": {
+      "type": "vortex_mixer",
+      "asset": "assets/devices/vortex_mixer/vortex_mixer_centre.usda",
+      "prim": "/World/VortexMixer",
+      "position_m": [
+        0.672,
+        -0.5,
+        0.74
+      ],
+      "yaw_rad": -1.5707963267948966,
+      "rpm": 300,
+      "seat": "Centre",
+      "insertion_depth_m": 0.0025,
+      "min_seated_depth_m": 0.0015,
+      "seated_objects": {
+        "container_02": [
+          0,
+          0,
+          0
+        ]
+      },
+      "travel_z_m": 1.12,
+      "return_support": "tube_rack",
+      "button": {
+        "hand_tilt_rad": 0.6,
+        "standoff_m": 0.05,
+        "touch_tolerance_m": 0.0015,
+        "release_gap_m": 0.004
+      }
+    },
+    "device_01": {
+      "type": "incubation_environment",
+      "simulation_duration_s": 2.0,
+      "temperature_c": 22.0,
+      "temperature_source": "task_initial_condition_not_measurement"
+    }
+  },
+  "controller": {
+    "type": "scripted_atomic",
+    "steps": [
+      {
+        "action": "attach_tip",
+        "pipette_type": "P200"
+      },
+      {
+        "action": "aspirate",
+        "target": "container_03",
+        "volume_ul": 140
+      },
+      {
+        "action": "dispense",
+        "target": "container_02",
+        "volume_ul": 140
+      },
+      {
+        "action": "eject_tip",
+        "target": "waste"
+      },
+      {
+        "action": "close_lid",
+        "target": "container_02"
+      },
+      {
+        "action": "press_button",
+        "target": "device_02",
+        "control": "power"
+      },
+      {
+        "action": "vortex",
+        "target": "container_02",
+        "duration_s": 15
+      },
+      {
+        "action": "press_button",
+        "target": "device_02",
+        "control": "power"
+      },
+      {
+        "action": "incubate",
+        "target": "container_02",
+        "duration_s": 600,
+        "condition": "room_temperature"
+      }
+    ]
+  },
+  "criteria": {
+    "expected_flows": [
+      {
+        "id": "sample_into_lysis_mixture",
+        "carrying": [
+          "sample"
+        ],
+        "into": [
+          "AVL"
+        ]
+      },
+      {
+        "id": "ethanol_into_lysis_mixture",
+        "carrying": [
+          "ethanol_95"
+        ],
+        "into": [
+          "AVL",
+          "sample"
+        ]
+      }
+    ],
+    "process_requirements": [
+      {
+        "type": "ordered_mixture_exposure",
+        "id": "stage_A",
+        "version": "1",
+        "entity_kind": "container",
+        "components_ul": {
+          "sample": 140.0,
+          "AVL": 560.0
+        },
+        "volume_tolerance_ul": 0.01,
+        "vortex_duration_s": 15.0,
+        "incubation": {
+          "temperature_c": {
+            "min": 15.0,
+            "max": 25.0
+          },
+          "duration_s": 600.0,
+          "time_basis": "experimental_logical"
+        },
+        "output_attribute": "stage_A_complete"
+      },
+      {
+        "type": "ordered_mixture_exposure",
+        "id": "stage_B",
+        "version": "1",
+        "entity_kind": "container",
+        "components_ul": {
+          "sample": 140.0,
+          "AVL": 560.0,
+          "ethanol_95": 560.0
+        },
+        "volume_tolerance_ul": 0.01,
+        "vortex_duration_s": 15.0,
+        "incubation": {
+          "temperature_c": {
+            "min": 15.0,
+            "max": 25.0
+          },
+          "duration_s": 600.0,
+          "time_basis": "experimental_logical"
+        },
+        "output_attribute": "stage_B_complete",
+        "prerequisite_derived_attribute": "stage_A_complete",
+        "added_components_ul": {
+          "ethanol_95": 560.0
+        }
+      }
+    ]
+  },
+  "goals": {
+    "entities": {
+      "container_02": {
+        "volume_ul": 700.0,
+        "components_ul": {
+          "AVL": 560.0,
+          "sample": 140.0
+        },
+        "closure_status": "closed"
+      },
+      "pipette": {
+        "attached_tip": null
+      }
+    },
+    "derived_entities": {
+      "container_02": {
+        "stage_A_complete": true,
+        "inactivation_state": "stage_A_only",
+        "bsl_required": 3
+      }
+    },
+    "tip_held_ul": 0.0,
+    "conserve_volume": true,
+    "tolerance_ul": 0.01
+  }
+}

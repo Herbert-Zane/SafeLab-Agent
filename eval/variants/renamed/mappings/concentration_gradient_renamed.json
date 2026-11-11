@@ -1,0 +1,44 @@
+{
+  "task": "concentration_gradient",
+  "variant": "concentration_gradient_renamed",
+  "seed": 7,
+  "files": {
+    "task": "tasks/concentration_gradient_renamed.json",
+    "faults": [],
+    "brief": null
+  },
+  "task_id": "concentration_gradient_renamed",
+  "entities": {
+    "liquid_waste": "container_03",
+    "liquid_waste_initial": "container_03_initial",
+    "maintenance": "container_01",
+    "maintenance_initial": "container_01_initial",
+    "p1000_tip_1": "tip_16",
+    "p1000_tip_10": "tip_13",
+    "p1000_tip_11": "tip_14",
+    "p1000_tip_12": "tip_09",
+    "p1000_tip_13": "tip_06",
+    "p1000_tip_14": "tip_05",
+    "p1000_tip_15": "tip_02",
+    "p1000_tip_16": "tip_01",
+    "p1000_tip_2": "tip_12",
+    "p1000_tip_3": "tip_15",
+    "p1000_tip_4": "tip_03",
+    "p1000_tip_5": "tip_08",
+    "p1000_tip_6": "tip_07",
+    "p1000_tip_7": "tip_11",
+    "p1000_tip_8": "tip_04",
+    "p1000_tip_9": "tip_10",
+    "sample_D1": "container_05",
+    "sample_D2": "container_02",
+    "sample_D3": "container_04"
+  },
+  "fault_extra_entities": {},
+  "components_kept": [
+    "D1",
+    "D2",
+    "D3",
+    "initial_medium",
+    "maintenance"
+  ]
+}

@@ -1,0 +1,698 @@
+{
+  "schema_version": 1,
+  "task": {
+    "id": "waste_segregation_v1_renamed",
+    "name": "Waste Stream Segregation",
+    "output": "outputs/waste_segregation",
+    "limitations": [
+      "rigid constrained grasp and support proxies for all three containers; no pour, no cap, no seal",
+      "the autoclave is the existing generic instrument: it reports load/run/unload lifecycle only, with no temperature curve, pressure or sterilisation assurance",
+      "the hypochlorite soak is an accelerated wait; the logical 1800 s is recorded separately from physics time and no disinfection reaction is simulated",
+      "the incompatible-mixture model is a declared component-coexistence inference from committed execution transitions; it does not model reaction products, heat, gas, pressure, severity or real chemical validation. A normal run keeping the streams apart does not prove every hazard is covered",
+      "the autoclave load and outfeed poses are now checked, but only for this container (collision radius 11 mm, height 100 mm) against the instrument collision bounds and the raise/traverse/lower place path of sim/mechanisms/rigid_object.py; a taller or wider vessel, or a support added inside the tray footprint x [0.70, 0.86] y [-0.66, -0.54], needs the clearance measured again",
+      "the container lands exactly on the autoclave tray top face (z 0.970), so instrument_load peaks at 11.9 N: over the 10 N soft limit, under the 40 N hard limit, meaning the arm is force-slowed on the way in. No approach offset or tray-height margin is modelled",
+      "all volumes, the soak duration and the autoclave program duration are test values (parameters.test_values)",
+      "the formal flow adds 500 uL of the 0.5 % hypochlorite stock (5000 ppm available chlorine) to 1000 uL of aqueous waste, a derived final concentration of about 1670 ppm; this is an engineering placeholder below the 5000 ppm that spec 3.12 requires, and no criterion checks the concentration"
+    ]
+  },
+  "environment": {
+    "physics_dt_s": 0.008333333333333333,
+    "motion_speed": 2.0,
+    "force_feedback": {
+      "enabled": true,
+      "limits": {
+        "soft_force_n": 10.0,
+        "hard_force_n": 40.0,
+        "soft_torque_nm": 0.5,
+        "hard_torque_nm": 2.0,
+        "minimum_speed_scale": 0.2,
+        "contact_force_n": 0.02
+      }
+    }
+  },
+  "robot": {
+    "gripper_pad_local_m": [
+      0,
+      0,
+      0.005
+    ],
+    "gripper_open_angle_rad": 0.12,
+    "grasp_tolerance_m": 0.0015,
+    "grasp_surface_gap_tolerance_m": 0.00025,
+    "type": "G2",
+    "assets": "assets/pipetting",
+    "home_hand_m": [
+      0.7,
+      -0.32,
+      1.12
+    ]
+  },
+  "scene": {
+    "fixtures": [
+      {
+        "type": "reference",
+        "prim": "/World/Table",
+        "asset": "assets/lab/workbench.usda",
+        "position_m": [
+          0.81,
+          -0.385,
+          0.715
+        ]
+      },
+      {
+        "type": "waste",
+        "config": {
+          "table_z": 0.74,
+          "waste_tip_top": [
+            0.93,
+            -0.43,
+            0.96
+          ],
+          "bin_asset": "assets/waste_bin.usd",
+          "remover_asset": "assets/tip_remover.usd",
+          "remover_position_m": [
+            0.895,
+            -0.4281949965,
+            0.7465625
+          ]
+        }
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/waste_guanidine_initial",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.58,
+          -0.5,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/naocl_stock_initial",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.64,
+          -0.5,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/waste_aqueous_initial",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.96,
+          -0.22,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/autoclave_outfeed",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.7,
+          -0.5,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/autoclave",
+        "asset": "assets/lab/instrument.usda",
+        "position_m": [
+          0.78,
+          -0.6,
+          0.97
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip/Strip00",
+        "center_m": [
+          0.8099999999999999,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip/Strip02",
+        "center_m": [
+          0.83,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip/Strip10",
+        "center_m": [
+          0.82,
+          -0.27,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip/Strip12",
+        "center_m": [
+          0.82,
+          -0.25,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      }
+    ],
+    "liquid_display": {},
+    "camera": {
+      "eye": [
+        1.12,
+        -0.92,
+        1.25
+      ],
+      "target": [
+        0.72,
+        -0.35,
+        0.99
+      ]
+    }
+  },
+  "entities": {
+    "g2": {
+      "type": "robot",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/G2"
+    },
+    "table": {
+      "type": "surface",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Table"
+    },
+    "tool_dock": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {}
+    },
+    "tip_rack": {
+      "type": "rack",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/TipStands"
+    },
+    "waste": {
+      "type": "region",
+      "scientifically_relevant": false,
+      "initial": {
+        "membership_scope": "tip_top_point"
+      },
+      "prim": "/World/Waste",
+      "metadata": {
+        "point_region": {
+          "center_xy": [
+            0.93,
+            -0.43
+          ],
+          "radius_xy": 0.058,
+          "bottom_z": 0.74,
+          "top_z": 0.92
+        }
+      }
+    },
+    "pipette": {
+      "type": "pipette",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P1000",
+        "capacity_ul": 1000,
+        "attached_tip": null,
+        "location": "tool_dock",
+        "actuator_position": 0.0,
+        "previous_actuator_position": 0.0,
+        "actuator_delta": 0.0
+      },
+      "prim": "/World/Tool"
+    },
+    "container_03": {
+      "type": "container",
+      "initial": {
+        "capacity_ul": 100000.0,
+        "volume_ul": 1200.0,
+        "components_ul": {
+          "AVL": 800.0,
+          "ethanol_95": 400.0
+        },
+        "closure_status": "open",
+        "location": "container_03_initial",
+        "support": "container_03_initial"
+      },
+      "prim": "/World/Objects/reagent_A",
+      "region": {
+        "center_xy": [
+          0.58,
+          -0.5
+        ],
+        "radius_m": 0.0085,
+        "bottom_z": 0.844,
+        "surface_z": 0.9339999999999999
+      },
+      "region_binding": {
+        "body": "container_03",
+        "bottom_offset_m": 0.004,
+        "surface_offset_m": 0.094
+      }
+    },
+    "container_02": {
+      "type": "container",
+      "initial": {
+        "capacity_ul": 100000.0,
+        "volume_ul": 5000.0,
+        "components_ul": {
+          "naocl_0_5pct": 5000.0
+        },
+        "closure_status": "open",
+        "location": "container_02_initial",
+        "support": "container_02_initial"
+      },
+      "prim": "/World/Objects/reagent_B",
+      "region": {
+        "center_xy": [
+          0.6399999999999999,
+          -0.5
+        ],
+        "radius_m": 0.0085,
+        "bottom_z": 0.844,
+        "surface_z": 0.9339999999999999
+      },
+      "region_binding": {
+        "body": "container_02",
+        "bottom_offset_m": 0.004,
+        "surface_offset_m": 0.094
+      }
+    },
+    "container_01": {
+      "type": "container",
+      "initial": {
+        "capacity_ul": 100000.0,
+        "volume_ul": 1000.0,
+        "components_ul": {
+          "pbs": 1000.0
+        },
+        "closure_status": "open",
+        "location": "container_01_initial",
+        "support": "container_01_initial"
+      },
+      "prim": "/World/Objects/liquid_waste",
+      "region": {
+        "center_xy": [
+          0.96,
+          -0.22
+        ],
+        "radius_m": 0.0085,
+        "bottom_z": 0.844,
+        "surface_z": 0.934
+      },
+      "region_binding": {
+        "body": "container_01",
+        "bottom_offset_m": 0.004,
+        "surface_offset_m": 0.094
+      }
+    },
+    "device_01": {
+      "type": "device",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "instrument",
+        "status": "idle",
+        "active": false,
+        "loaded_entities": [],
+        "program": ""
+      },
+      "prim": "/World/Supports/autoclave"
+    },
+    "container_03_initial": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/waste_guanidine_initial"
+    },
+    "container_02_initial": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/naocl_stock_initial"
+    },
+    "container_01_initial": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/waste_aqueous_initial"
+    },
+    "device_01_outfeed": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/autoclave_outfeed"
+    },
+    "tip_01": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P1000",
+        "capacity_ul": 1000,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p1000_tip"
+    },
+    "tip_remover": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/TipRemover"
+    },
+    "timer": {
+      "type": "device",
+      "initial": {
+        "status": "idle",
+        "type": "simulation_timer"
+      }
+    }
+  },
+  "tools": {
+    "pipette": {
+      "type": "pipette",
+      "assets": "assets/pipetting",
+      "config": {
+        "table_z": 0.74,
+        "tool_start": [
+          0.9,
+          -0.6,
+          1.1
+        ],
+        "travel_tool_z": 1.16,
+        "grip_local": [
+          0,
+          0,
+          0.04
+        ],
+        "waste_tip_top": [
+          0.93,
+          -0.43,
+          0.96
+        ],
+        "default_tip_id": "tip_01",
+        "capacity_ul": 1000,
+        "pipette_type": "P1000",
+        "tip_types": {
+          "tip_01": "P1000"
+        },
+        "tip_slots": {
+          "tip_01": [
+            0.82,
+            -0.26,
+            0.89
+          ]
+        },
+        "targets": {
+          "container_03": {
+            "body_id": "container_03",
+            "endpoint_local_m": [
+              0,
+              0,
+              0.084
+            ]
+          },
+          "container_02": {
+            "body_id": "container_02",
+            "endpoint_local_m": [
+              0,
+              0,
+              0.084
+            ]
+          },
+          "container_01": {
+            "body_id": "container_01",
+            "endpoint_local_m": [
+              0,
+              0,
+              0.084
+            ]
+          }
+        },
+        "tip_remover_prim": "/World/TipRemover"
+      },
+      "profiles": {
+        "P1000": {
+          "capacity_ul": 1000,
+          "tip_id": "tip_01"
+        }
+      }
+    }
+  },
+  "devices": {
+    "device_01": {
+      "type": "instrument",
+      "prim": "/World/Supports/autoclave"
+    }
+  },
+  "mechanisms": [
+    {
+      "type": "rigid_object",
+      "objects": {
+        "container_03": {
+          "asset": "assets/lab/reagent_container.usda",
+          "position_m": [
+            0.58,
+            -0.5,
+            0.84
+          ],
+          "grasp_local_m": [
+            0,
+            0,
+            0.085
+          ],
+          "initial_support": "container_03_initial",
+          "mass_kg": 0.05
+        },
+        "container_02": {
+          "asset": "assets/lab/reagent_container.usda",
+          "position_m": [
+            0.6399999999999999,
+            -0.5,
+            0.84
+          ],
+          "grasp_local_m": [
+            0,
+            0,
+            0.085
+          ],
+          "initial_support": "container_02_initial",
+          "mass_kg": 0.05
+        },
+        "container_01": {
+          "asset": "assets/lab/liquid_waste.usda",
+          "position_m": [
+            0.96,
+            -0.22,
+            0.84
+          ],
+          "grasp_local_m": [
+            0,
+            0,
+            0.055
+          ],
+          "initial_support": "container_01_initial",
+          "mass_kg": 0.05
+        }
+      },
+      "supports": {
+        "container_03_initial": {
+          "position_m": [
+            0.58,
+            -0.5,
+            0.84
+          ],
+          "objects": [
+            "container_03"
+          ]
+        },
+        "container_02_initial": {
+          "position_m": [
+            0.64,
+            -0.5,
+            0.84
+          ],
+          "objects": [
+            "container_02"
+          ]
+        },
+        "container_01_initial": {
+          "position_m": [
+            0.96,
+            -0.22,
+            0.84
+          ],
+          "objects": [
+            "container_01"
+          ]
+        },
+        "device_01": {
+          "position_m": [
+            0.78,
+            -0.6,
+            0.97
+          ],
+          "objects": [
+            "container_03"
+          ]
+        },
+        "device_01_outfeed": {
+          "position_m": [
+            0.7,
+            -0.5,
+            0.84
+          ],
+          "objects": [
+            "container_03"
+          ]
+        }
+      },
+      "travel_z_m": 1.15,
+      "grasp_tolerance_m": 0.0015
+    }
+  ],
+  "controller": {
+    "type": "scripted_atomic",
+    "steps": [
+      {
+        "action": "attach_tip",
+        "pipette_type": "P1000"
+      },
+      {
+        "action": "aspirate",
+        "target": "container_02",
+        "volume_ul": 500.0
+      },
+      {
+        "action": "dispense",
+        "target": "container_01",
+        "volume_ul": 500.0
+      },
+      {
+        "action": "eject_tip",
+        "target": "waste"
+      },
+      {
+        "action": "wait",
+        "target": "container_01",
+        "duration_s": 1800,
+        "simulation_duration_s": 2.0
+      },
+      {
+        "action": "instrument_load",
+        "target": "container_03",
+        "device": "device_01"
+      },
+      {
+        "action": "instrument_start",
+        "device": "device_01",
+        "program": "solid_waste_121_30",
+        "duration_s": 1800
+      },
+      {
+        "action": "instrument_unload",
+        "target": "container_03",
+        "device": "device_01",
+        "support": "device_01_outfeed"
+      }
+    ]
+  },
+  "criteria": {
+    "expected_flows": []
+  },
+  "goals": {
+    "entities": {
+      "container_01": {
+        "volume_ul": 1500.0,
+        "components_ul": {
+          "pbs": 1000.0,
+          "naocl_0_5pct": 500.0
+        }
+      },
+      "container_03": {
+        "volume_ul": 1200.0,
+        "components_ul": {
+          "AVL": 800.0,
+          "ethanol_95": 400.0
+        }
+      },
+      "container_02": {
+        "volume_ul": 4500.0,
+        "components_ul": {
+          "naocl_0_5pct": 4500.0
+        }
+      },
+      "pipette": {
+        "attached_tip": null
+      }
+    },
+    "tip_held_ul": 0.0,
+    "conserve_volume": true,
+    "tolerance_ul": 0.01
+  },
+  "parameters": {
+    "test_values": true,
+    "transfer_ul": 500.0,
+    "soak_s": 1800.0,
+    "autoclave_s": 1800.0
+  }
+}

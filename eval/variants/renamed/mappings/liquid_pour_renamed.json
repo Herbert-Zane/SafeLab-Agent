@@ -1,0 +1,23 @@
+{
+  "task": "liquid_pour",
+  "variant": "liquid_pour_renamed",
+  "seed": 7,
+  "files": {
+    "task": "tasks/liquid_pour_renamed.json",
+    "faults": [
+      "tasks/faults/liquid_knockover_renamed.json"
+    ],
+    "brief": null
+  },
+  "task_id": "liquid_pour_v1_renamed",
+  "entities": {
+    "beaker_a": "container_02",
+    "beaker_b": "container_01"
+  },
+  "fault_extra_entities": {
+    "liquid_knockover": {}
+  },
+  "components_kept": [
+    "naocl_0_5pct"
+  ]
+}

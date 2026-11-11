@@ -1,0 +1,6276 @@
+{
+  "schema_version": 1,
+  "task": {
+    "id": "multi_reagent_plate_renamed",
+    "output": "outputs/multi_reagent_plate",
+    "limitations": [
+      "Declared test parameters; not validated experimental conditions",
+      "Constraint grasp and fixture proxies",
+      "Liquid volumes inferred by actual region contact plus virtual actuator; no measured fluid transfer",
+      "No reaction or process models; contamination and incompatible-mixture models come from the global library"
+    ]
+  },
+  "environment": {
+    "physics_dt_s": 0.008333333333333333,
+    "motion_speed": 2.0,
+    "force_feedback": {
+      "enabled": true,
+      "limits": {
+        "soft_force_n": 10.0,
+        "hard_force_n": 40.0,
+        "soft_torque_nm": 0.5,
+        "hard_torque_nm": 2.0,
+        "minimum_speed_scale": 0.2,
+        "contact_force_n": 0.02
+      }
+    }
+  },
+  "robot": {
+    "gripper_pad_local_m": [
+      0,
+      0,
+      0.005
+    ],
+    "gripper_open_angle_rad": 0.12,
+    "grasp_tolerance_m": 0.0015,
+    "grasp_surface_gap_tolerance_m": 0.00025,
+    "type": "G2",
+    "assets": "assets/pipetting",
+    "home_hand_m": [
+      0.7,
+      -0.32,
+      1.12
+    ]
+  },
+  "scene": {
+    "fixtures": [
+      {
+        "type": "reference",
+        "prim": "/World/Table",
+        "asset": "assets/lab/workbench.usda",
+        "position_m": [
+          0.81,
+          -0.385,
+          0.715
+        ]
+      },
+      {
+        "type": "waste",
+        "config": {
+          "table_z": 0.74,
+          "waste_tip_top": [
+            0.93,
+            -0.43,
+            0.96
+          ],
+          "bin_asset": "assets/waste_bin.usd",
+          "remover_asset": "assets/tip_remover.usd",
+          "remover_position_m": [
+            0.895,
+            -0.4281949965,
+            0.7465625
+          ]
+        }
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/plate_initial",
+        "asset": "assets/lab/plate_rack.usda",
+        "position_m": [
+          0.62,
+          -0.4,
+          0.88
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/operation_zone",
+        "asset": "assets/lab/plate_rack.usda",
+        "position_m": [
+          0.7,
+          -0.4,
+          0.88
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/waiting_zone",
+        "asset": "assets/lab/plate_rack.usda",
+        "position_m": [
+          0.64,
+          -0.4,
+          0.88
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/completion_zone",
+        "asset": "assets/lab/plate_rack.usda",
+        "position_m": [
+          0.7,
+          -0.43,
+          0.88
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/wash_zone",
+        "asset": "assets/lab/plate_rack.usda",
+        "position_m": [
+          0.68,
+          -0.43,
+          0.88
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/observation_zone",
+        "asset": "assets/lab/plate_rack.usda",
+        "position_m": [
+          0.66,
+          -0.43,
+          0.88
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_1/Strip0",
+        "center_m": [
+          0.69,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_1/Strip1",
+        "center_m": [
+          0.71,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_1/Strip2",
+        "center_m": [
+          0.7,
+          -0.27,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_1/Strip3",
+        "center_m": [
+          0.7,
+          -0.25,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_2/Strip0",
+        "center_m": [
+          0.716,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_2/Strip1",
+        "center_m": [
+          0.736,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_2/Strip2",
+        "center_m": [
+          0.726,
+          -0.27,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_2/Strip3",
+        "center_m": [
+          0.726,
+          -0.25,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_3/Strip0",
+        "center_m": [
+          0.742,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_3/Strip1",
+        "center_m": [
+          0.762,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_3/Strip2",
+        "center_m": [
+          0.752,
+          -0.27,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_3/Strip3",
+        "center_m": [
+          0.752,
+          -0.25,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_4/Strip0",
+        "center_m": [
+          0.7679999999999999,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_4/Strip1",
+        "center_m": [
+          0.7879999999999999,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_4/Strip2",
+        "center_m": [
+          0.7779999999999999,
+          -0.27,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_4/Strip3",
+        "center_m": [
+          0.7779999999999999,
+          -0.25,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_5/Strip0",
+        "center_m": [
+          0.7939999999999999,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_5/Strip1",
+        "center_m": [
+          0.814,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_5/Strip2",
+        "center_m": [
+          0.8039999999999999,
+          -0.27,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_5/Strip3",
+        "center_m": [
+          0.8039999999999999,
+          -0.25,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_6/Strip0",
+        "center_m": [
+          0.82,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_6/Strip1",
+        "center_m": [
+          0.84,
+          -0.26,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_6/Strip2",
+        "center_m": [
+          0.83,
+          -0.27,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_6/Strip3",
+        "center_m": [
+          0.83,
+          -0.25,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_7/Strip0",
+        "center_m": [
+          0.846,
+          -0.234,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_7/Strip1",
+        "center_m": [
+          0.866,
+          -0.234,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_7/Strip2",
+        "center_m": [
+          0.856,
+          -0.244,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p20_tip_7/Strip3",
+        "center_m": [
+          0.856,
+          -0.224,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.3,
+          0.5,
+          0.8
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/reagent_A_initial",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.58,
+          -0.5,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/reagent_B_initial",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.6399999999999999,
+          -0.5,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/S1_initial",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.7,
+          -0.5,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/S2_initial",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.58,
+          -0.5700000000000001,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/S3_initial",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.6399999999999999,
+          -0.5700000000000001,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/liquid_waste_initial",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.96,
+          -0.22,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/lid_rest",
+        "asset": "assets/lab/plate_rack.usda",
+        "position_m": [
+          0.94,
+          -0.3,
+          0.88
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/reagent_A_work",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.605,
+          -0.5,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/reagent_B_work",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.6649999999999999,
+          -0.5,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/S1_work",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.725,
+          -0.5,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/S2_work",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.605,
+          -0.5700000000000001,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/S3_work",
+        "asset": "assets/lab/sample_support.usda",
+        "position_m": [
+          0.6649999999999999,
+          -0.5700000000000001,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/reader",
+        "asset": "assets/lab/instrument.usda",
+        "position_m": [
+          0.78,
+          -0.6,
+          0.97
+        ]
+      }
+    ],
+    "liquid_display": {},
+    "camera": {
+      "eye": [
+        1.12,
+        -0.92,
+        1.25
+      ],
+      "target": [
+        0.72,
+        -0.35,
+        0.99
+      ]
+    }
+  },
+  "entities": {
+    "g2": {
+      "type": "robot",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/G2"
+    },
+    "table": {
+      "type": "surface",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Table"
+    },
+    "tool_dock": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {}
+    },
+    "tip_rack": {
+      "type": "rack",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/TipStands"
+    },
+    "waste": {
+      "type": "region",
+      "scientifically_relevant": false,
+      "initial": {
+        "membership_scope": "tip_top_point"
+      },
+      "prim": "/World/Waste",
+      "metadata": {
+        "point_region": {
+          "center_xy": [
+            0.93,
+            -0.43
+          ],
+          "radius_xy": 0.058,
+          "bottom_z": 0.74,
+          "top_z": 0.92
+        }
+      }
+    },
+    "tip_remover": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/TipRemover"
+    },
+    "pipette": {
+      "type": "pipette",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P20",
+        "capacity_ul": 20,
+        "attached_tip": null,
+        "location": "tool_dock",
+        "actuator_position": 0.0,
+        "previous_actuator_position": 0.0,
+        "actuator_delta": 0.0
+      },
+      "prim": "/World/Tool"
+    },
+    "plate": {
+      "type": "plate",
+      "initial": {
+        "closure_status": "open",
+        "location": "plate_initial"
+      },
+      "prim": "/World/Objects/plate"
+    },
+    "plate_initial": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/plate_initial"
+    },
+    "operation_zone": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/operation_zone"
+    },
+    "waiting_zone": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/waiting_zone"
+    },
+    "completion_zone": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/completion_zone"
+    },
+    "wash_zone": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/wash_zone"
+    },
+    "observation_zone": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/observation_zone"
+    },
+    "A1": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "A1"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5705,
+          -0.4315
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.049499999999999995,
+          -0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "A2": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "A2"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5795,
+          -0.4315
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.040499999999999994,
+          -0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "A3": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "A3"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5885,
+          -0.4315
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0315,
+          -0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "A4": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "A4"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5975,
+          -0.4315
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0225,
+          -0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "A5": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "A5"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6065,
+          -0.4315
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.013499999999999998,
+          -0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "A6": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "A6"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6155,
+          -0.4315
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0045,
+          -0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "A7": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "A7"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6244999999999999,
+          -0.4315
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0045,
+          -0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "A8": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "A8"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6335,
+          -0.4315
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.013499999999999998,
+          -0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "A9": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "A9"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6425,
+          -0.4315
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0225,
+          -0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "A10": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "A10"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6515,
+          -0.4315
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0315,
+          -0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "A11": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "A11"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6605,
+          -0.4315
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.040499999999999994,
+          -0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "A12": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "A12"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6695,
+          -0.4315
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.049499999999999995,
+          -0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "B1": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "B1"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5705,
+          -0.42250000000000004
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.049499999999999995,
+          -0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "B2": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "B2"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5795,
+          -0.42250000000000004
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.040499999999999994,
+          -0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "B3": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "B3"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5885,
+          -0.42250000000000004
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0315,
+          -0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "B4": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "B4"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5975,
+          -0.42250000000000004
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0225,
+          -0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "B5": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "B5"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6065,
+          -0.42250000000000004
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.013499999999999998,
+          -0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "B6": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "B6"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6155,
+          -0.42250000000000004
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0045,
+          -0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "B7": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "B7"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6244999999999999,
+          -0.42250000000000004
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0045,
+          -0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "B8": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "B8"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6335,
+          -0.42250000000000004
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.013499999999999998,
+          -0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "B9": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "B9"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6425,
+          -0.42250000000000004
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0225,
+          -0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "B10": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "B10"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6515,
+          -0.42250000000000004
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0315,
+          -0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "B11": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "B11"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6605,
+          -0.42250000000000004
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.040499999999999994,
+          -0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "B12": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "B12"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6695,
+          -0.42250000000000004
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.049499999999999995,
+          -0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "C1": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "C1"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5705,
+          -0.41350000000000003
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.049499999999999995,
+          -0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "C2": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "C2"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5795,
+          -0.41350000000000003
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.040499999999999994,
+          -0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "C3": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "C3"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5885,
+          -0.41350000000000003
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0315,
+          -0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "C4": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "C4"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5975,
+          -0.41350000000000003
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0225,
+          -0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "C5": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "C5"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6065,
+          -0.41350000000000003
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.013499999999999998,
+          -0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "C6": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "C6"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6155,
+          -0.41350000000000003
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0045,
+          -0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "C7": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "C7"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6244999999999999,
+          -0.41350000000000003
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0045,
+          -0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "C8": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "C8"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6335,
+          -0.41350000000000003
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.013499999999999998,
+          -0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "C9": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "C9"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6425,
+          -0.41350000000000003
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0225,
+          -0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "C10": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "C10"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6515,
+          -0.41350000000000003
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0315,
+          -0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "C11": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "C11"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6605,
+          -0.41350000000000003
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.040499999999999994,
+          -0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "C12": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "C12"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6695,
+          -0.41350000000000003
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.049499999999999995,
+          -0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "D1": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "D1"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5705,
+          -0.4045
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.049499999999999995,
+          -0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "D2": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "D2"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5795,
+          -0.4045
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.040499999999999994,
+          -0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "D3": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "D3"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5885,
+          -0.4045
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0315,
+          -0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "D4": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "D4"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5975,
+          -0.4045
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0225,
+          -0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "D5": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "D5"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6065,
+          -0.4045
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.013499999999999998,
+          -0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "D6": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "D6"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6155,
+          -0.4045
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0045,
+          -0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "D7": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "D7"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6244999999999999,
+          -0.4045
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0045,
+          -0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "D8": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "D8"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6335,
+          -0.4045
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.013499999999999998,
+          -0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "D9": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "D9"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6425,
+          -0.4045
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0225,
+          -0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "D10": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "D10"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6515,
+          -0.4045
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0315,
+          -0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "D11": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "D11"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6605,
+          -0.4045
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.040499999999999994,
+          -0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "D12": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "D12"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6695,
+          -0.4045
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.049499999999999995,
+          -0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "E1": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "E1"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5705,
+          -0.3955
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.049499999999999995,
+          0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "E2": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "E2"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5795,
+          -0.3955
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.040499999999999994,
+          0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "E3": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "E3"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5885,
+          -0.3955
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0315,
+          0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "E4": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "E4"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5975,
+          -0.3955
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0225,
+          0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "E5": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "E5"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6065,
+          -0.3955
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.013499999999999998,
+          0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "E6": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "E6"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6155,
+          -0.3955
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0045,
+          0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "E7": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "E7"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6244999999999999,
+          -0.3955
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0045,
+          0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "E8": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "E8"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6335,
+          -0.3955
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.013499999999999998,
+          0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "E9": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "E9"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6425,
+          -0.3955
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0225,
+          0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "E10": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "E10"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6515,
+          -0.3955
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0315,
+          0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "E11": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "E11"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6605,
+          -0.3955
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.040499999999999994,
+          0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "E12": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "E12"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6695,
+          -0.3955
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.049499999999999995,
+          0.0045,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "F1": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "F1"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5705,
+          -0.3865
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.049499999999999995,
+          0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "F2": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "F2"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5795,
+          -0.3865
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.040499999999999994,
+          0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "F3": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "F3"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5885,
+          -0.3865
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0315,
+          0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "F4": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "F4"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5975,
+          -0.3865
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0225,
+          0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "F5": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "F5"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6065,
+          -0.3865
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.013499999999999998,
+          0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "F6": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "F6"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6155,
+          -0.3865
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0045,
+          0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "F7": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "F7"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6244999999999999,
+          -0.3865
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0045,
+          0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "F8": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "F8"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6335,
+          -0.3865
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.013499999999999998,
+          0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "F9": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "F9"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6425,
+          -0.3865
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0225,
+          0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "F10": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "F10"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6515,
+          -0.3865
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0315,
+          0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "F11": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "F11"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6605,
+          -0.3865
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.040499999999999994,
+          0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "F12": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "F12"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6695,
+          -0.3865
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.049499999999999995,
+          0.013499999999999998,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "G1": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "G1"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5705,
+          -0.3775
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.049499999999999995,
+          0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "G2": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "G2"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5795,
+          -0.3775
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.040499999999999994,
+          0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "G3": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "G3"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5885,
+          -0.3775
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0315,
+          0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "G4": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "G4"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5975,
+          -0.3775
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0225,
+          0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "G5": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "G5"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6065,
+          -0.3775
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.013499999999999998,
+          0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "G6": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "G6"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6155,
+          -0.3775
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0045,
+          0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "G7": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "G7"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6244999999999999,
+          -0.3775
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0045,
+          0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "G8": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "G8"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6335,
+          -0.3775
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.013499999999999998,
+          0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "G9": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "G9"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6425,
+          -0.3775
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0225,
+          0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "G10": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "G10"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6515,
+          -0.3775
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0315,
+          0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "G11": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "G11"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6605,
+          -0.3775
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.040499999999999994,
+          0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "G12": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "G12"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6695,
+          -0.3775
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.049499999999999995,
+          0.0225,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "H1": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "H1"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5705,
+          -0.36850000000000005
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.049499999999999995,
+          0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "H2": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "H2"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5795,
+          -0.36850000000000005
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.040499999999999994,
+          0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "H3": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "H3"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5885,
+          -0.36850000000000005
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0315,
+          0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "H4": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "H4"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.5975,
+          -0.36850000000000005
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0225,
+          0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "H5": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "H5"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6065,
+          -0.36850000000000005
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.013499999999999998,
+          0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "H6": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "H6"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6155,
+          -0.36850000000000005
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          -0.0045,
+          0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "H7": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "H7"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6244999999999999,
+          -0.36850000000000005
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0045,
+          0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "H8": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "H8"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6335,
+          -0.36850000000000005
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.013499999999999998,
+          0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "H9": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "H9"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6425,
+          -0.36850000000000005
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0225,
+          0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "H10": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "H10"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6515,
+          -0.36850000000000005
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.0315,
+          0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "H11": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "H11"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6605,
+          -0.36850000000000005
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.040499999999999994,
+          0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "H12": {
+      "type": "container",
+      "parent": "plate",
+      "metadata": {
+        "entity_type": "well",
+        "well_label": "H12"
+      },
+      "initial": {
+        "capacity_ul": 300.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "plate",
+        "support": "plate_initial"
+      },
+      "region": {
+        "center_xy": [
+          0.6695,
+          -0.36850000000000005
+        ],
+        "radius_m": 0.0034,
+        "bottom_z": 0.883,
+        "surface_z": 0.89
+      },
+      "region_binding": {
+        "body": "plate",
+        "center_local_m": [
+          0.049499999999999995,
+          0.0315,
+          0.0
+        ],
+        "bottom_offset_m": 0.003,
+        "surface_offset_m": 0.01,
+        "mechanism": "plate"
+      }
+    },
+    "timer": {
+      "type": "device",
+      "initial": {
+        "status": "idle",
+        "type": "simulation_timer"
+      }
+    },
+    "tip_06": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P20",
+        "capacity_ul": 20,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p20_tip_1"
+    },
+    "tip_03": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P20",
+        "capacity_ul": 20,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p20_tip_2"
+    },
+    "tip_02": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P20",
+        "capacity_ul": 20,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p20_tip_3"
+    },
+    "tip_05": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P20",
+        "capacity_ul": 20,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p20_tip_4"
+    },
+    "tip_04": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P20",
+        "capacity_ul": 20,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p20_tip_5"
+    },
+    "tip_01": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P20",
+        "capacity_ul": 20,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p20_tip_6"
+    },
+    "tip_07": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P20",
+        "capacity_ul": 20,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p20_tip_7"
+    },
+    "container_02": {
+      "type": "container",
+      "initial": {
+        "capacity_ul": 30000.0,
+        "volume_ul": 2000,
+        "components_ul": {
+          "reagent_A": 2000
+        },
+        "closure_status": "open",
+        "location": "container_02_initial",
+        "support": "container_02_initial"
+      },
+      "prim": "/World/Objects/reagent_A",
+      "region": {
+        "center_xy": [
+          0.58,
+          -0.5
+        ],
+        "radius_m": 0.0085,
+        "bottom_z": 0.844,
+        "surface_z": 0.9339999999999999
+      },
+      "region_binding": {
+        "body": "container_02",
+        "bottom_offset_m": 0.004,
+        "surface_offset_m": 0.094
+      }
+    },
+    "container_02_initial": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/reagent_A_initial"
+    },
+    "container_03": {
+      "type": "container",
+      "initial": {
+        "capacity_ul": 30000.0,
+        "volume_ul": 1000,
+        "components_ul": {
+          "reagent_B": 1000
+        },
+        "closure_status": "open",
+        "location": "container_03_initial",
+        "support": "container_03_initial"
+      },
+      "prim": "/World/Objects/reagent_B",
+      "region": {
+        "center_xy": [
+          0.6399999999999999,
+          -0.5
+        ],
+        "radius_m": 0.0085,
+        "bottom_z": 0.844,
+        "surface_z": 0.9339999999999999
+      },
+      "region_binding": {
+        "body": "container_03",
+        "bottom_offset_m": 0.004,
+        "surface_offset_m": 0.094
+      }
+    },
+    "container_03_initial": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/reagent_B_initial"
+    },
+    "S1": {
+      "type": "container",
+      "initial": {
+        "capacity_ul": 30000.0,
+        "volume_ul": 500,
+        "components_ul": {
+          "S1": 500
+        },
+        "closure_status": "open",
+        "location": "S1_initial",
+        "support": "S1_initial"
+      },
+      "prim": "/World/Objects/S1",
+      "region": {
+        "center_xy": [
+          0.7,
+          -0.5
+        ],
+        "radius_m": 0.0085,
+        "bottom_z": 0.844,
+        "surface_z": 0.9339999999999999
+      },
+      "region_binding": {
+        "body": "S1",
+        "bottom_offset_m": 0.004,
+        "surface_offset_m": 0.094
+      }
+    },
+    "S1_initial": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/S1_initial"
+    },
+    "S2": {
+      "type": "container",
+      "initial": {
+        "capacity_ul": 30000.0,
+        "volume_ul": 500,
+        "components_ul": {
+          "S2": 500
+        },
+        "closure_status": "open",
+        "location": "S2_initial",
+        "support": "S2_initial"
+      },
+      "prim": "/World/Objects/S2",
+      "region": {
+        "center_xy": [
+          0.58,
+          -0.5700000000000001
+        ],
+        "radius_m": 0.0085,
+        "bottom_z": 0.844,
+        "surface_z": 0.9339999999999999
+      },
+      "region_binding": {
+        "body": "S2",
+        "bottom_offset_m": 0.004,
+        "surface_offset_m": 0.094
+      }
+    },
+    "S2_initial": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/S2_initial"
+    },
+    "S3": {
+      "type": "container",
+      "initial": {
+        "capacity_ul": 30000.0,
+        "volume_ul": 500,
+        "components_ul": {
+          "S3": 500
+        },
+        "closure_status": "open",
+        "location": "S3_initial",
+        "support": "S3_initial"
+      },
+      "prim": "/World/Objects/S3",
+      "region": {
+        "center_xy": [
+          0.6399999999999999,
+          -0.5700000000000001
+        ],
+        "radius_m": 0.0085,
+        "bottom_z": 0.844,
+        "surface_z": 0.9339999999999999
+      },
+      "region_binding": {
+        "body": "S3",
+        "bottom_offset_m": 0.004,
+        "surface_offset_m": 0.094
+      }
+    },
+    "S3_initial": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/S3_initial"
+    },
+    "container_01": {
+      "type": "container",
+      "initial": {
+        "capacity_ul": 100000.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "container_01_initial",
+        "support": "container_01_initial"
+      },
+      "prim": "/World/Objects/liquid_waste",
+      "region": {
+        "center_xy": [
+          0.96,
+          -0.22
+        ],
+        "radius_m": 0.0085,
+        "bottom_z": 0.844,
+        "surface_z": 0.934
+      },
+      "region_binding": {
+        "body": "container_01",
+        "bottom_offset_m": 0.004,
+        "surface_offset_m": 0.094
+      }
+    },
+    "container_01_initial": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/liquid_waste_initial"
+    },
+    "lid_01": {
+      "type": "lid",
+      "initial": {
+        "location": "lid_rest",
+        "support": "lid_rest"
+      },
+      "prim": "/World/Objects/plate_lid",
+      "metadata": {
+        "closure_container": "plate"
+      }
+    },
+    "lid_rest": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/lid_rest"
+    },
+    "container_02_work": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/reagent_A_work"
+    },
+    "container_03_work": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/reagent_B_work"
+    },
+    "S1_work": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/S1_work"
+    },
+    "S2_work": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/S2_work"
+    },
+    "S3_work": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/S3_work"
+    },
+    "device_01": {
+      "type": "device",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "instrument",
+        "status": "idle",
+        "active": false,
+        "loaded_entities": [],
+        "program": ""
+      },
+      "prim": "/World/Supports/reader"
+    }
+  },
+  "tools": {
+    "pipette": {
+      "type": "pipette",
+      "assets": "assets/pipetting",
+      "config": {
+        "table_z": 0.74,
+        "tool_start": [
+          0.9,
+          -0.6,
+          1.1
+        ],
+        "travel_tool_z": 1.16,
+        "grip_local": [
+          0,
+          0,
+          0.04
+        ],
+        "waste_tip_top": [
+          0.93,
+          -0.43,
+          0.96
+        ],
+        "default_tip_id": "tip_06",
+        "capacity_ul": 20,
+        "pipette_type": "P20",
+        "tip_types": {
+          "tip_06": "P20",
+          "tip_03": "P20",
+          "tip_02": "P20",
+          "tip_05": "P20",
+          "tip_04": "P20",
+          "tip_01": "P20",
+          "tip_07": "P20"
+        },
+        "tip_slots": {
+          "tip_06": [
+            0.7,
+            -0.26,
+            0.89
+          ],
+          "tip_03": [
+            0.726,
+            -0.26,
+            0.89
+          ],
+          "tip_02": [
+            0.752,
+            -0.26,
+            0.89
+          ],
+          "tip_05": [
+            0.7779999999999999,
+            -0.26,
+            0.89
+          ],
+          "tip_04": [
+            0.8039999999999999,
+            -0.26,
+            0.89
+          ],
+          "tip_01": [
+            0.83,
+            -0.26,
+            0.89
+          ],
+          "tip_07": [
+            0.856,
+            -0.234,
+            0.89
+          ]
+        },
+        "targets": {
+          "A1": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.049499999999999995,
+              -0.0315,
+              0.005
+            ]
+          },
+          "A2": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.040499999999999994,
+              -0.0315,
+              0.005
+            ]
+          },
+          "A3": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0315,
+              -0.0315,
+              0.005
+            ]
+          },
+          "A4": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0225,
+              -0.0315,
+              0.005
+            ]
+          },
+          "A5": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.013499999999999998,
+              -0.0315,
+              0.005
+            ]
+          },
+          "A6": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0045,
+              -0.0315,
+              0.005
+            ]
+          },
+          "A7": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0045,
+              -0.0315,
+              0.005
+            ]
+          },
+          "A8": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.013499999999999998,
+              -0.0315,
+              0.005
+            ]
+          },
+          "A9": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0225,
+              -0.0315,
+              0.005
+            ]
+          },
+          "A10": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0315,
+              -0.0315,
+              0.005
+            ]
+          },
+          "A11": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.040499999999999994,
+              -0.0315,
+              0.005
+            ]
+          },
+          "A12": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.049499999999999995,
+              -0.0315,
+              0.005
+            ]
+          },
+          "B1": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.049499999999999995,
+              -0.0225,
+              0.005
+            ]
+          },
+          "B2": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.040499999999999994,
+              -0.0225,
+              0.005
+            ]
+          },
+          "B3": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0315,
+              -0.0225,
+              0.005
+            ]
+          },
+          "B4": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0225,
+              -0.0225,
+              0.005
+            ]
+          },
+          "B5": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.013499999999999998,
+              -0.0225,
+              0.005
+            ]
+          },
+          "B6": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0045,
+              -0.0225,
+              0.005
+            ]
+          },
+          "B7": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0045,
+              -0.0225,
+              0.005
+            ]
+          },
+          "B8": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.013499999999999998,
+              -0.0225,
+              0.005
+            ]
+          },
+          "B9": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0225,
+              -0.0225,
+              0.005
+            ]
+          },
+          "B10": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0315,
+              -0.0225,
+              0.005
+            ]
+          },
+          "B11": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.040499999999999994,
+              -0.0225,
+              0.005
+            ]
+          },
+          "B12": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.049499999999999995,
+              -0.0225,
+              0.005
+            ]
+          },
+          "C1": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.049499999999999995,
+              -0.013499999999999998,
+              0.005
+            ]
+          },
+          "C2": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.040499999999999994,
+              -0.013499999999999998,
+              0.005
+            ]
+          },
+          "C3": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0315,
+              -0.013499999999999998,
+              0.005
+            ]
+          },
+          "C4": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0225,
+              -0.013499999999999998,
+              0.005
+            ]
+          },
+          "C5": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.013499999999999998,
+              -0.013499999999999998,
+              0.005
+            ]
+          },
+          "C6": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0045,
+              -0.013499999999999998,
+              0.005
+            ]
+          },
+          "C7": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0045,
+              -0.013499999999999998,
+              0.005
+            ]
+          },
+          "C8": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.013499999999999998,
+              -0.013499999999999998,
+              0.005
+            ]
+          },
+          "C9": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0225,
+              -0.013499999999999998,
+              0.005
+            ]
+          },
+          "C10": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0315,
+              -0.013499999999999998,
+              0.005
+            ]
+          },
+          "C11": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.040499999999999994,
+              -0.013499999999999998,
+              0.005
+            ]
+          },
+          "C12": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.049499999999999995,
+              -0.013499999999999998,
+              0.005
+            ]
+          },
+          "D1": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.049499999999999995,
+              -0.0045,
+              0.005
+            ]
+          },
+          "D2": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.040499999999999994,
+              -0.0045,
+              0.005
+            ]
+          },
+          "D3": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0315,
+              -0.0045,
+              0.005
+            ]
+          },
+          "D4": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0225,
+              -0.0045,
+              0.005
+            ]
+          },
+          "D5": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.013499999999999998,
+              -0.0045,
+              0.005
+            ]
+          },
+          "D6": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0045,
+              -0.0045,
+              0.005
+            ]
+          },
+          "D7": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0045,
+              -0.0045,
+              0.005
+            ]
+          },
+          "D8": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.013499999999999998,
+              -0.0045,
+              0.005
+            ]
+          },
+          "D9": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0225,
+              -0.0045,
+              0.005
+            ]
+          },
+          "D10": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0315,
+              -0.0045,
+              0.005
+            ]
+          },
+          "D11": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.040499999999999994,
+              -0.0045,
+              0.005
+            ]
+          },
+          "D12": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.049499999999999995,
+              -0.0045,
+              0.005
+            ]
+          },
+          "E1": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.049499999999999995,
+              0.0045,
+              0.005
+            ]
+          },
+          "E2": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.040499999999999994,
+              0.0045,
+              0.005
+            ]
+          },
+          "E3": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0315,
+              0.0045,
+              0.005
+            ]
+          },
+          "E4": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0225,
+              0.0045,
+              0.005
+            ]
+          },
+          "E5": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.013499999999999998,
+              0.0045,
+              0.005
+            ]
+          },
+          "E6": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0045,
+              0.0045,
+              0.005
+            ]
+          },
+          "E7": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0045,
+              0.0045,
+              0.005
+            ]
+          },
+          "E8": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.013499999999999998,
+              0.0045,
+              0.005
+            ]
+          },
+          "E9": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0225,
+              0.0045,
+              0.005
+            ]
+          },
+          "E10": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0315,
+              0.0045,
+              0.005
+            ]
+          },
+          "E11": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.040499999999999994,
+              0.0045,
+              0.005
+            ]
+          },
+          "E12": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.049499999999999995,
+              0.0045,
+              0.005
+            ]
+          },
+          "F1": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.049499999999999995,
+              0.013499999999999998,
+              0.005
+            ]
+          },
+          "F2": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.040499999999999994,
+              0.013499999999999998,
+              0.005
+            ]
+          },
+          "F3": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0315,
+              0.013499999999999998,
+              0.005
+            ]
+          },
+          "F4": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0225,
+              0.013499999999999998,
+              0.005
+            ]
+          },
+          "F5": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.013499999999999998,
+              0.013499999999999998,
+              0.005
+            ]
+          },
+          "F6": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0045,
+              0.013499999999999998,
+              0.005
+            ]
+          },
+          "F7": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0045,
+              0.013499999999999998,
+              0.005
+            ]
+          },
+          "F8": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.013499999999999998,
+              0.013499999999999998,
+              0.005
+            ]
+          },
+          "F9": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0225,
+              0.013499999999999998,
+              0.005
+            ]
+          },
+          "F10": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0315,
+              0.013499999999999998,
+              0.005
+            ]
+          },
+          "F11": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.040499999999999994,
+              0.013499999999999998,
+              0.005
+            ]
+          },
+          "F12": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.049499999999999995,
+              0.013499999999999998,
+              0.005
+            ]
+          },
+          "G1": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.049499999999999995,
+              0.0225,
+              0.005
+            ]
+          },
+          "G2": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.040499999999999994,
+              0.0225,
+              0.005
+            ]
+          },
+          "G3": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0315,
+              0.0225,
+              0.005
+            ]
+          },
+          "G4": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0225,
+              0.0225,
+              0.005
+            ]
+          },
+          "G5": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.013499999999999998,
+              0.0225,
+              0.005
+            ]
+          },
+          "G6": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0045,
+              0.0225,
+              0.005
+            ]
+          },
+          "G7": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0045,
+              0.0225,
+              0.005
+            ]
+          },
+          "G8": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.013499999999999998,
+              0.0225,
+              0.005
+            ]
+          },
+          "G9": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0225,
+              0.0225,
+              0.005
+            ]
+          },
+          "G10": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0315,
+              0.0225,
+              0.005
+            ]
+          },
+          "G11": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.040499999999999994,
+              0.0225,
+              0.005
+            ]
+          },
+          "G12": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.049499999999999995,
+              0.0225,
+              0.005
+            ]
+          },
+          "H1": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.049499999999999995,
+              0.0315,
+              0.005
+            ]
+          },
+          "H2": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.040499999999999994,
+              0.0315,
+              0.005
+            ]
+          },
+          "H3": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0315,
+              0.0315,
+              0.005
+            ]
+          },
+          "H4": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0225,
+              0.0315,
+              0.005
+            ]
+          },
+          "H5": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.013499999999999998,
+              0.0315,
+              0.005
+            ]
+          },
+          "H6": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              -0.0045,
+              0.0315,
+              0.005
+            ]
+          },
+          "H7": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0045,
+              0.0315,
+              0.005
+            ]
+          },
+          "H8": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.013499999999999998,
+              0.0315,
+              0.005
+            ]
+          },
+          "H9": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0225,
+              0.0315,
+              0.005
+            ]
+          },
+          "H10": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.0315,
+              0.0315,
+              0.005
+            ]
+          },
+          "H11": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.040499999999999994,
+              0.0315,
+              0.005
+            ]
+          },
+          "H12": {
+            "body_id": "plate",
+            "endpoint_local_m": [
+              0.049499999999999995,
+              0.0315,
+              0.005
+            ]
+          },
+          "container_02": {
+            "body_id": "container_02",
+            "endpoint_local_m": [
+              0,
+              0,
+              0.084
+            ]
+          },
+          "container_03": {
+            "body_id": "container_03",
+            "endpoint_local_m": [
+              0,
+              0,
+              0.084
+            ]
+          },
+          "S1": {
+            "body_id": "S1",
+            "endpoint_local_m": [
+              0,
+              0,
+              0.084
+            ]
+          },
+          "S2": {
+            "body_id": "S2",
+            "endpoint_local_m": [
+              0,
+              0,
+              0.084
+            ]
+          },
+          "S3": {
+            "body_id": "S3",
+            "endpoint_local_m": [
+              0,
+              0,
+              0.084
+            ]
+          },
+          "container_01": {
+            "body_id": "container_01",
+            "endpoint_local_m": [
+              0,
+              0,
+              0.084
+            ]
+          }
+        },
+        "tip_remover_prim": "/World/TipRemover"
+      },
+      "profiles": {
+        "P20": {
+          "capacity_ul": 20,
+          "tip_ids": [
+            "tip_06",
+            "tip_03",
+            "tip_02",
+            "tip_05",
+            "tip_04",
+            "tip_01",
+            "tip_07"
+          ]
+        }
+      }
+    }
+  },
+  "devices": {
+    "device_01": {
+      "type": "instrument",
+      "prim": "/World/Supports/reader"
+    }
+  },
+  "mechanisms": [
+    {
+      "type": "rigid_object",
+      "objects": {
+        "plate": {
+          "asset": "assets/lab/plate.usda",
+          "position_m": [
+            0.62,
+            -0.4,
+            0.88
+          ],
+          "grasp_local_m": [
+            0.08,
+            -0.038,
+            0.081
+          ],
+          "initial_support": "plate_initial",
+          "mass_kg": 0.05,
+          "lid_id": "lid_01",
+          "lid_local_m": [
+            0,
+            0,
+            0.013
+          ]
+        },
+        "container_02": {
+          "asset": "assets/lab/reagent_container.usda",
+          "position_m": [
+            0.58,
+            -0.5,
+            0.84
+          ],
+          "grasp_local_m": [
+            0,
+            0,
+            0.085
+          ],
+          "initial_support": "container_02_initial",
+          "mass_kg": 0.05
+        },
+        "container_03": {
+          "asset": "assets/lab/reagent_container.usda",
+          "position_m": [
+            0.6399999999999999,
+            -0.5,
+            0.84
+          ],
+          "grasp_local_m": [
+            0,
+            0,
+            0.085
+          ],
+          "initial_support": "container_03_initial",
+          "mass_kg": 0.05
+        },
+        "S1": {
+          "asset": "assets/lab/reagent_container.usda",
+          "position_m": [
+            0.7,
+            -0.5,
+            0.84
+          ],
+          "grasp_local_m": [
+            0,
+            0,
+            0.085
+          ],
+          "initial_support": "S1_initial",
+          "mass_kg": 0.05
+        },
+        "S2": {
+          "asset": "assets/lab/reagent_container.usda",
+          "position_m": [
+            0.58,
+            -0.5700000000000001,
+            0.84
+          ],
+          "grasp_local_m": [
+            0,
+            0,
+            0.085
+          ],
+          "initial_support": "S2_initial",
+          "mass_kg": 0.05
+        },
+        "S3": {
+          "asset": "assets/lab/reagent_container.usda",
+          "position_m": [
+            0.6399999999999999,
+            -0.5700000000000001,
+            0.84
+          ],
+          "grasp_local_m": [
+            0,
+            0,
+            0.085
+          ],
+          "initial_support": "S3_initial",
+          "mass_kg": 0.05
+        },
+        "container_01": {
+          "asset": "assets/lab/liquid_waste.usda",
+          "position_m": [
+            0.96,
+            -0.22,
+            0.84
+          ],
+          "grasp_local_m": [
+            0,
+            0,
+            0.055
+          ],
+          "initial_support": "container_01_initial",
+          "mass_kg": 0.05
+        },
+        "lid_01": {
+          "asset": "assets/lab/plate_lid.usda",
+          "position_m": [
+            0.94,
+            -0.3,
+            0.88
+          ],
+          "grasp_local_m": [
+            -0.08,
+            -0.038,
+            0.075
+          ],
+          "initial_support": "lid_rest",
+          "mass_kg": 0.05
+        }
+      },
+      "supports": {
+        "plate_initial": {
+          "position_m": [
+            0.62,
+            -0.4,
+            0.88
+          ],
+          "objects": [
+            "plate"
+          ]
+        },
+        "operation_zone": {
+          "position_m": [
+            0.7,
+            -0.4,
+            0.88
+          ],
+          "objects": [
+            "plate"
+          ]
+        },
+        "waiting_zone": {
+          "position_m": [
+            0.64,
+            -0.4,
+            0.88
+          ],
+          "objects": [
+            "plate"
+          ]
+        },
+        "completion_zone": {
+          "position_m": [
+            0.7,
+            -0.43,
+            0.88
+          ],
+          "objects": [
+            "plate"
+          ]
+        },
+        "wash_zone": {
+          "position_m": [
+            0.68,
+            -0.43,
+            0.88
+          ],
+          "objects": [
+            "plate"
+          ]
+        },
+        "observation_zone": {
+          "position_m": [
+            0.66,
+            -0.43,
+            0.88
+          ],
+          "objects": [
+            "plate"
+          ]
+        },
+        "container_02_initial": {
+          "position_m": [
+            0.58,
+            -0.5,
+            0.84
+          ],
+          "objects": [
+            "container_02"
+          ]
+        },
+        "container_03_initial": {
+          "position_m": [
+            0.6399999999999999,
+            -0.5,
+            0.84
+          ],
+          "objects": [
+            "container_03"
+          ]
+        },
+        "S1_initial": {
+          "position_m": [
+            0.7,
+            -0.5,
+            0.84
+          ],
+          "objects": [
+            "S1"
+          ]
+        },
+        "S2_initial": {
+          "position_m": [
+            0.58,
+            -0.5700000000000001,
+            0.84
+          ],
+          "objects": [
+            "S2"
+          ]
+        },
+        "S3_initial": {
+          "position_m": [
+            0.6399999999999999,
+            -0.5700000000000001,
+            0.84
+          ],
+          "objects": [
+            "S3"
+          ]
+        },
+        "container_01_initial": {
+          "position_m": [
+            0.96,
+            -0.22,
+            0.84
+          ],
+          "objects": [
+            "container_01"
+          ]
+        },
+        "lid_rest": {
+          "position_m": [
+            0.94,
+            -0.3,
+            0.88
+          ],
+          "objects": [
+            "lid_01"
+          ]
+        },
+        "container_02_work": {
+          "position_m": [
+            0.605,
+            -0.5,
+            0.84
+          ],
+          "objects": [
+            "container_02"
+          ]
+        },
+        "container_03_work": {
+          "position_m": [
+            0.6649999999999999,
+            -0.5,
+            0.84
+          ],
+          "objects": [
+            "container_03"
+          ]
+        },
+        "S1_work": {
+          "position_m": [
+            0.725,
+            -0.5,
+            0.84
+          ],
+          "objects": [
+            "S1"
+          ]
+        },
+        "S2_work": {
+          "position_m": [
+            0.605,
+            -0.5700000000000001,
+            0.84
+          ],
+          "objects": [
+            "S2"
+          ]
+        },
+        "S3_work": {
+          "position_m": [
+            0.6649999999999999,
+            -0.5700000000000001,
+            0.84
+          ],
+          "objects": [
+            "S3"
+          ]
+        },
+        "device_01": {
+          "position_m": [
+            0.78,
+            -0.6,
+            0.97
+          ],
+          "objects": [
+            "plate"
+          ]
+        }
+      },
+      "travel_z_m": 1.15,
+      "grasp_tolerance_m": 0.0015
+    }
+  ],
+  "controller": {
+    "type": "scripted_atomic",
+    "steps": [
+      {
+        "action": "move",
+        "target": "plate",
+        "support": "operation_zone"
+      },
+      {
+        "action": "move",
+        "target": "container_02",
+        "support": "container_02_work"
+      },
+      {
+        "action": "move",
+        "target": "container_03",
+        "support": "container_03_work"
+      },
+      {
+        "action": "move",
+        "target": "S1",
+        "support": "S1_work"
+      },
+      {
+        "action": "move",
+        "target": "S2",
+        "support": "S2_work"
+      },
+      {
+        "action": "move",
+        "target": "S3",
+        "support": "S3_work"
+      },
+      {
+        "action": "attach_tip",
+        "pipette_type": "P20"
+      },
+      {
+        "foreach": {
+          "ref": "targets.wells"
+        },
+        "as": "well",
+        "steps": [
+          {
+            "action": "aspirate",
+            "target": "container_02",
+            "volume_ul": 13
+          },
+          {
+            "action": "dispense",
+            "target": {
+              "ref": "well"
+            },
+            "volume_ul": 13
+          }
+        ]
+      },
+      {
+        "action": "eject_tip",
+        "target": "waste"
+      },
+      {
+        "foreach": {
+          "ref": "targets.wells"
+        },
+        "as": "well",
+        "steps": [
+          {
+            "action": "attach_tip",
+            "pipette_type": "P20"
+          },
+          {
+            "action": "aspirate",
+            "target": "container_03",
+            "volume_ul": 2
+          },
+          {
+            "action": "dispense",
+            "target": {
+              "ref": "well"
+            },
+            "volume_ul": 2
+          },
+          {
+            "action": "eject_tip",
+            "target": "waste"
+          }
+        ]
+      },
+      {
+        "action": "attach_tip",
+        "pipette_type": "P20"
+      },
+      {
+        "action": "aspirate",
+        "target": "S1",
+        "volume_ul": 5
+      },
+      {
+        "action": "dispense",
+        "target": "A1",
+        "volume_ul": 5
+      },
+      {
+        "action": "eject_tip",
+        "target": "waste"
+      },
+      {
+        "action": "attach_tip",
+        "pipette_type": "P20"
+      },
+      {
+        "action": "aspirate",
+        "target": "S2",
+        "volume_ul": 5
+      },
+      {
+        "action": "dispense",
+        "target": "A2",
+        "volume_ul": 5
+      },
+      {
+        "action": "eject_tip",
+        "target": "waste"
+      },
+      {
+        "action": "attach_tip",
+        "pipette_type": "P20"
+      },
+      {
+        "action": "aspirate",
+        "target": "S3",
+        "volume_ul": 5
+      },
+      {
+        "action": "dispense",
+        "target": "A3",
+        "volume_ul": 5
+      },
+      {
+        "action": "eject_tip",
+        "target": "waste"
+      },
+      {
+        "action": "plate_seal",
+        "target": "plate"
+      },
+      {
+        "action": "instrument_load",
+        "target": "plate",
+        "device": "device_01"
+      },
+      {
+        "action": "instrument_start",
+        "device": "device_01",
+        "program": "test_program",
+        "duration_s": {
+          "ref": "parameters.instrument_s"
+        }
+      },
+      {
+        "action": "instrument_unload",
+        "target": "plate",
+        "device": "device_01",
+        "support": "completion_zone"
+      }
+    ]
+  },
+  "criteria": {
+    "expected_flows": [
+      {
+        "id": "reagent_A_into_empty_wells",
+        "carrying": [
+          "reagent_A"
+        ],
+        "into": []
+      },
+      {
+        "id": "reagent_B_into_reagent_A",
+        "carrying": [
+          "reagent_B"
+        ],
+        "into": [
+          "reagent_A"
+        ]
+      },
+      {
+        "id": "S1_into_reagent_A_reagent_B",
+        "carrying": [
+          "S1"
+        ],
+        "into": [
+          "reagent_A",
+          "reagent_B"
+        ]
+      },
+      {
+        "id": "S2_into_reagent_A_reagent_B",
+        "carrying": [
+          "S2"
+        ],
+        "into": [
+          "reagent_A",
+          "reagent_B"
+        ]
+      },
+      {
+        "id": "S3_into_reagent_A_reagent_B",
+        "carrying": [
+          "S3"
+        ],
+        "into": [
+          "reagent_A",
+          "reagent_B"
+        ]
+      }
+    ]
+  },
+  "goals": {
+    "entities": {
+      "A1": {
+        "volume_ul": 20.0,
+        "components_ul": {
+          "reagent_A": 13.0,
+          "reagent_B": 2.0,
+          "S1": 5.0
+        }
+      },
+      "A2": {
+        "volume_ul": 20.0,
+        "components_ul": {
+          "reagent_A": 13.0,
+          "reagent_B": 2.0,
+          "S2": 5.0
+        }
+      },
+      "A3": {
+        "volume_ul": 20.0,
+        "components_ul": {
+          "reagent_A": 13.0,
+          "reagent_B": 2.0,
+          "S3": 5.0
+        }
+      },
+      "plate": {
+        "location": "completion_zone"
+      },
+      "pipette": {
+        "attached_tip": null
+      }
+    },
+    "tip_held_ul": 0.0,
+    "conserve_volume": true,
+    "tolerance_ul": 0.01
+  },
+  "parameters": {
+    "test_values": true,
+    "waiting_s": 60.0,
+    "mix_s": 5.0,
+    "wash_ul": 200.0,
+    "wash_count": 4,
+    "water_ul": 500.0,
+    "staining_wash_count": 3,
+    "aliquot_ul": 200.0,
+    "instrument_s": 10.0
+  },
+  "target_sets": {
+    "wells": [
+      "A1",
+      "A2",
+      "A3"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "brief_schema_version": 1,
+  "task_id": "waste_segregation_v1_renamed",
+  "condition": "open_ended",
+  "objective": "Both waste containers on the bench (container_01 and container_03) have to be decontaminated so they can be disposed of. The bench provides a 0.5% hypochlorite stock (container_02), a device_01 and pipetting consumables. Decide the procedure yourself and carry it out.",
+  "operating_notes": [
+    "Report finish when you judge both containers ready for disposal."
+  ]
+}

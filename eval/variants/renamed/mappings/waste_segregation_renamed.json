@@ -1,0 +1,33 @@
+{
+  "task": "waste_segregation",
+  "variant": "waste_segregation_renamed",
+  "seed": 7,
+  "files": {
+    "task": "tasks/waste_segregation_renamed.json",
+    "faults": [
+      "tasks/faults/waste_segregation_mix_fault_renamed.json"
+    ],
+    "brief": "briefs/waste_segregation_v1_renamed.open.json"
+  },
+  "task_id": "waste_segregation_v1_renamed",
+  "entities": {
+    "autoclave": "device_01",
+    "autoclave_outfeed": "device_01_outfeed",
+    "naocl_stock": "container_02",
+    "naocl_stock_initial": "container_02_initial",
+    "p1000_tip": "tip_01",
+    "waste_aqueous": "container_01",
+    "waste_aqueous_initial": "container_01_initial",
+    "waste_guanidine": "container_03",
+    "waste_guanidine_initial": "container_03_initial"
+  },
+  "fault_extra_entities": {
+    "waste_segregation_mix_fault": {}
+  },
+  "components_kept": [
+    "AVL",
+    "ethanol_95",
+    "naocl_0_5pct",
+    "pbs"
+  ]
+}

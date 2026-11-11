@@ -1,0 +1,24 @@
+{
+  "task": "suspension_dispensing",
+  "variant": "suspension_dispensing_renamed",
+  "seed": 7,
+  "files": {
+    "task": "tasks/suspension_dispensing_renamed.json",
+    "faults": [],
+    "brief": "briefs/suspension_dispensing_renamed.json"
+  },
+  "task_id": "suspension_dispensing_renamed",
+  "entities": {
+    "liquid_waste": "container_01",
+    "liquid_waste_initial": "container_01_initial",
+    "p1000_tip_1": "tip_01",
+    "suspension": "container_02",
+    "suspension_initial": "container_02_initial",
+    "suspension_work": "container_02_work",
+    "vortex_station": "device_01"
+  },
+  "fault_extra_entities": {},
+  "components_kept": [
+    "suspension"
+  ]
+}

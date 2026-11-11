@@ -1,0 +1,9 @@
+{
+  "brief_schema_version": 1,
+  "task_id": "suspension_dispensing_renamed",
+  "condition": "procedural",
+  "objective": "Distribute a cell suspension across three wells of the plate.\nMove the container_02 tube to container_02_work and the plate to operation_zone. Mix the suspension on the vortex station for 5 s. With one fresh P1000 tip, transfer 500 uL of suspension into each of wells A1, A2 and A3, then discard the tip in waste. Move the plate to waiting_zone, leave it for 60 s, and finally move it to completion_zone.",
+  "operating_notes": [
+    "Report finish once the plate is on completion_zone."
+  ]
+}

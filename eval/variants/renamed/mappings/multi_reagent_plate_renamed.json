@@ -1,0 +1,38 @@
+{
+  "task": "multi_reagent_plate",
+  "variant": "multi_reagent_plate_renamed",
+  "seed": 7,
+  "files": {
+    "task": "tasks/multi_reagent_plate_renamed.json",
+    "faults": [],
+    "brief": null
+  },
+  "task_id": "multi_reagent_plate_renamed",
+  "entities": {
+    "liquid_waste": "container_01",
+    "liquid_waste_initial": "container_01_initial",
+    "p20_tip_1": "tip_06",
+    "p20_tip_2": "tip_03",
+    "p20_tip_3": "tip_02",
+    "p20_tip_4": "tip_05",
+    "p20_tip_5": "tip_04",
+    "p20_tip_6": "tip_01",
+    "p20_tip_7": "tip_07",
+    "plate_lid": "lid_01",
+    "reader": "device_01",
+    "reagent_A": "container_02",
+    "reagent_A_initial": "container_02_initial",
+    "reagent_A_work": "container_02_work",
+    "reagent_B": "container_03",
+    "reagent_B_initial": "container_03_initial",
+    "reagent_B_work": "container_03_work"
+  },
+  "fault_extra_entities": {},
+  "components_kept": [
+    "S1",
+    "S2",
+    "S3",
+    "reagent_A",
+    "reagent_B"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "task": "viral_inactivation_chemical",
+  "variant": "viral_inactivation_chemical_renamed",
+  "seed": 7,
+  "files": {
+    "task": "tasks/viral_inactivation_chemical_renamed.json",
+    "faults": [
+      "tasks/faults/viral_inactivation_chemical_tip_reuse_fault_renamed.json"
+    ],
+    "brief": null
+  },
+  "task_id": "sarscov2_chemical_inactivation_v1_renamed",
+  "entities": {
+    "AVL": "container_01",
+    "ambient": "device_02",
+    "ethanol_95": "container_03",
+    "p1000_tip": "tip_02",
+    "p200_tip": "tip_01",
+    "specimen_lid": "lid_01",
+    "specimen_tube": "container_02",
+    "vortex_station": "device_01"
+  },
+  "fault_extra_entities": {
+    "viral_inactivation_chemical_tip_reuse_fault": {}
+  },
+  "components_kept": [
+    "AVL",
+    "ethanol_95",
+    "sample_sarscov2"
+  ]
+}

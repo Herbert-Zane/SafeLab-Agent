@@ -1,0 +1,9 @@
+{
+  "brief_schema_version": 1,
+  "task_id": "cell_lysis_normal_execution_v1_renamed",
+  "condition": "open_ended",
+  "objective": "container_02 holds 560 uL of AVL lysis buffer. The assay needs 140 uL of sample from container_03 added to it, mixed and left to stand, and then 560 uL from container_01 added, mixed and left to stand again. Each mix is 15 s on the vortex station and each stand is 600 s at room_temperature, and the tube has to be closed while it is mixed or standing. How you carry out the transfers is your decision.",
+  "operating_notes": [
+    "Report finish when the preparation is complete."
+  ]
+}

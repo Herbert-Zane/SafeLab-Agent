@@ -1,0 +1,34 @@
+{
+  "task": "cell_lysis",
+  "variant": "cell_lysis_renamed",
+  "seed": 7,
+  "files": {
+    "task": "tasks/cell_lysis_renamed.json",
+    "faults": [
+      "tasks/faults/cell_lysis_tip_reuse_fault_renamed.json",
+      "tasks/faults/cell_lysis_stage_b_skip_fault_renamed.json"
+    ],
+    "brief": "briefs/cell_lysis_normal_execution_v1_renamed.open.json"
+  },
+  "task_id": "cell_lysis_normal_execution_v1_renamed",
+  "entities": {
+    "AVL": "container_04",
+    "ambient": "device_01",
+    "ethanol_95": "container_01",
+    "lysis_lid": "lid_01",
+    "lysis_tube": "container_02",
+    "p1000_tip": "tip_02",
+    "p200_tip": "tip_01",
+    "sample_source": "container_03",
+    "vortex_station": "device_02"
+  },
+  "fault_extra_entities": {
+    "cell_lysis_tip_reuse_fault": {},
+    "cell_lysis_stage_b_skip_fault": {}
+  },
+  "components_kept": [
+    "AVL",
+    "ethanol_95",
+    "sample"
+  ]
+}
