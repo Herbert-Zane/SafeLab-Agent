@@ -16,7 +16,8 @@
     "max_failed_actions": 10,
     "max_total_tokens": null,
     "max_cost_usd": null,
-    "wall_clock_s": null
+    "wall_clock_s": 3600,
+    "max_simulation_duration_s": 60
   },
   "policy": {
     "conversation": "stateless",

@@ -2,6 +2,14 @@
 
 每条记录：改了什么、原因、修改前是否看过评测结果。卡片的出处只来自 `docs/sources.md` 中“已核对”的条目。
 
+## 2026-11-12 平台换到 `da81b6b`（审查器未改）
+
+平台 `main` 从 `5b8be49` 到 `da81b6b`，只多了平台 #48：`limits.max_simulation_duration_s`，限制单个动作可请求的仿真实跑时长，超限的回复被平台按无效回复拒绝。审查器的规则、卡片、提示都**没有改**，`cards-v2` 仍在 `d06bd7c`。
+
+- `configs/agents/` 下全部配置加了 `"max_simulation_duration_s": 60`；`safelab_B.json`、`safelab_C.json` 的 `wall_clock_s` 从 `null` 改为 3600。原因：模型把 `wait` 的 `simulation_duration_s` 设成 1800 时仿真实跑 83 分钟，而 `wall_clock_s` 只在两步之间检查。60 没有做过取值对比。
+- 这是运行限额，对 A、B、C 相同，不是审查器行为。
+- 测试在 `da81b6b` 上 536 通过、6 跳过。开发集和留出集没有在 `da81b6b` 上重新生成（#48 只改回复校验，不改动作语义和观测）。
+
 ## 2026-11-12 迁移到平台 `5b8be49`（标签 `cards-v2`）
 
 平台从 `df6b958` 换到 `main` 的 `5b8be49`（含平台 #43–#47）。卡片（`cards/`）和 LLM 提示**没有改**。`cards-v1` 仍指向 `4c3fe9a`。
