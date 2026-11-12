@@ -142,12 +142,11 @@ def scene(load_task):
     ([], LOAD, False),
     (SEAT, LOAD, True),
     ([*SEAT, PICK], LOAD, True),   # load/unload have no empty-hand precondition
-    ([*SEAT, {"action": "press_button", "target": "spinner"}], LOAD, False),
+    (SEAT, {"action": "press_button", "target": "spinner"}, False),   # no switch to press
     ([], UNLOAD, False),
     ([*SEAT, LOAD], UNLOAD, True),
     ([*SEAT, LOAD, PICK], UNLOAD, True),
     ([*SEAT, LOAD], {**UNLOAD, "support": "tube_rack"}, False),
-    ([*SEAT, LOAD, {"action": "press_button", "target": "spinner"}], UNLOAD, False),
     ([], START, False),
     ([*SEAT, LOAD], START, True),
     ([PICK], {"action": "instrument_stop", "device": "spinner"}, True),

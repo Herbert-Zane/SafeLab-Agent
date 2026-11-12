@@ -379,6 +379,9 @@ def feasible(action, snapshot, observation, *, docks=None):
                 return [f"{target} can only be put down at its dock {dock}"]
     if name == "press_button" and target not in devices:
         return [f"{target} is not a device"]
+    if name == "press_button" and devices[target].get("power") is None:
+        # Only a device that reads a power switch back has a control to press.
+        return [f"{target} has no pressable control"]
     if name in ("vortex", "incubate", "heat"):
         wanted = {"vortex": ("vortex", "vortex_mixer"),
                   "incubate": ("incubation_environment",), "heat": ("heating_bath",)}[name]
