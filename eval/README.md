@@ -3,7 +3,7 @@
 A labelled set of single steps (ledger snapshot + agent-visible observation + proposed action)
 for scoring the safety critic without the simulator, and the script that scores it.
 
-Platform `5837ec3` migration (2026-11-12): the current main set has 266 cases; the 49
+Platform migration (2026-11-12; cases built on `5837ec3`, byte-identical when rebuilt on the current `5b8be49`): the current main set has 266 cases; the 49
 old-platform natural cases are preserved but skipped by default. See `cases/README.md`
 for per-file/category/operator counts, provenance and the sealed-set migration procedure.
 

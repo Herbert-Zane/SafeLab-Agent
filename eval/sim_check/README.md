@@ -15,7 +15,7 @@ has been run in the simulator yet.
 | `make_task.py` | builds a runnable task config from a plan (copies the platform's task file, replaces only `controller.steps`) |
 | `results_template.csv` | one row per run to fill in |
 
-Selection on platform `5837ec3` (2026-11-12): M1 3, M2 6, M3 6, M4 4, M5 1.
+Selection on platform `5837ec3` (2026-11-12; the current platform `5b8be49` differs only by platform PR 47, which no plan here touches): M1 3, M2 6, M3 6, M4 4, M5 1.
 Only cases with **at most 40 prefix steps before the action under test** are eligible
 (`unsafe_step_index <= 40`, at most 41 actions including the tested action). This avoids
 the old washing plans that could not reach the tested step in simulation past 44 steps.
