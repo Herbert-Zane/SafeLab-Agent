@@ -84,8 +84,10 @@ plainly. Do not block for reasons no card covers.
 
 Allowed replacement actions: close_lid or plate_seal on a container the proposed action \
 involves; eject_tip into a place for used tips (not a liquid container); attach_tip of a \
-fresh tip of another type than the one in use (a tip_id must be a fresh tip of that \
-pipette_type); dispense liquid the attached tip already holds back into the container it \
+fresh tip of another type than the last tip used (the required tip_id names a fresh tip \
+matching the fixed type of the pipette already held; attach_tip takes only tip_id and \
+does not change which pipette is held); dispense liquid the attached tip already holds \
+back into the container it \
 was aspirated from, or into the proposed dispense's own target; wait. Any other \
 replacement is not carried out.
 
@@ -231,6 +233,9 @@ def involved(snapshot, action):
     tip_id = (snapshot.get("robot") or {}).get("attached_tip")
     if tip_id:
         ids.append(tip_id)
+    tool = (snapshot.get("robot") or {}).get("held_tool")
+    if tool:
+        ids.append(tool)
     return list(dict.fromkeys(ids))
 
 
@@ -253,6 +258,8 @@ def ledger_context(snapshot, action):
             "containers": {cid: row for cid, row in (snapshot.get("containers") or {}).items()
                            if cid in ids},
             "tips": {tid: row for tid, row in (snapshot.get("tips") or {}).items() if tid in ids},
+            "pipettes": {pid: row for pid, row in (snapshot.get("pipettes") or {}).items()
+                         if pid in ids},
             "devices": {did: row for did, row in (snapshot.get("devices") or {}).items()
                         if did in ids},
             "actions": {str(index): actions[index] for index in range(first, len(actions))},
@@ -276,7 +283,7 @@ def build_prompt(snapshot, observation, action, inventory, knowledge):
     hinted = [f"- {cid}: id marks it as {', '.join(sorted(families.hinted(cid)))}"
               for cid in sorted(context["containers"]) if families.hinted(cid)]
     tracked = {*(snapshot.get("containers") or {}), *(snapshot.get("tips") or {}),
-               *(snapshot.get("devices") or {})}
+               *(snapshot.get("devices") or {}), *(snapshot.get("pipettes") or {})}
     known = kinds(observation)
     untracked = [f"{entity} ({known.get(entity) or 'not observed'})"
                  for entity in involved(snapshot, action) if entity not in tracked]

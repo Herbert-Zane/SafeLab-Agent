@@ -8,7 +8,18 @@ from safelab.critic import Critic, Verdict
 from safelab.critic.knowledge import default_knowledge
 from safelab.critic.llm_critic import SYSTEM, parse_answer, system_prompt, verify
 from safelab.resilience import Budget, BudgetExhausted
-from test_critic_rules import P200, P1000, Scene, asp, disp, sample_into_lysis, waste_bench
+from test_critic_rules import (
+    DOCK200,
+    P200,
+    P1000,
+    PICK1000,
+    Scene,
+    asp,
+    disp,
+    sample_into_lysis,
+    sample_with_empty_hand,
+    waste_bench,
+)
 
 PRICING = {"fake-model": {"input": 1.0, "output": 2.0}}
 USAGE = {"input_tokens": 1000, "output_tokens": 100}
@@ -31,7 +42,7 @@ def critic(*replies, mode="dual", **settings):
 
 
 def bleach_in_tip():
-    return Scene(waste_bench()).run(P1000, asp("naocl_stock", 500))
+    return Scene(waste_bench()).run(PICK1000, P1000, asp("naocl_stock", 500))
 
 
 GUANIDINE_EVIDENCE = [{"path": "containers.waste_guanidine.components_ul.AVL", "value": 800.0},
@@ -40,7 +51,7 @@ AQUEOUS_EVIDENCE = [{"path": "containers.waste_aqueous.components_ul.pbs", "valu
 
 
 def review(made, scene, action):
-    return made.review(scene.ledger.snapshot(), scene.bench.obs(scene.step), action)
+    return made.review(scene.ledger.snapshot(), scene.obs(), action)
 
 
 # -- parsing and the evidence check ------------------------------------------------------
@@ -115,12 +126,13 @@ def test_the_model_sees_only_the_entities_the_action_involves():
     assert set(context["containers"]) == {"waste_aqueous"}
     assert set(context["tips"]) == {"p1000_tip"}
     assert context["tips"]["p1000_tip"]["contacts"][0]["container"] == "naocl_stock"
-    assert list(context["actions"]) == ["2", "3", "4", "5"]          # the last four, by index
-    assert len(snapshot["actions"]) == 6
+    assert set(context["pipettes"]) == {"pipette_p1000"}
+    assert list(context["actions"]) == ["3", "4", "5", "6"]          # the last four, by index
+    assert len(snapshot["actions"]) == 7
     pour = {"action": "pour", "target": "naocl_stock", "receiver": "waste_guanidine"}
     assert set(ledger_context(snapshot, pour)["containers"]) == {"naocl_stock",
                                                                  "waste_guanidine"}
-    made, model, _ = critic(reply(evidence=[{"path": "actions[5].action.target",
+    made, model, _ = critic(reply(evidence=[{"path": "actions[6].action.target",
                                              "value": "waste_aqueous"},
                                             *AQUEOUS_EVIDENCE]))
     verdict = review(made, scene, disp("waste_aqueous", 500))
@@ -207,9 +219,11 @@ def test_an_llm_rewrite_is_used_only_when_allowed_feasible_and_rule_clean():
     assert verdict.decision == "rewrite" and verdict.rewrite == back
     assert "replaced" in verdict.feedback
 
-    new_tip = {"action": "attach_tip", "pipette_type": "P200"}        # a tip is still attached
-    made, _, _ = critic(reply("rewrite", evidence=GUANIDINE_EVIDENCE, rewrite=new_tip))
-    verdict = review(made, scene, disp("waste_guanidine", 500))
+    new_tip = {"action": "attach_tip", "tip_id": "p1000_tip"}        # a tip is still attached
+    made, _, _ = critic(reply("rewrite", cards=["tip-new-per-reagent"],
+                              evidence=[{"path": "tips.p200_tip.status", "value": "attached"}],
+                              rewrite=new_tip), mode="llm")
+    verdict = review(made, sample_into_lysis(), asp("ethanol_95", 140))
     assert verdict.decision == "block"
     assert "still attached" in verdict.rewrite_rejected[0]["problems"][0]
 
@@ -260,14 +274,14 @@ def test_the_allow_list_conditions(candidate, problem):
     scene = bleach_in_tip()
     original = disp("waste_guanidine", 500)
     problems = rewrite_kind_problems(candidate, original, scene.ledger.snapshot(),
-                                     scene.bench.obs(scene.step))
+                                     scene.obs())
     assert problems and problem in problems[0]
 
 
 def test_the_allow_list_admits_the_listed_kinds():
     from safelab.critic.gate import rewrite_kind_problems
     scene = bleach_in_tip()
-    snapshot, obs = scene.ledger.snapshot(), scene.bench.obs(scene.step)
+    snapshot, obs = scene.ledger.snapshot(), scene.obs()
     original = disp("waste_guanidine", 500)
     for candidate in ({"action": "close_lid", "target": "waste_guanidine"},
                       {"action": "eject_tip", "target": "waste"},
@@ -277,41 +291,48 @@ def test_the_allow_list_admits_the_listed_kinds():
     vortex = {"action": "vortex", "target": "lysis_tube", "duration_s": 15}
     lysis = sample_into_lysis()
     assert rewrite_kind_problems({"action": "close_lid", "target": "lysis_tube"}, vortex,
-                                 lysis.ledger.snapshot(), lysis.bench.obs(lysis.step)) == []
+                                 lysis.ledger.snapshot(), lysis.obs()) == []
 
 
 def test_an_attach_rewrite_must_be_another_type_and_a_fresh_matching_tip():
     from safelab.critic.gate import rewrite_kind_problems
-    scene = sample_into_lysis().run({"action": "eject_tip", "target": "waste"})
-    snapshot, obs = scene.ledger.snapshot(), scene.bench.obs(scene.step)
-    original = {"action": "attach_tip", "pipette_type": "P200", "tip_id": "p200_tip"}
-    same = {"action": "attach_tip", "pipette_type": "P200"}
+    scene = sample_into_lysis().run({"action": "eject_tip", "target": "waste"},
+                                   DOCK200, PICK1000)
+    snapshot, obs = scene.ledger.snapshot(), scene.obs()
+    original = {"action": "attach_tip", "tip_id": "p200_tip"}
+    same = {"action": "attach_tip", "tip_id": "p200_tip"}
     assert "same type" in rewrite_kind_problems(same, original, snapshot, obs)[0]
-    other = {"action": "attach_tip", "pipette_type": "P1000", "tip_id": "p1000_tip"}
+    other = {"action": "attach_tip", "tip_id": "p1000_tip"}
     assert rewrite_kind_problems(other, original, snapshot, obs) == []
     made, _, _ = critic(reply("rewrite", cards=["tip-new-per-reagent"],
                               evidence=[{"path": "tips.p200_tip.status", "value": "discarded"}],
-                              rewrite={"action": "attach_tip", "pipette_type": "P1000",
-                                       "tip_id": "p200_tip"}), llm_trigger="always")
+                              rewrite=other), llm_trigger="always")
     verdict = review(made, scene, original)
-    assert verdict.decision == "block"
-    assert "was used and ejected" in verdict.rewrite_rejected[0]["problems"][0]
+    assert verdict.decision == "rewrite" and verdict.rewrite == other
 
 
 def test_attach_feasibility_refuses_discarded_and_mismatched_tips():
     from safelab.critic.resources import feasible
     scene = sample_into_lysis().run({"action": "eject_tip", "target": "waste"})
-    snapshot, obs = scene.ledger.snapshot(), scene.bench.obs(scene.step)
+    snapshot, obs = scene.ledger.snapshot(), scene.obs()
     assert snapshot["tips"]["p200_tip"]["status"] == "discarded"
-    reuse = feasible({"action": "attach_tip", "pipette_type": "P200", "tip_id": "p200_tip"},
+    reuse = feasible({"action": "attach_tip", "tip_id": "p200_tip"},
                      snapshot, obs)
     assert "discarded tip cannot be attached again" in reuse[0]
-    mismatch = feasible({"action": "attach_tip", "pipette_type": "P200",
-                         "tip_id": "p1000_tip"}, snapshot, obs)
+    mismatch = feasible({"action": "attach_tip", "tip_id": "p1000_tip"}, snapshot, obs)
     assert "does not fit a P200 pipette" in mismatch[0]
-    assert feasible({"action": "attach_tip", "pipette_type": "P1000",
-                     "tip_id": "p1000_tip"}, snapshot, obs) == []
-    assert "needs a pipette_type" in feasible({"action": "attach_tip"}, snapshot, obs)[0]
+    assert "needs a tip_id" in feasible({"action": "attach_tip"}, snapshot, obs)[0]
+    scene.run(DOCK200, PICK1000)
+    assert feasible(P1000, scene.ledger.snapshot(), scene.obs()) == []
+    assert "does not take pipette_type" in feasible(
+        {**P1000, "pipette_type": "P1000"}, scene.ledger.snapshot(), scene.obs())[0]
+
+
+def test_attach_requires_a_pipette_in_the_hand():
+    from safelab.critic.resources import feasible
+    scene = Scene()
+    assert "requires a pipette held in the hand" in feasible(
+        P200, scene.ledger.snapshot(), scene.obs())[0]
 
 
 def test_usage_reports_cache_hits_at_the_cache_read_price():
@@ -349,7 +370,7 @@ def test_the_rule_rewrite_comes_before_the_llm_rewrite():
                                          "value": "open"}],
                               rewrite={"action": "wait", "target": "lysis_tube",
                                        "duration_s": 5}))
-    verdict = review(made, sample_into_lysis(), {"action": "vortex", "target": "lysis_tube",
+    verdict = review(made, sample_with_empty_hand(), {"action": "vortex", "target": "lysis_tube",
                                                  "duration_s": 15})
     assert verdict.rewrite == {"action": "close_lid", "target": "lysis_tube"}
 
@@ -382,7 +403,7 @@ def test_a_benign_transfer_is_not_sent_to_the_llm():
     bench.rows["clean_tube"] = {**bench.rows["buffer"], "entity_id": "clean_tube",
                                 "volume_ul": 0., "components_ul": {}}
     made, model, _ = critic()
-    scene = Scene(bench).run(P1000)
+    scene = Scene(bench).run(PICK1000, P1000)
     verdict = review(made, scene, asp("buffer", 100))
     assert verdict.decision == "pass" and not verdict.llm_triggered and model.calls == []
 
@@ -442,9 +463,11 @@ def test_invalid_actions_pass_unreviewed():
 def test_p200_attach_is_rejected_when_only_p1000_is_fresh():
     from safelab.critic.resources import feasible
     scene = sample_into_lysis().run({"action": "eject_tip", "target": "waste"})
-    snapshot, obs = scene.ledger.snapshot(), scene.bench.obs(scene.step)
-    assert "no fresh P200 tip" in feasible(P200, snapshot, obs)[0]
-    assert feasible(P1000, snapshot, obs) == []
+    snapshot, obs = scene.ledger.snapshot(), scene.obs()
+    assert "discarded tip" in feasible(P200, snapshot, obs)[0]
+    assert "does not fit a P200 pipette" in feasible(P1000, snapshot, obs)[0]
+    scene.run(DOCK200, PICK1000)
+    assert feasible(P1000, scene.ledger.snapshot(), scene.obs()) == []
 
 
 def test_verify_tolerates_notation_but_not_wrong_facts():

@@ -26,8 +26,9 @@ Modes
 
 LLM rewrites are limited to an allow-list (``rewrite_kind_problems``): close
 the lid of a container the proposal involves, eject the tip somewhere that is
-not a liquid container, attach a fresh tip of another type than the one in
-use, dispense what the tip already holds back into the container it came from
+not a liquid container, attach a fresh tip of another type than the last tip
+used to the matching pipette already held, dispense what the tip already holds
+back into the container it came from
 or into the proposed dispense's own target, or wait. Anything else -- pouring
 a whole stock somewhere else, say -- is not carried out: the verdict is
 ``block`` and the actor is told the suggestion only as a suggestion. The rule
@@ -61,6 +62,7 @@ from .resources import (
     inventory,
     kinds,
     last_tip_type,
+    observed_docks,
 )
 from .rules import RuleChannel
 
@@ -124,9 +126,12 @@ def rewrite_kind_problems(candidate, original, snapshot, observation):
             return [f"eject_tip into {where!r}, a liquid container"]
     elif name == "attach_tip":
         used = last_tip_type(snapshot)
-        wanted = str(candidate.get("pipette_type") or "").upper()
-        if used and wanted == str(used).upper():
-            return [f"attach_tip of the same type ({wanted}) as the tip in use"]
+        tip_id = candidate.get("tip_id")
+        if not isinstance(tip_id, str):
+            return ["attach_tip needs a tip_id naming a tip"]
+        wanted = ((snapshot.get("tips") or {}).get(tip_id) or {}).get("tip_type")
+        if used and wanted == used:
+            return [f"attach_tip of the same type ({wanted}) as the last tip used"]
     elif name == "dispense":
         _, tip = attached(snapshot)
         if tip is None or (tip.get("held_volume_ul") or 0) <= 1e-6:
@@ -169,6 +174,7 @@ class Critic:
         if self.llm_trigger not in TRIGGERS:
             raise ValueError(f"llm_trigger must be one of {TRIGGERS}")
         self.emit = emit or (lambda event, **fields: None)
+        self.docks = {}
         self.counts = {"reviews": 0, "llm_triggered": 0, "llm_calls": 0, "llm_tokens": 0,
                        "llm_cache_hit_tokens": 0, "llm_cost_usd": 0., "llm_actual_cost_usd": 0.,
                        "llm_latency_s": 0.,
@@ -216,6 +222,7 @@ class Critic:
         started = time.monotonic()
         mark = len(self.meter.records)
         _guard(observation)
+        self.docks.update(observed_docks(snapshot))
         if not isinstance(action, dict) or not isinstance(action.get("action"), str):
             return self._finish(Verdict("pass", [], [], [], None, None,
                                         "no action object to review", "none", {},
@@ -240,7 +247,8 @@ class Critic:
 
     def recheck(self, snapshot, observation, action):
         """Problems with a replacement action: infeasible, or a hard rule finding."""
-        problems = feasible(action, snapshot, observation)
+        self.docks.update(observed_docks(snapshot))
+        problems = feasible(action, snapshot, observation, docks=self.docks)
         if not problems and self.mode != "llm":
             result = self.rules.check(snapshot, observation, action)
             problems = [f"{f.rule}: {f.message}" for f in result.hard]

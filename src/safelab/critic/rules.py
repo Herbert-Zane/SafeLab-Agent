@@ -345,7 +345,8 @@ class RuleChannel:
                           else "material its id marks as waste, treated as potentially infectious")
                 message = f"{target} holds {origin} and is {status}; it would be {what} open."
                 rewrite = None
-                hand = (ctx.snapshot.get("robot") or {}).get("held_object")
+                robot = ctx.snapshot.get("robot") or {}
+                hand = robot.get("held_object") or robot.get("held_tool")
                 if name != "instrument_start" and status == "open" and hand is None:
                     rewrite = {"action": "close_lid", "target": target}
                 ctx.find("R2", [card], message, paths, rewrite)
@@ -356,8 +357,16 @@ class RuleChannel:
         if container is None:
             return
         actions = ctx.snapshot.get("actions") or []
-        last = next((i for i in range(len(actions)-1, -1, -1)
-                     if actions[i].get("status") == "complete"), None)
+        last = None
+        for i in range(len(actions)-1, -1, -1):
+            if actions[i].get("status") != "complete":
+                continue
+            previous = actions[i].get("action") or {}
+            if previous.get("action") == "press_button" or (
+                    previous.get("action") == "put_down" and previous.get("target") == target):
+                continue
+            last = i
+            break
         if last is None:
             return
         previous = actions[last].get("action") or {}
@@ -372,7 +381,8 @@ class RuleChannel:
             if not ctx.families.container(target, container.get("components_ul")) & wanted:
                 continue
             message = (f"{target} would be opened right after "
-                       f"{previous.get('action')} with nothing in between.")
+                       f"{previous.get('action')}, apart from any placement of that target "
+                       "or control presses.")
             ctx.find("R2", [card], message,
                      [f"actions[{last}].action.action", "action.target"])
 

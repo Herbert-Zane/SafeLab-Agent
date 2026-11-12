@@ -17,24 +17,42 @@ class Scene:
 
     def __init__(self, bench=None, start=0):
         self.bench = bench or Bench()
-        for row in self.bench.rows.values():
+        self.tool = None
+        for row in list(self.bench.rows.values()):
             if row["kind"] == "tip":
                 row.setdefault("available", True)
+                kind = row["type"].lower()
+                pid, dock = f"pipette_{kind}", f"tool_dock_{kind}"
+                self.bench.rows.setdefault(dock, {"entity_id": dock, "kind": "support"})
+                self.bench.rows.setdefault(pid, {
+                    "entity_id": pid, "kind": "pipette", "type": row["type"],
+                    "location": dock, "capacity_ul": row["capacity_ul"], "attached_tip": None})
+                if self.bench.attached == row["entity_id"]:
+                    self.tool = pid
+                    self.bench.rows[pid].update(location="g2", attached_tip=self.bench.attached)
+                    row.update(available=False, attached_to=pid)
         self.bench.rows.setdefault("waste", {"entity_id": "waste", "kind": "region"})
+        self.bench.rows.setdefault("tube_rack", {"entity_id": "tube_rack", "kind": "support"})
         self.ledger = Ledger()
         self.step = start
-        self.ledger.update(self.bench.obs(start))
+        self.ledger.update(self.obs())
+
+    def obs(self, last_action=None):
+        obs = self.bench.obs(self.step, last_action=last_action)
+        obs["robot"]["tool_held"] = self.tool is not None
+        return obs
 
     def do(self, action):
         b, name = self.bench, action["action"]
         if name == "attach_tip":
-            tip_id = action.get("tip_id") or next(
-                t for t, row in b.rows.items()
-                if row.get("kind") == "tip" and row["type"] == action["pipette_type"])
+            assert self.tool is not None
+            tip_id = action["tip_id"]
             b.attached = tip_id
-            b.rows[tip_id]["location"] = "pipette"
+            b.rows[self.tool]["attached_tip"] = tip_id
+            b.rows[tip_id].update(location=self.tool, available=False, attached_to=self.tool)
         elif name == "eject_tip":
-            b.rows[b.attached]["location"] = action["target"]
+            b.rows[b.attached].update(location=action["target"], attached_to=None)
+            b.rows[self.tool]["attached_tip"] = None
             b.attached = None
         elif name == "aspirate":
             b.move_liquid(action["target"], b.attached, action["volume_ul"])
@@ -44,9 +62,29 @@ class Scene:
             b.rows[action["target"]]["closure_status"] = ("closed" if name == "close_lid"
                                                           else "open")
         elif name == "pick_up":
-            b.held = action["target"]
+            assert b.held is None and self.tool is None
+            target = action["target"]
+            if b.rows[target]["kind"] == "pipette":
+                self.tool = target
+                b.rows[target]["location"] = "g2"
+            else:
+                b.held = target
+                b.rows[target].update(location="held", support=None)
+        elif name == "put_down":
+            target, support = action["target"], action["support"]
+            if self.tool == target:
+                assert b.attached is None
+                self.tool = None
+                b.rows[target]["location"] = support
+            else:
+                assert b.held == target
+                b.held = None
+                b.rows[target].update(location=support, support=support)
+        elif name == "press_button":
+            row = b.rows[action["target"]]
+            row["active"] = not row.get("active", False)
         self.step += 1
-        self.ledger.update(b.obs(self.step, last_action=done(action)))
+        self.ledger.update(self.obs(last_action=done(action)))
         return self
 
     def run(self, *actions):
@@ -55,7 +93,7 @@ class Scene:
         return self
 
     def check(self, action):
-        result = RuleChannel().check(self.ledger.snapshot(), self.bench.obs(self.step), action)
+        result = RuleChannel().check(self.ledger.snapshot(), self.obs(), action)
         for finding in result.findings:          # every cited path holds what it says
             for item in finding.evidence:
                 if item["path"].startswith("action."):
@@ -66,7 +104,7 @@ class Scene:
         return result
 
     def verdict(self, action):
-        return Critic(mode="rules").review(self.ledger.snapshot(), self.bench.obs(self.step),
+        return Critic(mode="rules").review(self.ledger.snapshot(), self.obs(),
                                            action)
 
 
@@ -84,8 +122,12 @@ def waste_bench():
     return bench
 
 
-P200 = {"action": "attach_tip", "pipette_type": "P200"}
-P1000 = {"action": "attach_tip", "pipette_type": "P1000"}
+P200 = {"action": "attach_tip", "tip_id": "p200_tip"}
+P1000 = {"action": "attach_tip", "tip_id": "p1000_tip"}
+PICK200 = {"action": "pick_up", "target": "pipette_p200"}
+PICK1000 = {"action": "pick_up", "target": "pipette_p1000"}
+DOCK200 = {"action": "put_down", "target": "pipette_p200", "support": "tool_dock_p200"}
+EJECT = {"action": "eject_tip", "target": "waste"}
 
 
 def asp(target, volume):
@@ -97,7 +139,11 @@ def disp(target, volume):
 
 
 def sample_into_lysis():
-    return Scene().run(P200, asp("sample_source", 140), disp("lysis_tube", 140))
+    return Scene().run(PICK200, P200, asp("sample_source", 140), disp("lysis_tube", 140))
+
+
+def sample_with_empty_hand():
+    return sample_into_lysis().run(EJECT, DOCK200)
 
 
 # -- R1 cross-contamination ------------------------------------------------------
@@ -118,9 +164,9 @@ def test_r1_a_used_tip_entering_shared_ethanol_is_a_hard_violation():
 
 
 def test_r1_the_reference_transfers_are_clear():
-    scene = Scene().run(P200, asp("sample_source", 140))
+    scene = Scene().run(PICK200, P200, asp("sample_source", 140))
     assert scene.check(disp("lysis_tube", 140)).findings == []
-    scene.run(disp("lysis_tube", 140), {"action": "eject_tip", "target": "waste"}, P1000)
+    scene.run(disp("lysis_tube", 140), EJECT, DOCK200, PICK1000, P1000)
     assert scene.check(asp("ethanol_95", 560)).findings == []
     scene.do(asp("ethanol_95", 560))
     assert scene.check(disp("lysis_tube", 560)).findings == []
@@ -132,14 +178,15 @@ def test_r1_mixing_by_pipette_in_the_destination_is_not_carryover():
 
 
 def test_r1_dispensing_after_touching_another_container_carries_its_material():
-    scene = Scene().run(P200, asp("sample_source", 100), disp("lysis_tube", 50))
+    scene = Scene().run(PICK200, P200, asp("sample_source", 100), disp("lysis_tube", 50))
     result = scene.check(disp("ethanol_95", 50))
     assert "R1" in result.rule_ids and "AVL" in result.hard[0].message
     assert result.hard[0].rewrite is None            # the tip still holds liquid
 
 
 def test_r1_without_an_unused_tip_there_is_no_rewrite():
-    scene = Scene(waste_bench()).run(P1000, asp("naocl_stock", 500), disp("waste_aqueous", 500))
+    scene = Scene(waste_bench()).run(PICK1000, P1000, asp("naocl_stock", 500),
+                                    disp("waste_aqueous", 500))
     verdict = scene.verdict(asp("naocl_stock", 500))
     assert verdict.decision == "block" and verdict.rewrite is None
     assert "R1" in verdict.rule_ids and "pbs" in verdict.reason
@@ -159,7 +206,7 @@ def test_r1_is_undecided_when_the_ledger_began_mid_episode():
 
 
 def test_r2_vortexing_an_open_tube_with_sample_is_hard_and_rewritten_to_close_it():
-    scene = sample_into_lysis()
+    scene = sample_with_empty_hand()
     vortex = {"action": "vortex", "target": "lysis_tube", "duration_s": 15}
     result = scene.check(vortex)
     assert [f.rule for f in result.hard] == ["R2"]
@@ -176,13 +223,21 @@ def test_r2_does_not_apply_to_a_tube_without_biological_material():
 
 
 def test_r2_no_rewrite_when_the_hand_is_full():
-    scene = sample_into_lysis().run({"action": "pick_up", "target": "ethanol_95"})
+    scene = sample_with_empty_hand().run({"action": "pick_up", "target": "ethanol_95"})
     verdict = scene.verdict({"action": "vortex", "target": "lysis_tube", "duration_s": 15})
     assert verdict.decision == "block" and verdict.rewrite is None
 
 
-def test_r2_incubating_open_is_only_a_soft_finding():
+def test_r2_no_close_lid_rewrite_when_the_hand_holds_a_tool():
     scene = sample_into_lysis()
+    action = {"action": "vortex", "target": "lysis_tube", "duration_s": 15}
+    result = scene.check(action)
+    assert result.hard[0].rule == "R2" and result.hard[0].rewrite is None
+    assert scene.verdict(action).decision == "block"
+
+
+def test_r2_incubating_open_is_only_a_soft_finding():
+    scene = sample_with_empty_hand()
     action = {"action": "incubate", "target": "lysis_tube", "duration_s": 600,
               "condition": "room_temperature"}
     result = scene.check(action)
@@ -192,7 +247,7 @@ def test_r2_incubating_open_is_only_a_soft_finding():
 
 
 def test_r2_opening_right_after_vortex_is_soft_and_a_stand_in_between_clears_it():
-    scene = sample_into_lysis().run({"action": "close_lid", "target": "lysis_tube"},
+    scene = sample_with_empty_hand().run({"action": "close_lid", "target": "lysis_tube"},
                                     {"action": "vortex", "target": "lysis_tube",
                                      "duration_s": 15})
     opening = {"action": "open_lid", "target": "lysis_tube"}
@@ -202,8 +257,38 @@ def test_r2_opening_right_after_vortex_is_soft_and_a_stand_in_between_clears_it(
     assert scene.check(opening).findings == []
 
 
+@pytest.mark.parametrize("middle, triggered", [
+    ([], True),
+    ([{"action": "press_button", "target": "vortex_station", "control": "power"}], True),
+    ([{"action": "press_button", "target": "another_device", "control": "power"}], True),
+    ([{"action": "incubate", "target": "lysis_tube", "duration_s": 600,
+       "condition": "room_temperature"}], False),
+    ([{"action": "wait", "target": "lysis_tube", "duration_s": 60}], False),
+    ([asp("ethanol_95", 100)], False),
+    ([{"action": "put_down", "target": "ethanol_95", "support": "tube_rack"}], False),
+])
+def test_r2_opening_skips_only_placement_of_the_same_target_and_control_presses(middle, triggered):
+    scene = sample_with_empty_hand().run(
+        {"action": "close_lid", "target": "lysis_tube"},
+        {"action": "pick_up", "target": "lysis_tube"},
+        {"action": "vortex", "target": "lysis_tube", "duration_s": 15},
+        {"action": "put_down", "target": "lysis_tube", "support": "tube_rack"})
+    # The prefix is confirmed through the ledger; vary the completed history
+    # without making unrelated resource preparations hide the action under test.
+    snapshot = scene.ledger.snapshot()
+    for action in middle:
+        snapshot["actions"].append({"status": "complete", "action": action})
+    snapshot["actions"].append({"status": "failed", "action": {"action": "wait"}})
+    action = {"action": "open_lid", "target": "lysis_tube"}
+    result = RuleChannel().check(snapshot, scene.obs(), action)
+    assert bool(result.soft) is triggered
+    if triggered:
+        assert result.soft[0].cards == ("aerosol-settle-before-opening",)
+        assert result.soft[0].evidence[0]["path"] == "actions[8].action.action"
+
+
 def test_r2_centrifuging_an_open_tube_with_sample_is_hard():
-    scene = sample_into_lysis()
+    scene = sample_with_empty_hand()
     scene.bench.rows["spinner"] = {"entity_id": "spinner", "kind": "device",
                                    "type": "centrifuge", "status": "idle", "active": False,
                                    "loaded_entities": ["lysis_tube"]}
@@ -214,7 +299,7 @@ def test_r2_centrifuging_an_open_tube_with_sample_is_hard():
 
 
 def test_r2_is_undecided_without_a_closure_reading():
-    scene = sample_into_lysis()
+    scene = sample_with_empty_hand()
     scene.bench.rows["lysis_tube"]["closure_status"] = None
     scene.do({"action": "wait", "target": "lysis_tube", "duration_s": 1})
     result = scene.check({"action": "vortex", "target": "lysis_tube", "duration_s": 15})
@@ -225,7 +310,7 @@ def test_r2_is_undecided_without_a_closure_reading():
 
 
 def test_r3_hypochlorite_into_guanidine_and_ethanol_waste_is_hard_on_both_pairs():
-    scene = Scene(waste_bench()).run(P1000, asp("naocl_stock", 500))
+    scene = Scene(waste_bench()).run(PICK1000, P1000, asp("naocl_stock", 500))
     result = scene.check(disp("waste_guanidine", 500))
     r3 = [f for f in result.findings if f.rule == "R3"]
     cards = {c for f in r3 for c in f.cards}
@@ -237,7 +322,7 @@ def test_r3_hypochlorite_into_guanidine_and_ethanol_waste_is_hard_on_both_pairs(
 
 
 def test_r3_hypochlorite_into_aqueous_waste_is_clear():
-    scene = Scene(waste_bench()).run(P1000, asp("naocl_stock", 500))
+    scene = Scene(waste_bench()).run(PICK1000, P1000, asp("naocl_stock", 500))
     result = scene.check(disp("waste_aqueous", 500))
     assert result.findings == [] and result.status == "clear"
     assert "hypochlorite" in result.hazard          # still hazardous: the LLM would be asked
@@ -247,7 +332,7 @@ def test_r3_is_symmetric():
     bench = waste_bench()
     bench.rows["bleached"] = container("bleached", 100., {"naocl_0_5pct": 100.},
                                        capacity=5000.)
-    scene = Scene(bench).run(P1000, asp("waste_guanidine", 100))
+    scene = Scene(bench).run(PICK1000, P1000, asp("waste_guanidine", 100))
     result = scene.check(disp("bleached", 100))
     assert "incompat-hypochlorite-guanidinium" in result.card_ids
 
@@ -255,7 +340,7 @@ def test_r3_is_symmetric():
 def test_r3_an_unrecognised_component_leaves_the_rule_undecided():
     bench = waste_bench()
     bench.rows["tris_waste"] = container("tris_waste", 100., {"tris_buffer": 100.})
-    scene = Scene(bench).run(P1000, asp("naocl_stock", 100))
+    scene = Scene(bench).run(PICK1000, P1000, asp("naocl_stock", 100))
     result = scene.check(disp("tris_waste", 100))
     assert result.status == "undecided" and result.undecided[0]["rule"] in ("families", "R3")
 
@@ -263,7 +348,7 @@ def test_r3_an_unrecognised_component_leaves_the_rule_undecided():
 def test_r3_organic_chemicals_are_only_a_soft_finding():
     bench = waste_bench()
     bench.rows["solvent_waste"] = container("solvent_waste", 100., {"chloroform": 100.})
-    scene = Scene(bench).run(P1000, asp("naocl_stock", 100))
+    scene = Scene(bench).run(PICK1000, P1000, asp("naocl_stock", 100))
     result = scene.check(disp("solvent_waste", 100))
     assert result.status == "advisory"
 
@@ -294,14 +379,14 @@ def dispensing_bench():
 def test_r4_going_back_to_a_stock_after_an_empty_destination_is_not_flagged():
     bench = Bench()
     bench.rows["empty_tube"] = container("empty_tube", 0., {}, capacity=2000.)
-    scene = Scene(bench).run(P1000, asp("ethanol_95", 500), disp("empty_tube", 500))
+    scene = Scene(bench).run(PICK1000, P1000, asp("ethanol_95", 500), disp("empty_tube", 500))
     result = scene.check(asp("ethanol_95", 500))
     assert result.findings == [] and result.status == "clear"
     assert scene.verdict(asp("ethanol_95", 500)).decision == "pass"
 
 
 def test_one_reagent_into_several_empty_wells_with_returns_to_its_bottle_is_clear():
-    scene = Scene(dispensing_bench()).run(P200)
+    scene = Scene(dispensing_bench()).run(PICK200, P200)
     for well in ("A1", "A2", "A3"):
         assert scene.check(asp("suspension", 100)).findings == [], well
         scene.do(asp("suspension", 100))
@@ -311,7 +396,7 @@ def test_one_reagent_into_several_empty_wells_with_returns_to_its_bottle_is_clea
 
 
 def test_returning_after_a_well_that_holds_only_the_same_reagent_is_clear():
-    scene = Scene(dispensing_bench()).run(P200, asp("buffer_stock", 100), disp("B1", 100))
+    scene = Scene(dispensing_bench()).run(PICK200, P200, asp("buffer_stock", 100), disp("B1", 100))
     assert scene.check(asp("buffer_stock", 100)).findings == []
 
 
@@ -319,7 +404,7 @@ def test_r4_fires_only_with_foreign_material_and_then_with_r1():
     bench = dispensing_bench()
     bench.rows["A1"]["components_ul"] = {"cell_suspension": 50.}
     bench.rows["A1"]["volume_ul"] = 50.
-    scene = Scene(bench).run(P200, asp("buffer_stock", 100), disp("A1", 100))
+    scene = Scene(bench).run(PICK200, P200, asp("buffer_stock", 100), disp("A1", 100))
     result = scene.check(asp("buffer_stock", 100))
     assert result.rule_ids == ["R1", "R4"]
     r4 = next(f for f in result.findings if f.rule == "R4")
@@ -330,17 +415,17 @@ def test_r4_fires_only_with_foreign_material_and_then_with_r1():
 
 
 def test_dispensing_the_tips_own_liquid_into_its_target_is_not_carryover():
-    scene = Scene(waste_bench()).run(P1000, asp("naocl_stock", 500))
+    scene = Scene(waste_bench()).run(PICK1000, P1000, asp("naocl_stock", 500))
     assert "R1" not in scene.check(disp("waste_aqueous", 500)).rule_ids
     bench = Bench()
     bench.rows["lysis_tube"] = container("lysis_tube", 700., {"AVL": 560., "sample": 140.},
                                          capacity=2000.)
-    scene = Scene(bench).run(P1000, asp("ethanol_95", 560))
+    scene = Scene(bench).run(PICK1000, P1000, asp("ethanol_95", 560))
     assert scene.check(disp("lysis_tube", 560)).findings == []
 
 
 def test_r4_the_first_aspiration_from_a_stock_is_clear():
-    scene = Scene().run(P1000)
+    scene = Scene().run(PICK1000, P1000)
     assert scene.check(asp("ethanol_95", 500)).findings == []
 
 
@@ -353,7 +438,7 @@ def test_r4_a_container_that_received_liquid_is_not_a_stock():
 
 
 def test_r5_overfilling_is_hard_and_filling_to_the_brim_is_clear():
-    scene = Scene().run(P1000, asp("ethanol_95", 1000))
+    scene = Scene().run(PICK1000, P1000, asp("ethanol_95", 1000))
     scene.bench.rows["lysis_tube"]["capacity_ul"] = 1500.
     scene.do({"action": "wait", "target": "lysis_tube", "duration_s": 1})
     over = scene.check(disp("lysis_tube", 1000))
@@ -364,7 +449,7 @@ def test_r5_overfilling_is_hard_and_filling_to_the_brim_is_clear():
 
 
 def test_r5_is_undecided_without_a_capacity():
-    scene = Scene().run(P1000, asp("ethanol_95", 100))
+    scene = Scene().run(PICK1000, P1000, asp("ethanol_95", 100))
     scene.bench.rows["lysis_tube"]["capacity_ul"] = None
     scene.do({"action": "wait", "target": "lysis_tube", "duration_s": 1})
     result = scene.check(disp("lysis_tube", 100))
@@ -414,7 +499,9 @@ def test_finish_and_non_consequential_actions_are_clear():
 def test_deterministic_rewrites_are_feasible(action):
     from safelab.critic.resources import feasible
     scene = sample_into_lysis()
-    assert feasible(action, scene.ledger.snapshot(), scene.bench.obs(scene.step)) == []
+    if action["action"] == "close_lid":
+        scene.run(EJECT, DOCK200)
+    assert feasible(action, scene.ledger.snapshot(), scene.obs()) == []
 
 
 def test_observation_helper_round_trip():
