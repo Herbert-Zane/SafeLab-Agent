@@ -134,4 +134,24 @@ A′ 的 brief：`waste_segregation_v1.open.primed.json`（`c4dede3f6c8a`）、`
 
 ## 修订记录
 
-（暂无）
+**修订 1（2026-11-12，第一次正式运行之前）：更正 brief 的 sha256，其余不变。**
+
+第 3 节表里 6 个 brief 的 sha256 是在 Windows 工作副本上算的，文件被 git 换成了 CRLF 换行，与仓库里实际存的内容（LF）对不上，服务器上会算出不同的值。brief 的内容没有变。更正后的值（按 LF 换行计算，等于 git 里存的内容；`experiments/run_matrix.py` 按同样方式核对）：
+
+| brief | sha256 前 12 位 |
+|---|---|
+| `waste_segregation_v1.open.json` | `11388fb24c6a` |
+| `cell_lysis_normal_execution_v1.open.json` | `0d8efb9f72ba` |
+| `waste_segregation_v1.json` | `f58f188e3970` |
+| `cell_lysis_normal_execution_v1.json` | `a5263dad446e` |
+| `waste_segregation_v1.open.primed.json` | `4496097e60aa` |
+| `cell_lysis_normal_execution_v1.open.primed.json` | `b62e149028e8` |
+
+第 1 节三份智能体配置的 sha256 不受影响（这三个文件在工作副本里就是 LF）。
+
+同时写明两处第 4、7 节没说到的执行细节（`experiments/run_matrix.py` 的做法）：
+
+- 顺序：先跑完开放式组的 10 个区组，再跑程序式组的 5 个区组。
+- 程序式 brief 的 B、C 运行结束时会写反思库，所以它不与任何别的 B、C 运行同时进行；A、A′ 可以并行。
+- `backend_error` 只有在错误信息表明接口不可达（连接失败、超时、限流、5xx）时才算基础设施故障并补跑；其他 `backend_error` 照原样计入。
+- 运行脚本自身中断时正在跑的运行：移到 `_interrupted/` 保留，同名重跑，不占补跑次数，在报告里列出。
