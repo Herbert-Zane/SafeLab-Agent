@@ -42,7 +42,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 SEED = 20261125
-PLATFORM_COMMIT = "d8bcbf9"
+PLATFORM_COMMIT = "36914f5"
 SAFELAB_TAG = "prereg-v1"
 CAP_S = 10800
 MAX_REPLACEMENTS = 2
