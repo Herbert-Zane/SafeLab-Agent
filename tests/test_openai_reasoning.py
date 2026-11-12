@@ -62,16 +62,27 @@ def test_the_request_is_identical_to_condition_a_s(bench):
     assert body["extra_body"] == {"thinking": {"type": "enabled"}}
     assert (b_reply.text, b_reply.usage, b_reply.stop_reason) == (
         a_reply.text, a_reply.usage, a_reply.stop_reason)
-    assert b_reply.usage == {"input_tokens": 120, "output_tokens": 45}
+    assert b_reply.usage == {"input_tokens": 56, "output_tokens": 45, "cache_read_tokens": 64}
 
 
 def test_reasoning_and_token_detail_are_kept(bench):
     a_reply, _, b_reply, _ = both(response())
-    assert a_reply.thinking is None
+    assert a_reply.thinking == "Because the tube is open."
     assert b_reply.thinking == "Because the tube is open."
     assert b_reply.extra["usage_detail"] == {
         "prompt_tokens": 120, "completion_tokens": 45, "prompt_cache_hit_tokens": 64,
         "prompt_cache_miss_tokens": 56, "reasoning_tokens": 40}
+
+
+def test_backend_usage_is_not_discounted_a_second_time_by_the_meter(bench):
+    from safelab.resilience import UsageMeter
+    a_reply, _, b_reply, _ = both(response())
+    meter = UsageMeter(price_for=lambda model: {
+        "input": 1., "output": 2., "cache_read": .1, "cache_write": 1.25})
+    for role, reply in (("A", a_reply), ("B", b_reply)):
+        record = meter.add(role, reply.model, reply.usage,
+                           detail=(reply.extra or {}).get("usage_detail"))
+        assert record["cost_usd"] == record["actual_cost_usd"] == pytest.approx(0.0001524)
 
 
 def test_an_empty_answer_still_carries_its_reasoning(bench):

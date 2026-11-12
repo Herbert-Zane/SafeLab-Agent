@@ -121,15 +121,15 @@ class UsageMeter:
         self.records = []
 
     def add(self, role, model, usage, *, latency_s=None, detail=None):
-        """Record one call. ``cost_usd`` prices every input token at the input price,
-        as the platform does; ``actual_cost_usd`` also prices the provider-reported
-        prompt-cache hits in ``detail`` (``prompt_cache_hit_tokens``) at the cache-read
-        price. Without a reported hit count the two are equal."""
+        """Price the platform's disjoint token counts once: ``input_tokens`` excludes
+        ``cache_read_tokens`` and ``cache_write_tokens``. Raw prompt-cache hits in
+        ``detail`` are metadata, not another discount. ``actual_cost_usd`` equals
+        ``cost_usd`` under this convention; both remain script estimates."""
         counts = {name: int(usage[name]) for name in USAGE_FIELDS
                   if usage and isinstance(usage.get(name), int)
                   and not isinstance(usage.get(name), bool)}
         prices = self.price_for(model)
-        hits = (detail or {}).get("prompt_cache_hit_tokens")
+        hits = counts.get("cache_read_tokens", (detail or {}).get("prompt_cache_hit_tokens"))
         hits = hits if isinstance(hits, int) and not isinstance(hits, bool) and hits >= 0 \
             else None
         cost = actual = None
@@ -137,9 +137,6 @@ class UsageMeter:
             cost = round(sum(counts.get(name, 0)*prices[key]/1e6
                              for name, key in _PRICE_KEYS.items()), 8)
             actual = cost
-            if hits:
-                hits_priced = min(hits, counts.get("input_tokens", 0))
-                actual = round(cost-hits_priced*(prices["input"]-prices["cache_read"])/1e6, 8)
         record = {"role": role, "model": model, "usage": counts, "cost_usd": cost,
                   "cache_hit_tokens": hits, "actual_cost_usd": actual, "latency_s": latency_s}
         self.records.append(record)

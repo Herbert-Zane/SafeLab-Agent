@@ -1,8 +1,8 @@
 """An OpenAI-compatible role backend that keeps the model's reasoning text.
 
-The platform's ``openai_compatible`` backend returns ``message.content`` only.
-DeepSeek's thinking models put their reasoning in ``message.reasoning_content``,
-which it drops. This subclass changes nothing about the request: it inherits
+The platform's ``openai_compatible`` backend already keeps reasoning text.
+This subclass also keeps detailed provider usage metadata. It changes nothing
+about the request: it inherits
 ``request_body``, the client settings (base URL, timeout, SDK retries) and the
 whole of ``generate`` from the platform class, and only looks at more of the
 response that call already received:
@@ -11,8 +11,9 @@ response that call already received:
 * ``extra["usage_detail"]`` -- prompt cache hit/miss and reasoning token
   counts, when the provider reports them.
 
-``usage`` keeps the platform's convention (input = prompt tokens, output =
-completion tokens), so condition B is costed exactly the way condition A is.
+``usage`` keeps the platform's convention (input = uncached prompt tokens,
+cache_read = cached prompt tokens, output = completion tokens), so condition B
+is costed exactly the way condition A is.
 
 The role spec uses ``"provider": "openai_compatible_reasoning"`` with the same
 keys as a platform ``openai_compatible`` spec. SafeLab builds it itself; it is

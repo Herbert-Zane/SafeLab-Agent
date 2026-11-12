@@ -317,13 +317,14 @@ def test_attach_feasibility_refuses_discarded_and_mismatched_tips():
 def test_usage_reports_cache_hits_at_the_cache_read_price():
     detail = {"prompt_tokens": 1000, "completion_tokens": 100,
               "prompt_cache_hit_tokens": 800, "prompt_cache_miss_tokens": 200}
-    cached = FakeReply(text=reply("pass", cards=[], reason="ok").text, usage=USAGE,
+    cached = FakeReply(text=reply("pass", cards=[], reason="ok").text,
+                       usage={"input_tokens": 200, "output_tokens": 100, "cache_read_tokens": 800},
                        extra={"usage_detail": detail})
     model = FakeModel(cached, model="fake-model")
     made = Critic.from_config({"mode": "dual", "pricing": {
         "fake-model": {"input": 1.0, "output": 2.0, "cache_read": 0.1}}}, backend=model)
     verdict = review(made, bleach_in_tip(), disp("waste_aqueous", 500))
-    assert verdict.usage["cost_usd"] == pytest.approx((1000*1.0+100*2.0)/1e6)
+    assert verdict.usage["cost_usd"] == pytest.approx((200*1.0+800*0.1+100*2.0)/1e6)
     assert verdict.usage["cache_hit_tokens"] == 800
     assert verdict.usage["actual_cost_usd"] == pytest.approx((200*1.0+800*0.1+100*2.0)/1e6)
     stats = made.stats()

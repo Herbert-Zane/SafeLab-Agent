@@ -65,6 +65,31 @@ def check(entity, field_, op, value):
     return {"entity": entity, "field": field_, "op": op, "value": value}
 
 
+def pipette_observation(step=0, *, held_tool=None, attached_tip=None, last_action=None):
+    """Two fixed-type tools and their visible inventory, in the platform's text schema."""
+    entities = []
+    for suffix, capacity in (("p200", 200), ("p1000", 1000)):
+        tool_id, tip_id = f"pipette_{suffix}", f"{suffix}_tip"
+        attached = tip_id == attached_tip
+        entities += [
+            {"entity_id": tool_id, "kind": "pipette", "type": suffix.upper(),
+             "capacity_ul": capacity,
+             "location": "g2" if tool_id == held_tool else f"tool_dock_{suffix}",
+             "attached_tip": tip_id if attached else None},
+            {"entity_id": tip_id, "kind": "tip", "type": suffix.upper(),
+             "capacity_ul": capacity, "available": not attached,
+             "attached_to": tool_id if attached else None,
+             "location": tool_id if attached else "tip_rack", "held_volume_ul": 0,
+             "components_ul": {}},
+        ]
+    entities.append({"entity_id": "vortex_station", "kind": "device", "type": "vortex",
+                     "power": "on", "active": False})
+    return {"step_index": step, "source": "dry_run", "entities": entities,
+            "robot": {"held_object_id": None, "tool_held": held_tool is not None,
+                      "attached_tip": attached_tip if held_tool else None},
+            "last_action": last_action}
+
+
 def register_platform_fake():
     from agent_interface.backends import (
         BackendError,

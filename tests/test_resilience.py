@@ -101,6 +101,32 @@ def test_usage_is_metered_per_model_and_per_turn():
     assert meter.usage_since(len(meter.records)) is None
 
 
+@pytest.mark.parametrize("detail", [None, {"prompt_cache_hit_tokens": 64},
+                                   {"prompt_cache_hit_tokens": 120}])
+def test_separate_cache_counts_are_priced_once_even_with_raw_provider_detail(detail):
+    meter = UsageMeter(price_for=PRICES.get)
+    usage = {"input_tokens": 56, "output_tokens": 45, "cache_read_tokens": 64}
+    record = meter.add("actor", "m-cheap", usage, detail=detail)
+    assert record["cost_usd"] == pytest.approx(0.0001524)
+    assert record["actual_cost_usd"] == record["cost_usd"]
+    assert record["cache_hit_tokens"] == 64
+    assert record["usage"] == usage
+    assert meter.spent_usd == meter.actual_spent_usd == pytest.approx(0.0001524)
+    report = meter.report()
+    assert report["by_role"]["actor"]["cache_read_tokens"] == 64
+
+
+def test_cache_read_and_write_counts_are_disjoint_from_input_and_budgeted():
+    meter = UsageMeter(price_for=PRICES.get)
+    record = meter.add("actor", "m-cheap", {"input_tokens": 10, "cache_read_tokens": 100,
+                                          "cache_write_tokens": 20, "output_tokens": 5})
+    assert record["cost_usd"] == pytest.approx((10+10+25+10)/1e6)
+    assert record["actual_cost_usd"] == record["cost_usd"]
+    budget = Budget(0.0001, meter)
+    with pytest.raises(BudgetExhausted):
+        budget.check("actor")
+
+
 def test_the_budget_stops_before_a_call_that_could_pass_it():
     usage = {"input_tokens": 100_000}                      # $0.10 a call
     model = FakeModel(*(FakeReply(text="x", model="m-cheap", usage=usage) for _ in range(5)))

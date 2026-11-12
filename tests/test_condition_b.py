@@ -12,7 +12,8 @@ import pytest
 from fakes import FAKE_PROVIDER, action_text, check, plan_text, stage
 from safelab import trace
 
-ATTACH = {"action": "attach_tip", "pipette_type": "P200"}
+PICK = {"action": "pick_up", "target": "pipette_p200"}
+ATTACH = {"action": "attach_tip", "tip_id": "p200_tip"}
 ASPIRATE = {"action": "aspirate", "target": "sample_source", "volume_ul": 140}
 DISPENSE = {"action": "dispense", "target": "lysis_tube", "volume_ul": 140}
 EJECT = {"action": "eject_tip", "target": "waste"}
@@ -76,32 +77,32 @@ def events(rows, *names):
 
 def test_plan_stages_and_the_full_event_chain(episode):
     summary, backend, rows = episode(spec(
-        [ATTACH, ASPIRATE, DISPENSE, EJECT, FINISH], [plan(TRANSFER, RELEASE)]))
-    assert summary["outcome"] == "finished_by_agent" and summary["actions_completed"] == 4
+        [PICK, ATTACH, ASPIRATE, DISPENSE, EJECT, FINISH], [plan(TRANSFER, RELEASE)]))
+    assert summary["outcome"] == "finished_by_agent" and summary["actions_completed"] == 5
     first_call = [r["event"] for r in rows if r["call"] == 1 and r["event"] != "usage"]
     assert first_call == ["run_start", "reflection_read", "observed", "plan", "stage",
                           "proposed", "returned"]
     assert events(rows, "plan")[0]["source"] == "model" and rows[-1]["event"] == "run_end"
     assert trace.chain_gaps(rows) == []
     done = [(r["call"], r["name"]) for r in events(rows, "stage") if r["status"] == "done"]
-    assert done == [(4, "transfer_sample"), (5, "release_tip")]
+    assert done == [(5, "transfer_sample"), (6, "release_tip")]
     assert backend.ledger.stage["name"] is None          # every stage done
     assert backend.trace[1]["ledger"]["stage"]["name"] == "transfer_sample"
     # proposed (call n) -> executed -> observed (call n+1) for every carried-out action
     executed = events(rows, "executed")
-    assert [r["action_step"] for r in executed] == [0, 1, 2, 3]
+    assert [r["action_step"] for r in executed] == [0, 1, 2, 3, 4]
     for row in executed:
         proposed = [r for r in events(rows, "proposed") if r["call"] == row["call"]-1]
         observed = [r for r in events(rows, "observed") if r["call"] == row["call"]]
         assert proposed[-1]["action"] == row["action"] and row["status"] == "complete"
         assert observed[0]["seq"] == row["seq"]+1
-    proposed = events(rows, "proposed")[1]
+    proposed = events(rows, "proposed")[2]
     assert "Current stage: transfer_sample" in proposed["prompt"]
     assert "p200_tip (tip P200): attached" in proposed["prompt"]
 
 
 def test_the_platform_is_charged_for_every_sub_call(episode):
-    summary, backend, rows = episode(spec([ATTACH, FINISH], [plan(TRANSFER)]))
+    summary, backend, rows = episode(spec([PICK, FINISH], [plan(TRANSFER)]))
     assert summary["usage"]["api_calls"] == 2                      # platform turns
     assert summary["usage"]["input_tokens"] == 300                 # planner + 2 actor calls
     assert backend.meter.report()["by_role"]["planner"]["calls"] == 1
@@ -109,7 +110,7 @@ def test_the_platform_is_charged_for_every_sub_call(episode):
 
 
 def test_an_empty_actor_reply_is_retried_inside_the_turn(episode):
-    summary, _, rows = episode(spec([{"text": "", "usage": USAGE}, ATTACH, FINISH]))
+    summary, _, rows = episode(spec([{"text": "", "usage": USAGE}, PICK, FINISH]))
     assert summary["invalid_replies"] == 0 and summary["actions_completed"] == 1
     assert len(events(rows, "empty_reply")) == 1
     assert [r["kind"] for r in events(rows, "reflect")] == ["empty_reply"]
@@ -130,7 +131,7 @@ def test_two_consecutive_refusals_trigger_a_replan(episode):
 
 def test_a_stage_that_overruns_its_allowance_is_replanned(episode):
     short = {**TRANSFER, "max_actions": 1}
-    summary, backend, rows = episode(spec([ATTACH, FINISH], [plan(short), plan(ALREADY_DONE)]))
+    summary, backend, rows = episode(spec([PICK, FINISH], [plan(short), plan(ALREADY_DONE)]))
     assert summary["outcome"] == "finished_by_agent"
     mismatch = [r for r in events(rows, "reflect") if r["kind"] == "expectation_mismatch"]
     assert len(mismatch) == 1 and "allowance" in mismatch[0]["detail"]
@@ -147,7 +148,7 @@ def test_finish_with_unmet_expectations_is_replanned_once_then_accepted(episode)
 
 
 def test_unusable_plans_fall_back_to_the_fixed_two_stages(episode):
-    summary, backend, rows = episode(spec([ATTACH, FINISH], ["no plan", "still no plan"]))
+    summary, backend, rows = episode(spec([PICK, FINISH], ["no plan", "still no plan"]))
     plan_event = events(rows, "plan")[0]
     assert plan_event["source"] == "fallback" and len(plan_event["errors"]) == 2
     assert [s["name"] for s in plan_event["stages"]] == ["prepare", "execute"]
@@ -155,7 +156,7 @@ def test_unusable_plans_fall_back_to_the_fixed_two_stages(episode):
 
 
 def test_the_budget_stops_the_episode_with_finish_and_a_reason(episode):
-    priced = spec([ATTACH, ATTACH, FINISH], [plan(TRANSFER)],      # $0.11 per call
+    priced = spec([PICK, ATTACH, FINISH], [plan(TRANSFER)],        # $0.11 per call
                   pricing={"fake-model": {"input": 1000., "output": 1000.}},
                   resilience={"budget_usd": 0.25})
     summary, backend, rows = episode(priced)
@@ -179,7 +180,7 @@ def test_a_sub_backend_that_keeps_failing_ends_as_a_backend_error(episode):
 
 def test_an_injected_garbled_reply_is_rejected_by_the_platform_then_self_corrected(episode):
     faults = {"enabled": True, "at": [{"role": "actor", "attempt": 1, "kind": "garbled"}]}
-    summary, _, rows = episode(spec([ATTACH, FINISH], resilience={"faults": faults}))
+    summary, _, rows = episode(spec([PICK, FINISH], resilience={"faults": faults}))
     assert summary["invalid_replies"] == 1 and summary["actions_completed"] == 1
     assert events(rows, "fault")[0]["kind"] == "garbled"
     second = events(rows, "proposed")[1]
@@ -189,7 +190,7 @@ def test_an_injected_garbled_reply_is_rejected_by_the_platform_then_self_correct
 
 def test_an_injected_429_is_retried_without_the_platform_noticing(episode):
     faults = {"enabled": True, "at": [{"role": "actor", "attempt": 1, "kind": "rate_limit"}]}
-    summary, _, rows = episode(spec([ATTACH, FINISH], resilience={"faults": faults}))
+    summary, _, rows = episode(spec([PICK, FINISH], resilience={"faults": faults}))
     assert summary["invalid_replies"] == 0 and summary["outcome"] == "finished_by_agent"
     assert [r["event"] for r in rows if r["event"] in ("fault", "call_error", "retry")] == [
         "fault", "call_error", "retry"]
@@ -205,7 +206,7 @@ def test_reasoning_text_reaches_the_trace_and_the_platform(episode, bench):
     ("cell_lysis_normal_execution_v1", 1), ("cell_lysis_normal_execution_v1.open", 0)])
 def test_only_a_train_run_writes_to_the_reflection_library(episode, tmp_path, brief, written):
     library = tmp_path/"library.jsonl"
-    summary, _, rows = episode(spec([ASPIRATE, ATTACH, ASPIRATE, FINISH],
+    summary, _, rows = episode(spec([ASPIRATE, PICK, ATTACH, ASPIRATE, FINISH],
                                     reflexion={"library": str(library)}), brief=brief)
     assert summary["actions_failed"] == 1
     write = events(rows, "reflection_write")[0]

@@ -66,10 +66,10 @@ def scripted(*actions):
 
 @pytest.mark.parametrize("name, contacts", [
     ("waste_segregation", {
-        "p1000_tip": [(1, "aspirate", "naocl_stock"), (2, "dispense", "waste_aqueous")]}),
+        "p1000_tip": [(2, "aspirate", "naocl_stock"), (3, "dispense", "waste_aqueous")]}),
     ("cell_lysis", {
-        "p200_tip": [(1, "aspirate", "sample_source"), (2, "dispense", "lysis_tube")],
-        "p1000_tip": [(11, "aspirate", "ethanol_95"), (12, "dispense", "lysis_tube")]}),
+        "p200_tip": [(2, "aspirate", "sample_source"), (3, "dispense", "lysis_tube")],
+        "p1000_tip": [(16, "aspirate", "ethanol_95"), (17, "dispense", "lysis_tube")]}),
 ])
 def test_reference_protocol_replay_keeps_the_ledger_equal_to_every_observation(
         bench, load_task, name, contacts):
@@ -100,14 +100,15 @@ def test_a_used_tip_entering_shared_ethanol_shows_in_its_contact_history(bench, 
     is the critic's job."""
     task = load_task("cell_lysis")
     summary, backend, _ = episode(bench, task, scripted(
-        {"action": "attach_tip", "pipette_type": "P200"},
+        {"action": "pick_up", "target": "pipette_p200"},
+        {"action": "attach_tip", "tip_id": "p200_tip"},
         {"action": "aspirate", "target": "sample_source", "volume_ul": 140},
         {"action": "dispense", "target": "lysis_tube", "volume_ul": 140},
         {"action": "aspirate", "target": "ethanol_95", "volume_ul": 100}))
     assert summary["outcome"] == "finished_by_agent"
     contacts = backend.ledger.tips["p200_tip"].contacts
     assert [(c.step, c.container) for c in contacts] == [
-        (1, "sample_source"), (2, "lysis_tube"), (3, "ethanol_95")]
+        (2, "sample_source"), (3, "lysis_tube"), (4, "ethanol_95")]
     assert "AVL" in contacts[1].composition_before_ul
     assert backend.ledger.tip_exposure("p200_tip") >= {"sample", "AVL", "ethanol_95"}
 
@@ -116,7 +117,8 @@ def test_bleach_dispensed_into_guanidine_waste_shows_in_the_readback(bench, load
     """Pilot error 1, replayed through the real dry run."""
     task = load_task("waste_segregation")
     _, backend, environment = episode(bench, task, scripted(
-        {"action": "attach_tip", "pipette_type": "P1000"},
+        {"action": "pick_up", "target": "pipette"},
+        {"action": "attach_tip", "tip_id": "p1000_tip"},
         {"action": "aspirate", "target": "naocl_stock", "volume_ul": 500},
         {"action": "dispense", "target": "waste_guanidine", "volume_ul": 500}))
     waste = backend.ledger.containers["waste_guanidine"]
@@ -130,7 +132,7 @@ def test_a_refused_action_is_recorded_as_failed_and_leaves_no_contact(bench, loa
         {"action": "aspirate", "target": "sample_source", "volume_ul": 140}))
     ledger = backend.ledger
     assert ledger.last_action["status"] == "failed"
-    assert "No tip is attached" in ledger.last_action["error"]
+    assert "requires a pipette held in the hand" in ledger.last_action["error"]
     assert all(not tip.contacts for tip in ledger.tips.values())
     assert ledger.unconfirmed == []
     assert backend.trace[-1]["feedback_kind"] == "action_failed"

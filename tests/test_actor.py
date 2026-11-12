@@ -4,10 +4,11 @@ import re
 
 import pytest
 
-from fakes import FakeModel, FakeReply, action_text
+from fakes import FakeModel, FakeReply, action_text, pipette_observation
 from safelab import actor as actor_module
 from safelab import planner as planner_module
 from safelab.actor import Actor, build_message
+from safelab.ledger import Ledger
 from safelab.planner import PlanTracker
 from safelab.summary import render_ledger
 from test_ledger import run_carryover
@@ -142,3 +143,27 @@ def test_a_device_line_lists_the_presses_of_its_controls_that_were_carried_out()
     text = render_ledger({"devices": devices, **snapshot})
     assert "power pressed 2 time(s) in this run (step 7, 16)" in text
     assert "pressed" not in render_ledger({"devices": devices, "actions": []})
+
+
+@pytest.mark.parametrize("focus", [None, set(), {"pipette_p200"}])
+def test_summary_shows_each_tool_and_held_identity_and_observed_power_as_facts(focus):
+    obs = pipette_observation(held_tool="pipette_p1000", attached_tip="p1000_tip")
+    ledger = Ledger()
+    ledger.update(obs)
+    text = render_ledger(ledger.snapshot(), obs, focus=focus)
+    assert "held tool pipette_p1000; pipette P1000" in text
+    assert "attached tip p1000_tip" in text
+    assert text.count("pipette_p200 (pipette P200): at tool_dock_p200; attached tip none") == 1
+    assert text.count("pipette_p1000 (pipette P1000): at g2; attached tip p1000_tip") == 1
+    assert "power on" in text and "inactive" in text
+    assert PRIMING.search(text) is None
+
+
+def test_device_power_is_shown_only_when_observed_and_press_history_is_kept():
+    from safelab.summary import device_line
+    row = {"device_type": "vortex", "active": False, "power": "on"}
+    text = device_line("vortex_station", row, {"power": [7]})
+    assert "inactive; power on" in text
+    assert "power pressed 1 time(s) in this run (step 7)" in text
+    del row["power"]
+    assert "power" not in device_line("vortex_station", row)

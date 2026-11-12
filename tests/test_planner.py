@@ -1,14 +1,16 @@
 """The stage plan: schema, predicates over the ledger, tracking, model calls (no platform)."""
 import pytest
 
-from fakes import FakeModel, check, plan_text, stage
+from fakes import FakeModel, check, pipette_observation, plan_text, stage
 from safelab.ledger import Ledger
 from safelab.planner import (
     PLAN_SCHEMA,
     Planner,
     PlanTracker,
     Stage,
+    check_predicate,
     holds,
+    observed_value,
     parse_json_object,
     planner_system,
     validate_plan,
@@ -16,7 +18,7 @@ from safelab.planner import (
 )
 from scene import Bench, done
 
-ATTACH = {"action": "attach_tip", "pipette_type": "P200"}
+ATTACH = {"action": "attach_tip", "tip_id": "p200_tip"}
 ASPIRATE = {"action": "aspirate", "target": "sample_source", "volume_ul": 140}
 DISPENSE = {"action": "dispense", "target": "lysis_tube", "volume_ul": 140}
 TRANSFER = stage("transfer_sample", [check("lysis_tube", "components_ul.sample", "gte", 140)],
@@ -28,6 +30,9 @@ MIX = stage("mix", [check("actions", "vortex", "gte", 1)])
 def ledger_after(*steps):
     """Run the Bench scene through the given (action, effect) steps."""
     scene, ledger = Bench(), Ledger()
+    for row in scene.rows.values():
+        if row["kind"] == "tip":
+            row["available"] = True
     ledger.update(scene.obs(0))
     for number, (action, effect) in enumerate(steps, 1):
         ledger.expect(action)
@@ -99,6 +104,39 @@ def test_predicates_read_components_counts_lists_and_robot_state():
     assert holds(check("vortex_station", "loaded_entities", "contains", "lysis_tube"), snap)[0]
     assert not holds(check("vortex_station", "loaded_entities", "excludes", "lysis_tube"),
                      snap)[0]
+
+
+@pytest.mark.parametrize("entity, field, value", [
+    ("robot", "held_tool", "pipette_p1000"),
+    ("robot", "pipette_type", "P1000"),
+    ("robot", "tool_held", True),
+    ("vortex_station", "power", "on"),
+    ("p200_tip", "available", True),
+    ("p1000_tip", "attached_to", "pipette_p1000"),
+    ("pipette_p200", "type", "P200"),
+    ("pipette_p1000", "capacity_ul", 1000),
+    ("pipette_p200", "location", "tool_dock_p200"),
+    ("pipette_p1000", "attached_tip", "p1000_tip"),
+])
+def test_planner_validates_and_reads_new_execution_fields(entity, field, value):
+    ledger = Ledger()
+    ledger.update(pipette_observation(held_tool="pipette_p1000", attached_tip="p1000_tip"))
+    snap = ledger.snapshot()
+    predicate = check(entity, field, "eq", value)
+    assert check_predicate(predicate, snap) is None
+    assert observed_value(predicate, snap) == value
+    assert holds(predicate, snap) == (True, value)
+    assert validate_plan({"stages": [stage("s", [predicate])]}, snap) == []
+    assert field in planner_system("")
+
+
+def test_planner_lists_tool_ids_in_unknown_entity_errors_and_rejects_unknown_tool_fields():
+    ledger = Ledger()
+    ledger.update(pipette_observation())
+    snap = ledger.snapshot()
+    assert "pipette_p1000" in check_predicate(check("missing", "type", "eq", "P1000"), snap)
+    assert "has no field" in check_predicate(check("pipette_p1000", "colour", "eq", "red"),
+                                             snap)
 
 
 # -- following a plan -----------------------------------------------------------

@@ -17,6 +17,9 @@ class Scene:
 
     def __init__(self, bench=None, start=0):
         self.bench = bench or Bench()
+        for row in self.bench.rows.values():
+            if row["kind"] == "tip":
+                row.setdefault("available", True)
         self.bench.rows.setdefault("waste", {"entity_id": "waste", "kind": "region"})
         self.ledger = Ledger()
         self.step = start

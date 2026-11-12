@@ -3,10 +3,11 @@ import json
 
 import pytest
 
+from fakes import pipette_observation
 from safelab.ledger import Ledger
 from scene import Bench, done, failed
 
-ATTACH_P200 = {"action": "attach_tip", "pipette_type": "P200"}
+ATTACH_P200 = {"action": "attach_tip", "tip_id": "p200_tip"}
 ASPIRATE_SAMPLE = {"action": "aspirate", "target": "sample_source", "volume_ul": 140}
 DISPENSE_LYSIS = {"action": "dispense", "target": "lysis_tube", "volume_ul": 140}
 ASPIRATE_ETHANOL = {"action": "aspirate", "target": "ethanol_95", "volume_ul": 100}
@@ -25,6 +26,9 @@ def eject(scene):
 
 def started():
     scene, ledger = Bench(), Ledger()
+    for row in scene.rows.values():
+        if row["kind"] == "tip":
+            row["available"] = True
     ledger.update(scene.obs(0))
     return scene, ledger
 
@@ -67,6 +71,128 @@ def test_tips_start_fresh_only_when_the_ledger_starts_at_step_zero():
     assert late.fresh_tips() == []
     assert {t.status for t in late.tips.values()} == {"unknown"}
     assert [item["kind"] for item in late.unconfirmed] == ["history_gap"]
+
+
+@pytest.mark.parametrize("held_tool, tip_id, kind", [
+    (None, None, None),
+    ("pipette_p200", "p200_tip", "P200"),
+    ("pipette_p1000", "p1000_tip", "P1000"),
+])
+@pytest.mark.parametrize("reverse", [False, True])
+def test_each_pipette_is_recorded_and_only_the_held_one_sets_robot_fields(
+        held_tool, tip_id, kind, reverse):
+    obs = pipette_observation(held_tool=held_tool, attached_tip=tip_id)
+    if reverse:
+        obs["entities"].reverse()
+    ledger = Ledger()
+    ledger.update(obs)
+    snap = ledger.snapshot()
+    assert set(snap["pipettes"]) == {"pipette_p200", "pipette_p1000"}
+    assert snap["robot"]["held_tool"] == held_tool
+    assert snap["robot"]["pipette_type"] == kind
+    assert snap["robot"]["attached_tip"] == tip_id
+    assert ledger.check_against(obs) == []
+    snap["pipettes"]["pipette_p200"]["type"] = "changed copy"
+    assert ledger.snapshot()["pipettes"]["pipette_p200"]["type"] == "P200"
+
+
+def test_a_tip_attached_to_a_docked_pipette_is_not_the_robot_s_tip_or_discarded():
+    obs = pipette_observation(attached_tip="p1000_tip")
+    ledger = Ledger()
+    ledger.update(obs)
+    assert ledger.tips["p1000_tip"].status == "attached"
+    assert ledger.tips["p1000_tip"].attached_to == "pipette_p1000"
+    assert ledger.tips["p1000_tip"].available is False
+    assert ledger.attached_tip is None and ledger.pipette_type is None
+    assert ledger.fresh_tips() == ["p200_tip"]
+
+
+@pytest.mark.parametrize("available, status", [(True, "fresh"), (False, "discarded"),
+                                              (None, "unknown")])
+def test_tip_inventory_readback_is_required_for_freshness(available, status):
+    obs = pipette_observation()
+    row = next(r for r in obs["entities"] if r["entity_id"] == "p200_tip")
+    row["available"] = available
+    ledger = Ledger()
+    ledger.update(obs)
+    assert ledger.tips["p200_tip"].status == status
+    assert ("p200_tip" in ledger.fresh_tips()) is (status == "fresh")
+
+
+def test_tip_no_longer_available_is_discarded_even_without_an_observed_attachment():
+    ledger = Ledger()
+    ledger.update(pipette_observation())
+    obs = pipette_observation()
+    next(r for r in obs["entities"] if r["entity_id"] == "p200_tip")["available"] = False
+    ledger.update(obs)
+    assert ledger.tips["p200_tip"].status == "discarded"
+    assert ledger.tips["p200_tip"].contacts == []
+
+
+def test_power_inventory_and_tool_fields_are_checked_against_readback():
+    obs = pipette_observation(held_tool="pipette_p1000")
+    ledger = Ledger()
+    ledger.update(obs)
+    assert ledger.devices["vortex_station"].power == "on"
+    next(r for r in obs["entities"] if r["entity_id"] == "vortex_station")["power"] = "off"
+    next(r for r in obs["entities"] if r["entity_id"] == "pipette_p1000")["type"] = "P200"
+    next(r for r in obs["entities"] if r["entity_id"] == "p200_tip")["available"] = False
+    problems = ledger.check_against(obs)
+    assert any(p.startswith("devices.vortex_station.power:") for p in problems)
+    assert any(p.startswith("pipettes.pipette_p1000.type:") for p in problems)
+    assert any(p.startswith("robot.pipette_type:") for p in problems)
+    assert any(p.startswith("tips.p200_tip.available:") for p in problems)
+
+
+def test_tool_pick_attach_eject_and_dock_have_no_false_mismatches():
+    ledger = Ledger()
+    ledger.update(pipette_observation())
+    actions = [
+        ({"action": "pick_up", "target": "pipette_p200"}, "pipette_p200", None),
+        (ATTACH_P200, "pipette_p200", "p200_tip"),
+        (EJECT, "pipette_p200", None),
+        ({"action": "put_down", "target": "pipette_p200", "support": "tool_dock_p200"},
+         None, None),
+    ]
+    for step, (action, tool_id, tip_id) in enumerate(actions, 1):
+        obs = pipette_observation(step, held_tool=tool_id, attached_tip=tip_id,
+                                  last_action=done(action))
+        if step >= 3:
+            next(r for r in obs["entities"] if r["entity_id"] == "p200_tip").update(
+                available=False, location="waste")
+        ledger.expect(action)
+        ledger.update(obs)
+        assert ledger.check_against(obs) == []
+        assert ledger.unconfirmed == []
+    assert ledger.held_tool is None and ledger.pipette_type is None
+    assert ledger.tips["p200_tip"].status == "discarded"
+
+
+@pytest.mark.parametrize("action, observed_tool, tip_id, detail", [
+    ({"action": "pick_up", "target": "pipette_p200"}, None, None, "the hand holds"),
+    ({"action": "put_down", "target": "pipette_p200", "support": "wrong_dock"},
+     None, None, "reads back at"),
+    ({"action": "attach_tip", "tip_id": "p1000_tip"}, "pipette_p200", "p200_tip",
+     "not p1000_tip"),
+])
+def test_tool_effects_still_flag_a_missing_effect_or_wrong_tip(
+        action, observed_tool, tip_id, detail):
+    ledger = Ledger()
+    ledger.update(pipette_observation(held_tool="pipette_p200"))
+    obs = pipette_observation(1, held_tool=observed_tool, attached_tip=tip_id,
+                              last_action=done(action))
+    ledger.update(obs)
+    assert any(i["kind"] == "effect_not_observed" and detail in i["detail"]
+               for i in ledger.unconfirmed)
+
+
+def test_a_tool_location_change_without_a_confirmed_action_is_flagged():
+    ledger = Ledger()
+    ledger.update(pipette_observation())
+    ledger.update(pipette_observation(held_tool="pipette_p200"))
+    [item] = ledger.unconfirmed
+    assert (item["kind"], item["pipette"], item["fields"]) == (
+        "unexplained_change", "pipette_p200", ["location"])
 
 
 def test_held_object_and_devices_come_from_readback():
@@ -189,7 +315,7 @@ def test_a_model_claim_is_not_adopted_until_readback_shows_it():
 def test_the_platform_reporting_a_different_action_is_flagged():
     scene, ledger = started()
     ledger.expect(ATTACH_P200)
-    other = {"action": "attach_tip", "pipette_type": "P1000"}
+    other = {"action": "attach_tip", "tip_id": "p1000_tip"}
     attach(scene, "p1000_tip")
     ledger.update(scene.obs(1, done(other)))
     kinds = [item["kind"] for item in ledger.unconfirmed]

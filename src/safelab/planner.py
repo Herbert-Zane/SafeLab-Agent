@@ -40,9 +40,10 @@ OPS = ("eq", "ne", "gt", "gte", "lt", "lte", "contains", "excludes")
 SPECIAL_ENTITIES = ("robot", "actions")
 FIELDS = {
     "containers": ("volume_ul", "closure_status", "location", "support"),
-    "tips": ("status", "held_volume_ul", "location"),
-    "devices": ("status", "active", "program", "loaded_entities"),
-    "robot": ("held_object", "attached_tip", "tool_held"),
+    "tips": ("status", "held_volume_ul", "location", "available", "attached_to"),
+    "devices": ("status", "active", "program", "loaded_entities", "power"),
+    "pipettes": ("type", "capacity_ul", "location", "support", "attached_tip"),
+    "robot": ("held_object", "attached_tip", "tool_held", "held_tool", "pipette_type"),
 }
 COMPONENT_PREFIX = "components_ul."
 DEFAULT_STAGE_ACTIONS = 8
@@ -102,14 +103,16 @@ and the next stage begins.
 - "max_actions" (optional): the most actions the stage should take.
 
 A check is {"entity": ..., "field": ..., "op": ..., "value": ...}:
-- entity: a container, tip or device id; "robot"; or "actions" (counts of actions \
+- entity: a container, tip, pipette or device id; "robot"; or "actions" (counts of actions \
 carried out).
 - container fields: volume_ul, closure_status, location, support, \
 components_ul.<component>
-- tip fields: status (fresh, attached or discarded), held_volume_ul, location, \
+- tip fields: status (fresh, attached, discarded or unknown), held_volume_ul, location, \
+available, attached_to, \
 components_ul.<component>
-- device fields: status, active, program, loaded_entities
-- robot fields: held_object, attached_tip
+- device fields: status, active, program, loaded_entities, power
+- pipette fields: type, capacity_ul, location, support, attached_tip
+- robot fields: held_object, attached_tip, tool_held, held_tool, pipette_type
 - actions fields: an action name, or several joined by "|"; the value is how many \
 of them have been carried out
 - op: eq, ne, gt, gte, lt, lte, contains, excludes (contains and excludes test \
@@ -195,7 +198,7 @@ def validate_schema(instance, schema, path="plan"):
 
 
 def _section(snapshot, entity):
-    for section in ("containers", "tips", "devices"):
+    for section in ("containers", "tips", "devices", "pipettes"):
         if entity in (snapshot.get(section) or {}):
             return section
     return None
@@ -213,7 +216,8 @@ def check_predicate(predicate, snapshot, action_names=None):
     section = _section(snapshot, entity)
     if section is None:
         known = sorted({*SPECIAL_ENTITIES, *(snapshot.get("containers") or {}),
-                        *(snapshot.get("tips") or {}), *(snapshot.get("devices") or {})})
+                        *(snapshot.get("tips") or {}), *(snapshot.get("devices") or {}),
+                        *(snapshot.get("pipettes") or {})})
         return f"unknown entity {entity!r}; checks can name {', '.join(known)}"
     if name.startswith(COMPONENT_PREFIX) and section in ("containers", "tips"):
         return None if len(name) > len(COMPONENT_PREFIX) else "component name missing"

@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 import re
 
-LEDGER_SECTIONS = ("containers", "tips", "devices")
+LEDGER_SECTIONS = ("containers", "tips", "devices", "pipettes")
 
 
 def _num(value):
@@ -68,8 +68,7 @@ def tip_line(entity_id, row, *, contacts=True):
 def control_presses(snapshot):
     """Completed ``press_button`` actions by device and control: {device: {control: [steps]}}.
 
-    The platform's observation does not say whether a device's switch is on, so
-    the ledger offers the one thing it does know: which presses were carried out.
+    This history is separate from the device's current control readback.
     """
     out = {}
     for row in snapshot.get("actions") or []:
@@ -87,6 +86,8 @@ def device_line(entity_id, row, presses=None):
     parts = [f"{entity_id} (device {row.get('device_type') or '?'}): {row.get('status') or '?'}"]
     if row.get("active") is not None:
         parts.append("active" if row["active"] else "inactive")
+    if row.get("power") is not None:
+        parts.append(f"power {row['power']}")
     if row.get("program"):
         parts.append(f"program {row['program']}")
     if row.get("loaded_entities") is not None:
@@ -102,15 +103,22 @@ def robot_line(snapshot):
     held = robot.get("held_object") or "nothing"
     tip = robot.get("attached_tip") or "none"
     pipette = f"; pipette {robot['pipette_type']}" if robot.get("pipette_type") else ""
-    return f"robot: holding {held}; attached tip {tip}{pipette}"
+    tool = robot.get("held_tool") or "none"
+    return f"robot: holding {held}; attached tip {tip}; held tool {tool}{pipette}"
+
+
+def pipette_line(entity_id, row):
+    return (f"{entity_id} (pipette {row.get('type') or '?'}): "
+            f"at {row.get('location') or '?'}; attached tip {row.get('attached_tip') or 'none'}")
 
 
 def _other_rows(observation, skip):
-    """Observed rows the ledger does not model (lids, supports, pipette), if they say anything."""
+    """Observed rows the ledger does not model (lids, supports), if they say anything."""
     lines = []
     for row in (observation or {}).get("entities", []):
         entity_id = row.get("entity_id")
-        if entity_id in skip or row.get("kind") in ("container", "well", "tip", "device"):
+        if entity_id in skip or row.get("kind") in ("container", "well", "tip", "device",
+                                                   "pipette"):
             continue
         detail = [f"{k} {row[k]}" for k in ("type", "location", "support", "attached_tip")
                   if row.get(k) not in (None, "")]
@@ -130,14 +138,17 @@ def render_ledger(snapshot, observation=None, *, focus=None):
     containers = snapshot.get("containers") or {}
     tips = snapshot.get("tips") or {}
     devices = snapshot.get("devices") or {}
+    pipettes = snapshot.get("pipettes") or {}
     robot = snapshot.get("robot") or {}
     attached = robot.get("attached_tip")
     presses = control_presses(snapshot)
     if focus is None:
-        focus = set(containers) | set(tips) | set(devices)
+        focus = set(containers) | set(tips) | set(devices) | set(pipettes)
     focus = set(focus) | ({attached} if attached else set())
     if robot.get("held_object"):
         focus.add(robot["held_object"])
+    if robot.get("held_tool"):
+        focus.add(robot["held_tool"])
     if attached in tips:
         focus.update(c["container"] for c in tips[attached].get("contacts") or [])
 
@@ -148,6 +159,8 @@ def render_ledger(snapshot, observation=None, *, focus=None):
         lines.append(tip_line(entity_id, tips[entity_id]))
     for entity_id in sorted(focus & set(devices)):
         lines.append(device_line(entity_id, devices[entity_id], presses.get(entity_id)))
+    for entity_id in sorted(focus & set(pipettes)):
+        lines.append(pipette_line(entity_id, pipettes[entity_id]))
     fresh = sorted(tid for tid, tip in tips.items() if tip.get("status") == "fresh")
     lines.append("tips never attached in this run: "
                  + (", ".join(f"{tid} ({tips[tid].get('tip_type')})" for tid in fresh)
@@ -160,6 +173,8 @@ def render_ledger(snapshot, observation=None, *, focus=None):
         others.append(tip_line(entity_id, tips[entity_id], contacts=False))
     for entity_id in sorted(set(devices)-focus):
         others.append(device_line(entity_id, devices[entity_id], presses.get(entity_id)))
+    for entity_id in sorted(set(pipettes)-focus):
+        others.append(pipette_line(entity_id, pipettes[entity_id]))
     others += _other_rows(observation, focus)
     out = ["  "+line for line in lines]
     if others:

@@ -16,11 +16,10 @@ actions plus readback on either side of them:
 
 * each tip's contact history -- step, action, container, and the container's
   composition just before and just after the contact;
-* each tip's lifecycle -- ``fresh`` (never attached since the ledger began at
-  step 0), ``attached``, ``discarded`` (attached once, now off the pipette),
-  or ``unknown`` (the ledger started mid-episode). A scene holds one tip per
-  type and a discarded tip is not replaced, so ``fresh_tips()`` is the list of
-  tips that can still be used.
+* each tip's lifecycle -- ``fresh`` (available and never attached since the
+  ledger began at step 0), ``attached`` (on any pipette), ``discarded``
+  (unavailable and off every pipette), or ``unknown`` (earlier history or
+  availability is missing). ``fresh_tips()`` lists the confirmed unused tips.
 
 Where the readback disagrees with what a confirmed action should have done, or
 something changed that no confirmed action explains, the ledger does not
@@ -62,8 +61,9 @@ ITEM_KINDS = (
 
 _CONTAINER_FIELDS = ("volume_ul", "capacity_ul", "components_ul", "closure_status",
                      "location", "support")
-_TIP_FIELDS = ("held_volume_ul", "components_ul", "location")
-_DEVICE_FIELDS = ("status", "active", "loaded_entities", "program")
+_TIP_FIELDS = ("held_volume_ul", "components_ul", "location", "available", "attached_to")
+_DEVICE_FIELDS = ("status", "active", "loaded_entities", "program", "power")
+_PIPETTE_FIELDS = ("type", "capacity_ul", "location", "support", "attached_tip")
 _LIQUID_FIELDS = ("volume_ul", "components_ul")
 
 
@@ -96,6 +96,8 @@ class Tip:
     held_volume_ul: float | None = None
     components_ul: dict = field(default_factory=dict)
     location: str | None = None
+    available: bool | None = None
+    attached_to: str | None = None
     contacts: list = field(default_factory=list)
 
 
@@ -106,6 +108,7 @@ class Device:
     active: bool | None = None
     loaded_entities: list | None = None
     program: str | None = None
+    power: str | None = None
 
 
 class Ledger:
@@ -120,11 +123,13 @@ class Ledger:
         self.source = None
         self.held_object = None
         self.tool_held = None
+        self.held_tool = None
         self.attached_tip = None
         self.pipette_type = None
         self.containers = {}
         self.tips = {}
         self.devices = {}
+        self.pipettes = {}
         self.last_action = None
         self.pending = None
         self.unconfirmed = []
@@ -150,6 +155,8 @@ class Ledger:
         step = observation["step_index"]
         first = self.step_index is None
         prior_containers = deepcopy(self.containers)
+        prior_pipettes = deepcopy(self.pipettes)
+        prior_tool = self.held_tool
         prior_tip = self.attached_tip
         prior_tip_held = self.tips[prior_tip].held_volume_ul if prior_tip in self.tips else None
 
@@ -162,7 +169,8 @@ class Ledger:
             self._check_effects(confirmed, action_step, prior_containers, prior_tip,
                                 prior_tip_held, step)
         if not first:
-            self._check_unexplained(confirmed, prior_containers, step)
+            self._check_unexplained(confirmed, prior_containers, step,
+                                    prior_pipettes, prior_tool)
         self.step_index = step
         self.source = observation.get("source")
         return diff(before, self.snapshot())
@@ -195,10 +203,12 @@ class Ledger:
             "source": self.source,
             "stage": deepcopy(self.stage),
             "robot": {"held_object": self.held_object, "tool_held": self.tool_held,
+                      "held_tool": self.held_tool,
                       "attached_tip": self.attached_tip, "pipette_type": self.pipette_type},
             "containers": {cid: asdict(c) for cid, c in sorted(self.containers.items())},
             "tips": {tid: asdict(t) for tid, t in sorted(self.tips.items())},
             "devices": {did: asdict(d) for did, d in sorted(self.devices.items())},
+            "pipettes": deepcopy(self.pipettes),
             "last_action": deepcopy(self.last_action),
             "pending": deepcopy(self.pending),
             "unconfirmed": deepcopy(self.unconfirmed),
@@ -251,14 +261,20 @@ class Ledger:
     def _read(self, observation, step, first):
         robot = observation.get("robot") or {}
         rows = {row["entity_id"]: row for row in observation["entities"]}
-        attached = robot.get("attached_tip")
-        if attached is None:
-            pipette = next((row for row in rows.values() if row.get("kind") == "pipette"), None)
-            attached = (pipette or {}).get("attached_tip")
+        self.pipettes = {eid: {name: deepcopy(row.get(name)) for name in _PIPETTE_FIELDS}
+                         for eid, row in rows.items() if row.get("kind") == "pipette"}
         self.held_object = robot.get("held_object_id")
         self.tool_held = robot.get("tool_held")
+        self.held_tool = _held_pipette(rows, robot)
+        held = self.pipettes.get(self.held_tool) or {}
+        attached = (robot.get("attached_tip") or held.get("attached_tip")) \
+            if self.tool_held else None
         self.attached_tip = attached
-        self.pipette_type = None
+        self.pipette_type = held.get("type")
+        attached_tips = {p["attached_tip"] for p in self.pipettes.values()
+                         if p.get("attached_tip") is not None}
+        if attached is not None:
+            attached_tips.add(attached)
         self.containers = {}
         self.devices = {}
         for entity_id, row in rows.items():
@@ -269,32 +285,35 @@ class Ledger:
                                   if name != "components_ul"},
                     components_ul=deepcopy(row.get("components_ul") or {}))
             elif kind == "tip":
-                self._read_tip(entity_id, row, attached, step, first)
+                self._read_tip(entity_id, row, attached_tips, step, first)
             elif kind == "device":
                 self.devices[entity_id] = Device(
                     device_type=row.get("type"),
                     **{name: deepcopy(row.get(name)) for name in _DEVICE_FIELDS})
-            elif kind == "pipette":
-                self.pipette_type = row.get("type")
 
     def _read_tip(self, tip_id, row, attached, step, first):
         tip = self.tips.get(tip_id)
         if tip is None:
-            tip = Tip(status="fresh" if first and step == 0 else "unknown")
+            tip = Tip(status="fresh" if first and step == 0 and row.get("available") is True
+                      else "unknown")
             self.tips[tip_id] = tip
-        if tip_id == attached:
+        if tip_id in attached or row.get("attached_to") is not None:
             if tip.status == "discarded":
                 self._flag("discarded_tip_reattached", step,
                            f"{tip_id} was discarded earlier and reads back as attached",
                            tip=tip_id)
             tip.status = "attached"
-        elif tip.status == "attached":
+        elif row.get("available") is False or tip.status == "attached":
             tip.status = "discarded"
+        elif tip.status == "fresh" and row.get("available") is not True:
+            tip.status = "unknown"
         tip.tip_type = row.get("type")
         tip.capacity_ul = row.get("capacity_ul")
         tip.held_volume_ul = row.get("held_volume_ul")
         tip.components_ul = deepcopy(row.get("components_ul") or {})
         tip.location = row.get("location")
+        tip.available = row.get("available")
+        tip.attached_to = row.get("attached_to")
 
     def _record_contact(self, action, action_step, prior_tip, prior_containers, step):
         if action.get("action") not in TIP_ACTIONS:
@@ -341,11 +360,19 @@ class Ledger:
                 if container.closure_status not in wanted:
                     problems.append(f"{target} reads back {container.closure_status!r} "
                                     f"after {name}")
-        elif name == "pick_up" and self.held_object != target:
-            problems.append(f"the hand holds {self.held_object!r}, not {target}")
+        elif name == "pick_up":
+            held = self.held_tool if target in self.pipettes else self.held_object
+            if held != target:
+                problems.append(f"the hand holds {held!r}, not {target}")
         elif name == "put_down":
-            if self.held_object == target:
+            held = self.held_tool if target in self.pipettes else self.held_object
+            if held == target:
                 problems.append(f"the hand still holds {target}")
+            if target in self.pipettes:
+                location = self.pipettes[target].get("location")
+                if location != action.get("support"):
+                    problems.append(f"{target} reads back at {location!r}, "
+                                    f"not {action.get('support')}")
             container = self.containers.get(target)
             if container is not None and container.support != action.get("support"):
                 problems.append(f"{target} reads back on {container.support!r}, "
@@ -354,16 +381,16 @@ class Ledger:
             tip = self.tips.get(self.attached_tip) if self.attached_tip else None
             if tip is None:
                 problems.append("no tip reads back as attached")
-            elif tip.tip_type not in (None, action.get("pipette_type")):
-                problems.append(f"{self.attached_tip} is a {tip.tip_type}, "
-                                f"not {action.get('pipette_type')}")
+            elif self.attached_tip != action.get("tip_id"):
+                problems.append(f"{self.attached_tip} reads back as attached, "
+                                f"not {action.get('tip_id')}")
         elif name == "eject_tip" and self.attached_tip is not None:
             problems.append(f"{self.attached_tip} still reads back as attached")
         for problem in problems:
             self._flag("effect_not_observed", step, problem,
                        action=deepcopy(action), action_step=action_step)
 
-    def _check_unexplained(self, confirmed, prior_containers, step):
+    def _check_unexplained(self, confirmed, prior_containers, step, prior_pipettes, prior_tool):
         """Liquid or closure changes that no confirmed action accounts for."""
         confirmed = confirmed or {}
         name = confirmed.get("action")
@@ -391,9 +418,34 @@ class Ledger:
                            f"action to account for it",
                            container=container_id, fields=changed,
                            after_action=deepcopy(confirmed) or None)
+        for pipette_id, now in self.pipettes.items():
+            before = prior_pipettes.get(pipette_id)
+            if before is None:
+                continue
+            explained = set()
+            if name in ("pick_up", "put_down") and confirmed.get("target") == pipette_id:
+                explained.add("location")
+            if name in ("attach_tip", "eject_tip") and prior_tool == pipette_id:
+                explained.add("attached_tip")
+            changed = [f for f in ("location", "attached_tip")
+                       if f not in explained and before.get(f) != now.get(f)]
+            if changed:
+                self._flag("unexplained_change", step,
+                           f"{pipette_id} changed ({', '.join(changed)}) with no confirmed "
+                           "action to account for it", pipette=pipette_id, fields=changed,
+                           after_action=deepcopy(confirmed) or None)
 
 
 # -- module helpers -------------------------------------------------------
+
+
+def _held_pipette(rows, robot):
+    """Text observations identify the held tool by its execution-layer location."""
+    if not robot.get("tool_held"):
+        return None
+    held = [eid for eid, row in rows.items()
+            if row.get("kind") == "pipette" and row.get("location") == "g2"]
+    return held[0] if len(held) == 1 else None
 
 
 def _require_observation(observation):
@@ -489,13 +541,20 @@ def mismatches(snapshot, observation, *, tolerance=1e-9):
         if snapshot["robot"].get(name) != robot.get(key):
             problems.append(f"robot.{name}: ledger {snapshot['robot'].get(name)!r}, "
                             f"readback {robot.get(key)!r}")
+    held_tool = _held_pipette(rows, robot)
+    for name, expected in (("held_tool", held_tool),
+                           ("pipette_type", (rows.get(held_tool) or {}).get("type"))):
+        if snapshot["robot"].get(name) != expected:
+            problems.append(f"robot.{name}: ledger {snapshot['robot'].get(name)!r}, "
+                            f"readback {expected!r}")
     observed = {eid for eid, row in rows.items() if row.get("kind") in LIQUID_KINDS}
     if observed != set(snapshot["containers"]):
         problems.append(f"container set differs: ledger {sorted(snapshot['containers'])}, "
                         f"readback {sorted(observed)}")
     groups = (("containers", LIQUID_KINDS, _CONTAINER_FIELDS),
               ("tips", ("tip",), _TIP_FIELDS),
-              ("devices", ("device",), _DEVICE_FIELDS))
+              ("devices", ("device",), _DEVICE_FIELDS),
+              ("pipettes", ("pipette",), _PIPETTE_FIELDS))
     for section, kinds, names in groups:
         for entity_id, row in rows.items():
             if row.get("kind") not in kinds:
