@@ -262,6 +262,10 @@ def holds(predicate, snapshot, *, tolerance_ul=0.5, tolerance_rel=0.02):
                   "gt": observed > wanted+slack, "gte": observed >= wanted-slack,
                   "lt": observed < wanted-slack, "lte": observed <= wanted+slack}[op]
         return result, observed
+    if isinstance(wanted, str) and wanted.strip().lower() in ("none", "null", ""):
+        # The state summary prints an empty hand or a missing tip as "none", and
+        # planners copy that word into checks; the ledger holds None there.
+        wanted = None
     if op == "eq":
         return observed == wanted, observed
     if op == "ne":

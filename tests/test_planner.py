@@ -91,6 +91,17 @@ def test_checks_must_name_something_the_ledger_tracks(predicate, message):
 # -- predicates -----------------------------------------------------------------
 
 
+def test_the_word_none_in_a_check_means_an_empty_field():
+    # The state summary prints an empty hand as "none"; planners copy the word.
+    _, ledger = transferred()
+    snap = ledger.snapshot()
+    assert observed_value(check("robot", "held_object", "eq", None), snap) is None
+    assert holds(check("robot", "held_object", "eq", "none"), snap)[0]
+    assert not holds(check("robot", "held_object", "ne", "None"), snap)[0]
+    assert not holds(check("robot", "attached_tip", "eq", "none"), snap)[0]
+    assert holds(check("robot", "attached_tip", "ne", "none"), snap)[0]
+
+
 def test_predicates_read_components_counts_lists_and_robot_state():
     _, ledger = transferred()
     snap = ledger.snapshot()
