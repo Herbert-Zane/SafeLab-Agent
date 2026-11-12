@@ -167,3 +167,35 @@ def test_device_power_is_shown_only_when_observed_and_press_history_is_kept():
     assert "power pressed 1 time(s) in this run (step 7)" in text
     del row["power"]
     assert "power" not in device_line("vortex_station", row)
+
+
+def test_platform_refusals_outlive_the_recent_window():
+    from safelab.summary import REFUSED_HEADING, render_refused
+    vortex = {"action": "vortex", "target": "t", "duration_s": 15}
+    held = "Vortexing on v requires t held in the hand"
+    actions = [
+        {"step": 0, "action": vortex, "status": "failed", "error": held},
+        {"step": 1, "action": {"action": "pick_up", "target": "t"}, "status": "complete"},
+        {"step": 2, "action": {**vortex, "duration_s": 30}, "status": "failed", "error": held},
+        {"step": 3, "action": {"action": "open_lid", "target": "lid"}, "status": "failed",
+         "error": "lid is None, not 'closed'"},
+        {"step": 4, "action": {"action": "pick_up", "target": "x"}, "status": "failed",
+         "error": "The hand already holds t"},
+        {"step": 5, "action": {"action": "put_down", "target": "t", "support": "table"},
+         "status": "complete"},
+    ]
+    text = render_refused(actions, k=2)
+    lines = text.splitlines()
+    assert lines[0] == REFUSED_HEADING and len(lines) == 3
+    assert lines[1].startswith("  2: ") and held in lines[1] and "[refused 2 times]" in lines[1]
+    assert "lid is None, not 'closed'" in lines[2] and "times]" not in lines[2]
+    assert "already holds" not in text                 # still inside the recent window
+    assert render_refused(actions[:2], k=6) == "" and render_refused([], k=6) == ""
+    assert len(render_refused(actions, k=2, limit=1).splitlines()) == 2
+
+    snapshot = {"actions": actions, "containers": {}, "tips": {}, "devices": {}, "robot": {}}
+    on = build_message(plan_text="Plan", snapshot=snapshot, observation={}, focus=set(), k=2)
+    off = build_message(plan_text="Plan", snapshot=snapshot, observation={}, focus=set(), k=2,
+                        refused_memory=False)
+    assert REFUSED_HEADING in on and REFUSED_HEADING not in off
+    assert on.index("Recent steps") < on.index(REFUSED_HEADING) < on.index(actor_module.CLOSING)

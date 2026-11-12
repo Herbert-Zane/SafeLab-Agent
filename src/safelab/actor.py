@@ -9,6 +9,8 @@ built by SafeLab instead of the platform, from four things:
   holds and every container the attached tip has entered) in full, including
   each tip's contact history, and every other entity in one line;
 * the last k=6 actions the platform carried out or refused;
+* the platform's refusals from before those k steps, one line per kind of
+  failure, with the platform's own reason (``refused_memory``, on by default);
 * the platform's feedback on the previous turn, verbatim, and a one-line
   recovery note from the reflexion module when a failure was classified;
 * in condition C, once the reviewer has refused something: the actions it has
@@ -26,7 +28,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .summary import render_ledger, render_recent
+from .summary import render_ledger, render_recent, render_refused
 
 RECOVERY_NOTES = {
     "self_correct": ("The previous reply could not be used, for the reason given above. "
@@ -56,10 +58,13 @@ class Proposal:
 
 
 def build_message(*, plan_text, snapshot, observation, focus, feedback=None, strategy=None,
-                  previous_fragment=None, k=6, refusals=()):
+                  previous_fragment=None, k=6, refusals=(), refused_memory=True):
     parts = [plan_text, "", "Ledger (entities this stage involves, then the rest):",
              render_ledger(snapshot, observation, focus=focus or None), "",
              render_recent(snapshot.get("actions") or [], k)]
+    earlier = render_refused(snapshot.get("actions") or [], k) if refused_memory else ""
+    if earlier:
+        parts += ["", earlier]
     if refusals:
         parts += ["", REFUSALS_HEADING, *[f"- {line}" for line in refusals], REFUSALS_NOTE]
     if feedback:

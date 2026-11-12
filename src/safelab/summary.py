@@ -201,3 +201,34 @@ def render_recent(actions, k=6):
         lines.append(line)
     head = f"Recent steps (last {len(rows)} of {len(actions)}):"
     return "\n".join([head, *lines])
+
+
+REFUSED_HEADING = ("Actions the platform refused before those recent steps, each with the "
+                   "platform's reason:")
+
+
+def render_refused(actions, k=6, limit=10):
+    """Platform refusals older than the ``k`` recent steps, one line per kind of failure.
+
+    A kind is the action name plus the error with numbers removed. The latest refusal of
+    each kind is shown, verbatim, with how many times it happened; at most ``limit`` kinds,
+    the most recent ones. Fact only: what the platform refused and what it said.
+    """
+    kinds = {}
+    for row in (actions or [])[:-k] if k else (actions or []):
+        if row.get("status") == "complete" or not row.get("error"):
+            continue
+        name = (row.get("action") or {}).get("action") or "?"
+        key = f"{name}: " + re.sub(r"[-+]?\d+(\.\d+)?", "#", str(row["error"]).strip())
+        count = kinds.pop(key, (None, 0))[1]
+        kinds[key] = (row, count+1)
+    if not kinds:
+        return ""
+    lines = []
+    for row, count in list(kinds.values())[-limit:]:
+        line = (f"  {row.get('step')}: {json.dumps(row.get('action'), ensure_ascii=False)} "
+                f"-> {row.get('status')} ({row['error']})")
+        if count > 1:
+            line += f" [refused {count} times]"
+        lines.append(line)
+    return "\n".join([REFUSED_HEADING, *lines])

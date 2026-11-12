@@ -179,6 +179,7 @@ class SafeLabBackend:
                                emit=self.events.emit)
         actor = spec.get("actor") or {}
         self.k = int(actor.get("history_k", 6))
+        self.refused_memory = bool(actor.get("refused_memory", True))
         self.actor = Actor(self.roles["actor"], parse_action=extract_action, k=self.k,
                            max_empty_retries=actor.get("max_empty_retries", 2),
                            emit=self.events.emit)
@@ -399,7 +400,8 @@ class SafeLabBackend:
             observation=message.observation, focus=self.tracker.focus(entity_ids),
             feedback=feedback, strategy=strategy,
             previous_fragment=self.last_fragment if message.feedback_kind == "invalid_reply"
-            else None, k=self.k, refusals=self.reflexion.refusal_lines())
+            else None, k=self.k, refusals=self.reflexion.refusal_lines(),
+            refused_memory=self.refused_memory)
         proposal = self.actor.propose(system=system, message=text)
         for _ in range(proposal.empty_retries):
             self.events.emit("reflect", **self.reflexion.empty_reply("actor").record())
