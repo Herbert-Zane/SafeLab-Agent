@@ -15,8 +15,12 @@ has been run in the simulator yet.
 | `make_task.py` | builds a runnable task config from a plan (copies the platform's task file, replaces only `controller.steps`) |
 | `results_template.csv` | one row per run to fill in |
 
-Selection: M1 (3 cases, all there are), M2, M3, M4, M5 (4 each) and one more M2 case;
-shortest prefixes first, spread over tasks (`python eval/sim_check/export.py`).
+Selection on platform `5837ec3` (2026-11-12): M1 3, M2 6, M3 6, M4 4, M5 1.
+Only cases with **at most 40 prefix steps before the action under test** are eligible
+(`unsafe_step_index <= 40`, at most 41 actions including the tested action). This avoids
+the old washing plans that could not reach the tested step in simulation past 44 steps.
+Within that limit, aim for four per operator, fill unused quota from other eligible cases,
+and spread over tasks, shortest prefixes first (`python eval/sim_check/export.py`).
 
 ## Run on the GPU server
 

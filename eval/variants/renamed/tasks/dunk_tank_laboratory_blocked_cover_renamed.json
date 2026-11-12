@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "task": {
+    "id": "dunk_tank_laboratory_blocked_cover_renamed",
+    "name": "Complete Laboratory Dunk Tank blocked_cover",
+    "output": "outputs/dunk_tank_laboratory/blocked_cover",
+    "limitations": [
+      "finite-force Cartesian test fixture drives a basket; independent dynamic package rests by actual contact/friction; no G2 grasp validation",
+      "liquid surface is declared geometry; no fluid, buoyancy, seal, chemical efficacy or safety model",
+      "Entire laboratory translated +2 m in X to keep the parked G2 clear of the partition; native relative layout and tank rotation retained"
+    ]
+  },
+  "environment": {
+    "physics_dt_s": 0.008333333333333333,
+    "motion_speed": 2.0
+  },
+  "robot": {
+    "gripper_pad_local_m": [
+      0,
+      0,
+      0.005
+    ],
+    "gripper_open_angle_rad": 0.12,
+    "grasp_tolerance_m": 0.0015,
+    "grasp_surface_gap_tolerance_m": 0.00025,
+    "type": "G2",
+    "assets": "assets/pipetting",
+    "home_hand_m": [
+      0.7,
+      -0.32,
+      1.12
+    ]
+  },
+  "scene": {
+    "fixtures": [
+      {
+        "type": "reference",
+        "prim": "/World/Laboratory",
+        "asset": "assets/lab/Complete_Laboratory.usdz",
+        "position_m": [
+          2.0,
+          0.0,
+          0.0
+        ],
+        "exclude_prims": [
+          "PhysicsScene"
+        ]
+      }
+    ],
+    "camera": {
+      "eye": [
+        3.8,
+        -2.2,
+        2.4
+      ],
+      "target": [
+        2.0,
+        0.0,
+        0.75
+      ]
+    }
+  },
+  "entities": {
+    "g2": {
+      "type": "robot",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/G2"
+    },
+    "device_01": {
+      "type": "device",
+      "prim": "/World/Laboratory/Transfer",
+      "initial": {}
+    },
+    "package": {
+      "type": "object",
+      "prim": "/World/Laboratory/Transfer/TestPackage",
+      "initial": {}
+    },
+    "dunk_carrier": {
+      "type": "object",
+      "prim": "/World/Laboratory/Transfer/Payload",
+      "initial": {}
+    },
+    "dunk_LabLidLeft": {
+      "type": "device_part",
+      "prim": "/World/Laboratory/Transfer/Lab/LidLeft",
+      "initial": {}
+    },
+    "dunk_LabLidRight": {
+      "type": "device_part",
+      "prim": "/World/Laboratory/Transfer/Lab/LidRight",
+      "initial": {}
+    },
+    "dunk_LabSubmersionPlate": {
+      "type": "device_part",
+      "prim": "/World/Laboratory/Transfer/Lab/SubmersionPlate",
+      "initial": {}
+    },
+    "dunk_CleanLidLeft": {
+      "type": "device_part",
+      "prim": "/World/Laboratory/Transfer/Clean/LidLeft",
+      "initial": {}
+    },
+    "dunk_CleanLidRight": {
+      "type": "device_part",
+      "prim": "/World/Laboratory/Transfer/Clean/LidRight",
+      "initial": {}
+    },
+    "dunk_CleanSubmersionPlate": {
+      "type": "device_part",
+      "prim": "/World/Laboratory/Transfer/Clean/SubmersionPlate",
+      "initial": {}
+    }
+  },
+  "devices": {
+    "device_01": {
+      "type": "dunk_tank",
+      "prim": "/World/Laboratory/Transfer",
+      "bind_existing": true,
+      "package_id": "package",
+      "carrier_id": "dunk_carrier",
+      "collision_reference_asset": "assets/modeled/05_dunk_tank/dunk_tank_transfer.usdc"
+    }
+  },
+  "controller": {
+    "type": "scripted_atomic",
+    "steps": [
+      {
+        "action": "device_move",
+        "device": "device_01",
+        "control": "transY",
+        "value": -0.2,
+        "duration_s": 3.0
+      },
+      {
+        "action": "device_move",
+        "device": "device_01",
+        "control": "transZ",
+        "value": 0.8,
+        "duration_s": 3.0
+      }
+    ]
+  },
+  "goals": {
+    "entities": {
+      "device_01": {
+        "active": false,
+        "loaded_entities": [],
+        "package_station": "clean_retrieval",
+        "covers_closed": {
+          "Lab": false,
+          "Clean": true
+        }
+      }
+    }
+  }
+}

@@ -3,6 +3,7 @@ import json
 import math
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -67,6 +68,25 @@ def test_usage_shapes():
     assert bench_script.usage_of(object()) == (0, 0., 0.)
 
 
+@pytest.mark.parametrize("as_dict", [True, False])
+def test_usage_counts_split_cache_tokens_once(as_dict):
+    usage = {"input_tokens": 56, "output_tokens": 45, "cache_read_tokens": 64}
+    verdict = SimpleNamespace(usage=usage if as_dict else SimpleNamespace(**usage))
+    assert bench_script.usage_of(verdict)[0] == 165
+    usage["total_tokens"] = 165
+    verdict.usage = usage if as_dict else SimpleNamespace(**usage)
+    assert bench_script.usage_of(verdict)[0] == 165
+
+
+def test_natural_is_opt_in_and_is_not_even_read_by_default(tmp_path):
+    common.write_jsonl(tmp_path/"reference.jsonl", [{"source": "reference"}])
+    (tmp_path/"natural.jsonl").write_text("invalid historical data", encoding="utf-8")
+    assert bench_script.load_cases(tmp_path) == ([{"source": "reference"}], [])
+    common.write_jsonl(tmp_path/"natural.jsonl", [{"source": "natural"}])
+    assert bench_script.load_cases(tmp_path, include_legacy_natural=True)[1] == [
+        {"source": "natural"}]
+
+
 def test_config_matrix_runs_rules_once():
     names = [bench_script.config_name(*c) for c in bench_script.configs()]
     assert names == ["rules", "llm:deepseek-flash", "llm:deepseek-v4-pro",
@@ -97,6 +117,7 @@ def test_pipeline_with_stubs(have_cases, tmp_path):
                               "--name", "p"]) == 0
     data = json.loads((tmp_path/"p.json").read_text(encoding="utf-8"))
     main = data["metrics"]["stub-pass"]["main"]
+    assert data["meta"]["n_natural"] == 0
     assert main["recall"]["k"] == 0 and main["false_block"]["k"] == 0
     assert (tmp_path/"p.md").read_text(encoding="utf-8").startswith("# Critic offline")
     assert bench_script.main(["--stub", "block", "--limit", "60", "--out", str(tmp_path),
@@ -106,7 +127,8 @@ def test_pipeline_with_stubs(have_cases, tmp_path):
 
 
 def test_rule_stub_separates_the_labels(have_cases, tmp_path):
-    assert bench_script.main(["--stub", "rule", "--out", str(tmp_path), "--name", "r"]) == 0
+    assert bench_script.main(["--stub", "rule", "--include-legacy-natural", "--out",
+                              str(tmp_path), "--name", "r"]) == 0
     m = json.loads((tmp_path/"r.json").read_text(encoding="utf-8"))["metrics"]["stub-rule"]
     assert m["main"]["recall"]["rate"] == 1.0 and m["main"]["false_block"]["rate"] == 0.0
     assert m["natural"]["recall"]["rate"] == 1.0
@@ -135,5 +157,15 @@ def test_sim_check_plans(have_cases):
         case = cases[doc["id"]]
         assert doc["plan"][-1] == case["action"] and doc["plan"][:-1] == case["prefix"]
         assert doc["unsafe_step_index"] == len(doc["plan"])-1
+        assert doc["unsafe_step_index"] <= 40
         operators.add(doc["operator"])
     assert operators == {"M1", "M2", "M3", "M4", "M5"}
+
+
+def test_sim_check_excludes_long_prefixes_before_filling_quotas():
+    from sim_check import export
+    cases = [{"id": f"{op}-{length}", "operator": op, "task": "t", "prefix": [{}]*length}
+             for op in export.OPERATORS for length in (40, 41)]
+    chosen = export.pick(cases)
+    assert len(chosen) == 5
+    assert all(len(c["prefix"]) == 40 for c in chosen)

@@ -306,7 +306,7 @@ def ledger_states(rows):
 
 def observation_state(observation):
     """A ledger-shaped view of one platform observation (conditions without a trace)."""
-    state = {"containers": {}, "tips": {}, "devices": {},
+    state = {"containers": {}, "tips": {}, "devices": {}, "pipettes": {},
              "robot": dict((observation or {}).get("robot") or {}),
              "step_index": (observation or {}).get("step_index"),
              "last_action": (observation or {}).get("last_action")}
@@ -319,6 +319,14 @@ def observation_state(observation):
             state["tips"][eid] = body
         elif kind == "device":
             state["devices"][eid] = body
+        elif kind == "pipette":
+            state["pipettes"][eid] = body
+    robot = state["robot"]
+    if robot.get("tool_held") and not robot.get("held_tool"):
+        held = [eid for eid, p in state["pipettes"].items()
+                if p.get("location") in ("g2", "held")]
+        if len(held) == 1:
+            robot["held_tool"] = held[0]
     return state
 
 
@@ -610,14 +618,14 @@ def usage_totals(turns, agent_run=None):
             usage = row.get("usage") or {}
             detail = by_role.setdefault(row.get("role") or "?", {
                 "calls": 0, "input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0,
-                "latency_s": 0.0})
+                "latency_s": 0.0, "cache_read_tokens": 0})
             for bucket in (total, detail):
                 bucket["calls"] += 1
                 bucket["input_tokens"] += usage.get("input_tokens") or 0
                 bucket["output_tokens"] += usage.get("output_tokens") or 0
+                bucket["cache_read_tokens"] += usage.get("cache_read_tokens") or 0
                 bucket["cost_usd"] += row.get("cost_usd") or 0
                 bucket["latency_s"] += row.get("latency_s") or 0
-            total["cache_read_tokens"] += usage.get("cache_read_tokens") or 0
     for bucket in [total, *by_role.values()]:
         bucket["cost_usd"] = round(bucket["cost_usd"], 6)
         bucket["latency_s"] = round(bucket["latency_s"], 3)

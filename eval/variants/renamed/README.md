@@ -1,9 +1,9 @@
 # Renamed task variants (snapshot)
 
-Output of `eval/variants/make_renamed.py`, copied here from `runs/variants/` on 2026-11-11.
+Output of `eval/variants/make_renamed.py`, copied here from `runs/variants/` on 2026-11-12.
 
 - **Provenance.** Every file is a copy of one of the platform's own task configs or agent
-  briefs (BSLBench, commit `df6b958`) with entity ids replaced by neutral ones. The scenes,
+  briefs (BSLBench, commit `5837ec3`) with entity ids replaced by neutral ones. The scenes,
   criteria, goals and everything else in them are the platform author's work, not SafeLab's,
   and are not claimed as such.
 - **Permission.** Kept in this private repository as test data with the platform author's

@@ -1,0 +1,397 @@
+{
+  "schema_version": 1,
+  "task": {
+    "id": "pathogen_heat_inactivation_v1_renamed",
+    "name": "Pathogen Heat Inactivation (water bath)",
+    "output": "outputs/pathogen_inactivation_thermal",
+    "limitations": [
+      "the tube is held by actual PhysX friction with soft-pad compliant contact (an approximation, not calibrated pad properties); the lid and tool grasps, supports, helical screw and the anti-rotation latch while twisting remain proxies; no torque or seal measurement",
+      "the bath temperature is the declared setpoint of devices.water_bath (program heat_56C), not a measurement; no heating curve, thermal mass or tube temperature is simulated, and heat credits exposure only to the specimen actually seated in the running bath while the experimental clock fast-forwards",
+      "the heat exposure is an inference over Graph facts from the global protocol heat_inactivation_water_bath (configs/knowledge/protocols.json), which declares no inactivation: reaching inactivation_heat_complete is NOT verified virological inactivation, no inactivation_state, bsl_required or treated portions are derived, and the declared global Safety models judge only open-container agitation, confirmed spills and incompatible mixtures, never whether the specimen was made safe, so a passing run must not be read as 'the specimen was made safe'",
+      "56 degC, 1800 s (spec 3.7 path A, which cites WHO/CDC without a document reference that was checked), the 55-57 degC acceptance range and the 140 uL specimen volume are declarations or test values (parameters.test_values), not measured kinetics",
+      "spec 3.7 path A step 4, surface disinfection of the tube exterior, is omitted: spray_disinfect does not exist yet; step 1 (sealing) is executed, but a tube entering the bath unsealed (the spec's S6 bath contamination) is executable and no containment-failure model judges it",
+      "the leading 1 s wait on the tube is not a protocol step: the friction anti-rotation support check of close_lid reads the tube's resting contacts, which PhysX persist reports only reveal after the tube has been in the contact scope for a step, and a tube never touched before the first close_lid is refused (a documented limitation of the friction grasp); the wait costs no logical time beyond its 1 s",
+      "the water bath is assets/modeled/12_water_bath (a parametric model to the Grant SUB Aqua Pro SAP2 datasheet, 185 x 203 x 150 mm, not a manufacturer CAD) placed as scenery (water_bath_body.usda, lid not in the scene); the water_bath device and support is water_bath_seat.usda, the cup, floor and foot of assets/lab/tube_support.usda standing on the bath tray with a shortened stem, because the G2 finger knuckles reach about 30 mm below the grasp point and a tube cannot be sunk into a deep holder. The seat is a layout choice, not the bath's own float rack; the bath's wall and tray are kinematic triangle-mesh colliders. Water is a visual plane with no physics: no buoyancy, wetting or heat transfer, and whether the tube is shown below it depends on the seat height",
+      "the bath stands at (0.64, -0.32) on the table and the seat at (0.68, -0.32, 0.84), the x and y of the tube-seat proxy this task used before, with the tube's base 8 mm under the drawn water level; seat height, bath position and the lid's removal are engineering choices from an Isaac sweep of single runs (a seat 20 mm lower let a finger touch the bath body; 0.84 ran clean nominally and under four +/-0.2 mm shifts, see assets/modeled/12_water_bath/README.md), not measurements of a bench layout"
+    ]
+  },
+  "environment": {
+    "physics_dt_s": 0.008333333333333333,
+    "motion_speed": 2.0,
+    "force_feedback": {
+      "enabled": true,
+      "limits": {
+        "soft_force_n": 10.0,
+        "hard_force_n": 40.0,
+        "soft_torque_nm": 0.5,
+        "hard_torque_nm": 2.0,
+        "minimum_speed_scale": 0.2,
+        "contact_force_n": 0.02
+      }
+    }
+  },
+  "robot": {
+    "gripper_pad_local_m": [
+      0,
+      0,
+      0.005
+    ],
+    "gripper_open_angle_rad": 0.12,
+    "grasp_tolerance_m": 0.0015,
+    "grasp_surface_gap_tolerance_m": 0.00025,
+    "grasp": {
+      "objects": {
+        "container_01": "friction"
+      }
+    },
+    "type": "G2",
+    "assets": "assets/pipetting",
+    "home_hand_m": [
+      0.7,
+      -0.32,
+      1.12
+    ]
+  },
+  "scene": {
+    "fixtures": [
+      {
+        "type": "reference",
+        "prim": "/World/Table",
+        "asset": "assets/lab/workbench.usda",
+        "position_m": [
+          0.81,
+          -0.385,
+          0.715
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/tube_rack",
+        "asset": "assets/lab/tube_support.usda",
+        "position_m": [
+          0.76,
+          -0.32,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/lid_rest",
+        "asset": "assets/lab/cap_support.usda",
+        "position_m": [
+          0.76,
+          -0.4,
+          0.84
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/water_bath",
+        "asset": "assets/modeled/12_water_bath/water_bath_seat.usda",
+        "position_m": [
+          0.64,
+          -0.32,
+          0.74
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Scenery/water_bath_body",
+        "asset": "assets/modeled/12_water_bath/water_bath_body.usda",
+        "position_m": [
+          0.64,
+          -0.32,
+          0.74
+        ]
+      }
+    ],
+    "liquid_display": {
+      "container_01": {
+        "type": "marker",
+        "radius_m": 0.0025,
+        "height_m": 0.002,
+        "color": [
+          0.2,
+          0.55,
+          0.8
+        ],
+        "surface_offset_m": -0.004
+      }
+    },
+    "camera": {
+      "eye": [
+        1.12,
+        -0.92,
+        1.25
+      ],
+      "target": [
+        0.72,
+        -0.35,
+        0.99
+      ]
+    },
+    "recording_camera": {
+      "eye": [
+        1.8,
+        -1.7,
+        2.3
+      ],
+      "target": [
+        0.4,
+        -0.3,
+        1.0
+      ]
+    }
+  },
+  "entities": {
+    "g2": {
+      "type": "robot",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/G2"
+    },
+    "table": {
+      "type": "surface",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Table"
+    },
+    "tube_rack": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/tube_rack"
+    },
+    "lid_rest": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Supports/lid_rest"
+    },
+    "device_01": {
+      "type": "device",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "heating_bath",
+        "status": "idle",
+        "active": false,
+        "loaded_entities": [],
+        "program": ""
+      },
+      "prim": "/World/Supports/water_bath"
+    },
+    "container_01": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "initial": {
+        "capacity_ul": 2000,
+        "volume_ul": 140.0,
+        "components_ul": {
+          "sample_infectious_unknown": 140.0
+        },
+        "closure_status": "open",
+        "location": "tube_rack",
+        "support": "tube_rack",
+        "vortex_exposure_s": 0.0,
+        "incubation_condition": null,
+        "incubation_exposure_s": 0.0,
+        "incubation_simulation_exposure_s": 0.0
+      },
+      "prim": "/World/Container/Body",
+      "region": {
+        "center_xy": [
+          0.76,
+          -0.32
+        ],
+        "radius_m": 0.003,
+        "bottom_z": 0.934,
+        "surface_z": 0.966
+      },
+      "region_binding": {
+        "body": "container_01",
+        "bottom_offset_m": 0.006,
+        "surface_offset_m": 0.038,
+        "mechanism": "container_01",
+        "open_radial_clearance_m": 0.025,
+        "open_axial_clearance_m": 0.06955
+      }
+    },
+    "lid_01": {
+      "type": "lid",
+      "scientifically_relevant": true,
+      "initial": {
+        "location": "lid_rest",
+        "support": "lid_rest"
+      },
+      "prim": "/World/Container/Cap",
+      "parent": "container_01",
+      "metadata": {
+        "closure_container": "container_01"
+      }
+    },
+    "timer": {
+      "type": "device",
+      "initial": {
+        "status": "idle",
+        "type": "simulation_timer"
+      }
+    }
+  },
+  "mechanisms": [
+    {
+      "container_id": "container_01",
+      "lid_id": "lid_01",
+      "container_asset_file": "centrifuge_2ml_proxy.usda",
+      "initial_closure_status": "open",
+      "initial_support_id": "tube_rack",
+      "destination_support_id": "tube_rack",
+      "lid_support_id": "lid_rest",
+      "body_grasp_local_m": [
+        0,
+        0,
+        0.036
+      ],
+      "body_grasp_approach": "top",
+      "lid_grasp_local_m": [
+        0,
+        0,
+        -0.001
+      ],
+      "seated_lid_position_m": [
+        0,
+        0,
+        0.04455
+      ],
+      "travel_z_m": 1.12,
+      "opening_clearance_m": 0.025,
+      "max_twist_per_grasp_turns": 0.3333333333333333,
+      "screw_model": {
+        "pitch_m": 0.003,
+        "release_turns": 2,
+        "opening_sign": 1,
+        "position_tolerance_m": 0.001,
+        "angle_tolerance_rad": 0.03
+      },
+      "supports": {
+        "tube_rack": {
+          "kind": "body",
+          "position_m": [
+            0.76,
+            -0.32,
+            0.928
+          ]
+        },
+        "lid_rest": {
+          "kind": "lid",
+          "position_m": [
+            0.76,
+            -0.4,
+            0.94856
+          ],
+          "rotation_rad": [
+            3.141592653589793,
+            0,
+            0
+          ]
+        },
+        "device_01": {
+          "kind": "body",
+          "position_m": [
+            0.68,
+            -0.32,
+            0.84
+          ]
+        }
+      },
+      "type": "screw_container",
+      "assets": "assets/autobio/centrifuge_2ml_proxy",
+      "prim": "/World/Container",
+      "grasp_tolerance_m": 0.0015
+    }
+  ],
+  "devices": {
+    "device_01": {
+      "type": "heating_bath",
+      "prim": "/World/Supports/water_bath",
+      "simulation_duration_s": 2.0,
+      "setpoint_range_c": [
+        25.0,
+        99.0
+      ],
+      "temperature_source": "task_declared_setpoint_not_measurement"
+    }
+  },
+  "controller": {
+    "type": "scripted_atomic",
+    "steps": [
+      {
+        "action": "wait",
+        "target": "container_01",
+        "duration_s": 1.0,
+        "simulation_duration_s": 1.0
+      },
+      {
+        "action": "close_lid",
+        "target": "container_01"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_01"
+      },
+      {
+        "action": "put_down",
+        "target": "container_01",
+        "support": "device_01"
+      },
+      {
+        "action": "instrument_load",
+        "target": "container_01",
+        "device": "device_01"
+      },
+      {
+        "action": "heat",
+        "target": "container_01",
+        "device": "device_01",
+        "temperature_c": 56.0,
+        "duration_s": 1800
+      },
+      {
+        "action": "instrument_unload",
+        "target": "container_01",
+        "device": "device_01"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_01"
+      },
+      {
+        "action": "put_down",
+        "target": "container_01",
+        "support": "tube_rack"
+      }
+    ]
+  },
+  "protocol": {
+    "id": "heat_inactivation_water_bath",
+    "vessels": {
+      "specimen_vessel": "container_01"
+    }
+  },
+  "goals": {
+    "entities": {
+      "container_01": {
+        "volume_ul": 140.0,
+        "components_ul": {
+          "sample_infectious_unknown": 140.0
+        },
+        "closure_status": "closed",
+        "location": "tube_rack"
+      }
+    },
+    "conserve_volume": true,
+    "tolerance_ul": 0.01
+  },
+  "parameters": {
+    "test_values": true
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "task": "dunk_tank_laboratory_normal",
+  "variant": "dunk_tank_laboratory_normal_renamed",
+  "seed": 7,
+  "files": {
+    "task": "tasks/dunk_tank_laboratory_normal_renamed.json",
+    "faults": [],
+    "brief": null
+  },
+  "task_id": "dunk_tank_laboratory_normal_renamed",
+  "entities": {
+    "dunk": "device_01"
+  },
+  "fault_extra_entities": {},
+  "components_kept": []
+}

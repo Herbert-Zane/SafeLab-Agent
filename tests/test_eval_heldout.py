@@ -1,11 +1,13 @@
 """Name-generalised variants and the sealed held-out cases.
 
 Reads runs/variants/ (eval/variants/make_renamed.py) and eval/cases_heldout/
-(eval/build_heldout.py); tests are skipped when these are not built. No critic is imported or
-run here: the held-out set stays sealed until the P4 pre-registration.
+(eval/build_heldout.py). Sealed-file tests additionally require explicit
+SAFELAB_ALLOW_HELDOUT_READ=1 after P4 pre-registration; default runs read only variants.
+No critic is imported or run here.
 """
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -43,6 +45,8 @@ def mappings():
 
 @pytest.fixture(scope="module")
 def heldout():
+    if os.environ.get("SAFELAB_ALLOW_HELDOUT_READ") != "1":
+        pytest.skip("sealed heldout: reading requires explicit SAFELAB_ALLOW_HELDOUT_READ=1")
     missing = [s for s in SOURCES if not (HELDOUT/f"{s}.jsonl").is_file()]
     if missing:
         pytest.skip(f"held-out cases not built: {missing} (run eval/build_heldout.py)")
@@ -73,7 +77,10 @@ def tokens(text, ids):
 def test_mapping_is_one_to_one_and_neutral(mappings):
     for info in mappings.values():
         ents = info["entities"]
-        assert ents
+        # New diagnostic scenes can contain only fixed platform fixtures.
+        if not ents:
+            config = variant(info, info["files"]["task"])
+            assert make_renamed.build_mapping(config["entities"], info["seed"], info["task"]) == {}
         assert len(set(ents.values())) == len(ents)  # injective
         assert all(NEUTRAL.match(new) for new in ents.values())
         assert set(ents).isdisjoint(ents.values())  # no id is renamed onto another old id
@@ -116,7 +123,8 @@ def test_no_original_id_is_left_in_a_variant(mappings):
 
 def strip_prims(node):
     if isinstance(node, dict):
-        return {k: strip_prims(v) for k, v in node.items() if k not in ("prim", "asset")}
+        return {k: strip_prims(v) for k, v in node.items()
+                if k not in ("prim", "asset", "provenance")}
     if isinstance(node, list):
         return [strip_prims(v) for v in node]
     return node
@@ -131,6 +139,20 @@ def test_component_names_are_unchanged(bench, mappings):
             new = got["entities"][info["entities"].get(old, old)]
             assert new["initial"].get("components_ul") == spec["initial"].get("components_ul")
         assert info["components_kept"] == sorted(make_renamed.components_of(base))
+
+
+def test_protocol_vocabulary_and_parameter_provenance_are_preserved(bench, mappings):
+    for info in mappings.values():
+        base = original(bench, info)
+        got = variant(info, info["files"]["task"])
+        assert got.get("parameters", {}).get("provenance") == base.get(
+            "parameters", {}).get("provenance")
+        if "protocol" in base:
+            expected = json.loads(json.dumps(base["protocol"]))
+            if "vessels" in expected:
+                expected["vessels"] = {role: info["entities"].get(entity, entity)
+                                       for role, entity in expected["vessels"].items()}
+            assert got["protocol"] == expected
 
 
 def test_the_reference_plan_is_the_original_plan_under_the_mapping(bench, mappings):

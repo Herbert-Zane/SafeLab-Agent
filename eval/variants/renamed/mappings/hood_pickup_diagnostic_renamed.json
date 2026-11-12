@@ -1,0 +1,16 @@
+{
+  "task": "hood_pickup_diagnostic",
+  "variant": "hood_pickup_diagnostic_renamed",
+  "seed": 7,
+  "files": {
+    "task": "tasks/hood_pickup_diagnostic_renamed.json",
+    "faults": [],
+    "brief": null
+  },
+  "task_id": "hood_pickup_diagnostic_renamed",
+  "entities": {
+    "dunk": "device_01"
+  },
+  "fault_extra_entities": {},
+  "components_kept": []
+}

@@ -7,7 +7,9 @@
       "Declared test parameters; not validated experimental conditions",
       "Constraint grasp and fixture proxies",
       "Liquid volumes inferred by actual region contact plus virtual actuator; no measured fluid transfer",
-      "No reaction or process models; contamination and incompatible-mixture models come from the global library"
+      "No reaction or process models; contamination and incompatible-mixture models come from the global library",
+      "plate_seal is lift-off lid closure verified by pose and live assembly joint, not heat sealing or gas-tightness",
+      "Reader is the existing generic instrument proxy with an open-front housing adapter and elevated loading deck; it provides no absorbance, fluorescence or Ct data"
     ]
   },
   "environment": {
@@ -108,7 +110,7 @@
         "asset": "assets/lab/plate_rack.usda",
         "position_m": [
           0.7,
-          -0.43,
+          -0.38,
           0.88
         ]
       },
@@ -787,11 +789,11 @@
       {
         "type": "reference",
         "prim": "/World/Supports/reader",
-        "asset": "assets/lab/instrument.usda",
+        "asset": "assets/lab/instrument_open_front.usda",
         "position_m": [
           0.78,
           -0.6,
-          0.97
+          1.05
         ]
       }
     ],
@@ -4765,907 +4767,908 @@
       "type": "pipette",
       "assets": "assets/pipetting",
       "config": {
-        "table_z": 0.74,
+        "entity_id": "pipette",
+        "prim": "/World/Tool",
+        "dock_id": "tool_dock",
         "tool_start": [
           0.9,
           -0.6,
           1.1
         ],
-        "travel_tool_z": 1.16,
         "grip_local": [
           0,
           0,
           0.04
         ],
-        "waste_tip_top": [
-          0.93,
-          -0.43,
-          0.96
-        ],
-        "default_tip_id": "tip_06",
-        "capacity_ul": 20,
         "pipette_type": "P20",
-        "tip_types": {
-          "tip_06": "P20",
-          "tip_03": "P20",
-          "tip_02": "P20",
-          "tip_05": "P20",
-          "tip_04": "P20",
-          "tip_01": "P20",
-          "tip_07": "P20"
-        },
-        "tip_slots": {
-          "tip_06": [
-            0.7,
-            -0.26,
-            0.89
-          ],
-          "tip_03": [
-            0.726,
-            -0.26,
-            0.89
-          ],
-          "tip_02": [
-            0.752,
-            -0.26,
-            0.89
-          ],
-          "tip_05": [
-            0.7779999999999999,
-            -0.26,
-            0.89
-          ],
-          "tip_04": [
-            0.8039999999999999,
-            -0.26,
-            0.89
-          ],
-          "tip_01": [
-            0.83,
-            -0.26,
-            0.89
-          ],
-          "tip_07": [
-            0.856,
-            -0.234,
-            0.89
-          ]
-        },
-        "targets": {
-          "A1": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.049499999999999995,
-              -0.0315,
-              0.005
-            ]
-          },
-          "A2": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.040499999999999994,
-              -0.0315,
-              0.005
-            ]
-          },
-          "A3": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0315,
-              -0.0315,
-              0.005
-            ]
-          },
-          "A4": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0225,
-              -0.0315,
-              0.005
-            ]
-          },
-          "A5": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.013499999999999998,
-              -0.0315,
-              0.005
-            ]
-          },
-          "A6": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0045,
-              -0.0315,
-              0.005
-            ]
-          },
-          "A7": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0045,
-              -0.0315,
-              0.005
-            ]
-          },
-          "A8": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.013499999999999998,
-              -0.0315,
-              0.005
-            ]
-          },
-          "A9": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0225,
-              -0.0315,
-              0.005
-            ]
-          },
-          "A10": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0315,
-              -0.0315,
-              0.005
-            ]
-          },
-          "A11": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.040499999999999994,
-              -0.0315,
-              0.005
-            ]
-          },
-          "A12": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.049499999999999995,
-              -0.0315,
-              0.005
-            ]
-          },
-          "B1": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.049499999999999995,
-              -0.0225,
-              0.005
-            ]
-          },
-          "B2": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.040499999999999994,
-              -0.0225,
-              0.005
-            ]
-          },
-          "B3": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0315,
-              -0.0225,
-              0.005
-            ]
-          },
-          "B4": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0225,
-              -0.0225,
-              0.005
-            ]
-          },
-          "B5": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.013499999999999998,
-              -0.0225,
-              0.005
-            ]
-          },
-          "B6": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0045,
-              -0.0225,
-              0.005
-            ]
-          },
-          "B7": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0045,
-              -0.0225,
-              0.005
-            ]
-          },
-          "B8": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.013499999999999998,
-              -0.0225,
-              0.005
-            ]
-          },
-          "B9": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0225,
-              -0.0225,
-              0.005
-            ]
-          },
-          "B10": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0315,
-              -0.0225,
-              0.005
-            ]
-          },
-          "B11": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.040499999999999994,
-              -0.0225,
-              0.005
-            ]
-          },
-          "B12": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.049499999999999995,
-              -0.0225,
-              0.005
-            ]
-          },
-          "C1": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.049499999999999995,
-              -0.013499999999999998,
-              0.005
-            ]
-          },
-          "C2": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.040499999999999994,
-              -0.013499999999999998,
-              0.005
-            ]
-          },
-          "C3": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0315,
-              -0.013499999999999998,
-              0.005
-            ]
-          },
-          "C4": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0225,
-              -0.013499999999999998,
-              0.005
-            ]
-          },
-          "C5": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.013499999999999998,
-              -0.013499999999999998,
-              0.005
-            ]
-          },
-          "C6": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0045,
-              -0.013499999999999998,
-              0.005
-            ]
-          },
-          "C7": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0045,
-              -0.013499999999999998,
-              0.005
-            ]
-          },
-          "C8": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.013499999999999998,
-              -0.013499999999999998,
-              0.005
-            ]
-          },
-          "C9": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0225,
-              -0.013499999999999998,
-              0.005
-            ]
-          },
-          "C10": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0315,
-              -0.013499999999999998,
-              0.005
-            ]
-          },
-          "C11": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.040499999999999994,
-              -0.013499999999999998,
-              0.005
-            ]
-          },
-          "C12": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.049499999999999995,
-              -0.013499999999999998,
-              0.005
-            ]
-          },
-          "D1": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.049499999999999995,
-              -0.0045,
-              0.005
-            ]
-          },
-          "D2": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.040499999999999994,
-              -0.0045,
-              0.005
-            ]
-          },
-          "D3": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0315,
-              -0.0045,
-              0.005
-            ]
-          },
-          "D4": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0225,
-              -0.0045,
-              0.005
-            ]
-          },
-          "D5": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.013499999999999998,
-              -0.0045,
-              0.005
-            ]
-          },
-          "D6": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0045,
-              -0.0045,
-              0.005
-            ]
-          },
-          "D7": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0045,
-              -0.0045,
-              0.005
-            ]
-          },
-          "D8": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.013499999999999998,
-              -0.0045,
-              0.005
-            ]
-          },
-          "D9": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0225,
-              -0.0045,
-              0.005
-            ]
-          },
-          "D10": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0315,
-              -0.0045,
-              0.005
-            ]
-          },
-          "D11": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.040499999999999994,
-              -0.0045,
-              0.005
-            ]
-          },
-          "D12": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.049499999999999995,
-              -0.0045,
-              0.005
-            ]
-          },
-          "E1": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.049499999999999995,
-              0.0045,
-              0.005
-            ]
-          },
-          "E2": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.040499999999999994,
-              0.0045,
-              0.005
-            ]
-          },
-          "E3": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0315,
-              0.0045,
-              0.005
-            ]
-          },
-          "E4": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0225,
-              0.0045,
-              0.005
-            ]
-          },
-          "E5": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.013499999999999998,
-              0.0045,
-              0.005
-            ]
-          },
-          "E6": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0045,
-              0.0045,
-              0.005
-            ]
-          },
-          "E7": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0045,
-              0.0045,
-              0.005
-            ]
-          },
-          "E8": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.013499999999999998,
-              0.0045,
-              0.005
-            ]
-          },
-          "E9": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0225,
-              0.0045,
-              0.005
-            ]
-          },
-          "E10": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0315,
-              0.0045,
-              0.005
-            ]
-          },
-          "E11": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.040499999999999994,
-              0.0045,
-              0.005
-            ]
-          },
-          "E12": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.049499999999999995,
-              0.0045,
-              0.005
-            ]
-          },
-          "F1": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.049499999999999995,
-              0.013499999999999998,
-              0.005
-            ]
-          },
-          "F2": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.040499999999999994,
-              0.013499999999999998,
-              0.005
-            ]
-          },
-          "F3": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0315,
-              0.013499999999999998,
-              0.005
-            ]
-          },
-          "F4": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0225,
-              0.013499999999999998,
-              0.005
-            ]
-          },
-          "F5": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.013499999999999998,
-              0.013499999999999998,
-              0.005
-            ]
-          },
-          "F6": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0045,
-              0.013499999999999998,
-              0.005
-            ]
-          },
-          "F7": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0045,
-              0.013499999999999998,
-              0.005
-            ]
-          },
-          "F8": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.013499999999999998,
-              0.013499999999999998,
-              0.005
-            ]
-          },
-          "F9": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0225,
-              0.013499999999999998,
-              0.005
-            ]
-          },
-          "F10": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0315,
-              0.013499999999999998,
-              0.005
-            ]
-          },
-          "F11": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.040499999999999994,
-              0.013499999999999998,
-              0.005
-            ]
-          },
-          "F12": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.049499999999999995,
-              0.013499999999999998,
-              0.005
-            ]
-          },
-          "G1": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.049499999999999995,
-              0.0225,
-              0.005
-            ]
-          },
-          "G2": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.040499999999999994,
-              0.0225,
-              0.005
-            ]
-          },
-          "G3": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0315,
-              0.0225,
-              0.005
-            ]
-          },
-          "G4": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0225,
-              0.0225,
-              0.005
-            ]
-          },
-          "G5": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.013499999999999998,
-              0.0225,
-              0.005
-            ]
-          },
-          "G6": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0045,
-              0.0225,
-              0.005
-            ]
-          },
-          "G7": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0045,
-              0.0225,
-              0.005
-            ]
-          },
-          "G8": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.013499999999999998,
-              0.0225,
-              0.005
-            ]
-          },
-          "G9": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0225,
-              0.0225,
-              0.005
-            ]
-          },
-          "G10": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0315,
-              0.0225,
-              0.005
-            ]
-          },
-          "G11": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.040499999999999994,
-              0.0225,
-              0.005
-            ]
-          },
-          "G12": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.049499999999999995,
-              0.0225,
-              0.005
-            ]
-          },
-          "H1": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.049499999999999995,
-              0.0315,
-              0.005
-            ]
-          },
-          "H2": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.040499999999999994,
-              0.0315,
-              0.005
-            ]
-          },
-          "H3": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0315,
-              0.0315,
-              0.005
-            ]
-          },
-          "H4": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0225,
-              0.0315,
-              0.005
-            ]
-          },
-          "H5": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.013499999999999998,
-              0.0315,
-              0.005
-            ]
-          },
-          "H6": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              -0.0045,
-              0.0315,
-              0.005
-            ]
-          },
-          "H7": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0045,
-              0.0315,
-              0.005
-            ]
-          },
-          "H8": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.013499999999999998,
-              0.0315,
-              0.005
-            ]
-          },
-          "H9": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0225,
-              0.0315,
-              0.005
-            ]
-          },
-          "H10": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.0315,
-              0.0315,
-              0.005
-            ]
-          },
-          "H11": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.040499999999999994,
-              0.0315,
-              0.005
-            ]
-          },
-          "H12": {
-            "body_id": "plate",
-            "endpoint_local_m": [
-              0.049499999999999995,
-              0.0315,
-              0.005
-            ]
-          },
-          "container_02": {
-            "body_id": "container_02",
-            "endpoint_local_m": [
-              0,
-              0,
-              0.084
-            ]
-          },
-          "container_03": {
-            "body_id": "container_03",
-            "endpoint_local_m": [
-              0,
-              0,
-              0.084
-            ]
-          },
-          "S1": {
-            "body_id": "S1",
-            "endpoint_local_m": [
-              0,
-              0,
-              0.084
-            ]
-          },
-          "S2": {
-            "body_id": "S2",
-            "endpoint_local_m": [
-              0,
-              0,
-              0.084
-            ]
-          },
-          "S3": {
-            "body_id": "S3",
-            "endpoint_local_m": [
-              0,
-              0,
-              0.084
-            ]
-          },
-          "container_01": {
-            "body_id": "container_01",
-            "endpoint_local_m": [
-              0,
-              0,
-              0.084
-            ]
-          }
-        },
-        "tip_remover_prim": "/World/TipRemover"
-      },
-      "profiles": {
-        "P20": {
-          "capacity_ul": 20,
-          "tip_ids": [
-            "tip_06",
-            "tip_03",
-            "tip_02",
-            "tip_05",
-            "tip_04",
-            "tip_01",
-            "tip_07"
-          ]
-        }
+        "capacity_ul": 20
       }
     }
+  },
+  "pipetting": {
+    "table_z": 0.74,
+    "travel_tool_z": 1.16,
+    "waste_tip_top": [
+      0.93,
+      -0.43,
+      0.96
+    ],
+    "tip_types": {
+      "tip_06": "P20",
+      "tip_03": "P20",
+      "tip_02": "P20",
+      "tip_05": "P20",
+      "tip_04": "P20",
+      "tip_01": "P20",
+      "tip_07": "P20"
+    },
+    "tip_slots": {
+      "tip_06": [
+        0.7,
+        -0.26,
+        0.89
+      ],
+      "tip_03": [
+        0.726,
+        -0.26,
+        0.89
+      ],
+      "tip_02": [
+        0.752,
+        -0.26,
+        0.89
+      ],
+      "tip_05": [
+        0.7779999999999999,
+        -0.26,
+        0.89
+      ],
+      "tip_04": [
+        0.8039999999999999,
+        -0.26,
+        0.89
+      ],
+      "tip_01": [
+        0.83,
+        -0.26,
+        0.89
+      ],
+      "tip_07": [
+        0.856,
+        -0.234,
+        0.89
+      ]
+    },
+    "targets": {
+      "A1": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.049499999999999995,
+          -0.0315,
+          0.005
+        ]
+      },
+      "A2": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.040499999999999994,
+          -0.0315,
+          0.005
+        ]
+      },
+      "A3": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0315,
+          -0.0315,
+          0.005
+        ]
+      },
+      "A4": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0225,
+          -0.0315,
+          0.005
+        ]
+      },
+      "A5": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.013499999999999998,
+          -0.0315,
+          0.005
+        ]
+      },
+      "A6": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0045,
+          -0.0315,
+          0.005
+        ]
+      },
+      "A7": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0045,
+          -0.0315,
+          0.005
+        ]
+      },
+      "A8": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.013499999999999998,
+          -0.0315,
+          0.005
+        ]
+      },
+      "A9": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0225,
+          -0.0315,
+          0.005
+        ]
+      },
+      "A10": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0315,
+          -0.0315,
+          0.005
+        ]
+      },
+      "A11": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.040499999999999994,
+          -0.0315,
+          0.005
+        ]
+      },
+      "A12": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.049499999999999995,
+          -0.0315,
+          0.005
+        ]
+      },
+      "B1": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.049499999999999995,
+          -0.0225,
+          0.005
+        ]
+      },
+      "B2": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.040499999999999994,
+          -0.0225,
+          0.005
+        ]
+      },
+      "B3": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0315,
+          -0.0225,
+          0.005
+        ]
+      },
+      "B4": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0225,
+          -0.0225,
+          0.005
+        ]
+      },
+      "B5": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.013499999999999998,
+          -0.0225,
+          0.005
+        ]
+      },
+      "B6": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0045,
+          -0.0225,
+          0.005
+        ]
+      },
+      "B7": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0045,
+          -0.0225,
+          0.005
+        ]
+      },
+      "B8": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.013499999999999998,
+          -0.0225,
+          0.005
+        ]
+      },
+      "B9": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0225,
+          -0.0225,
+          0.005
+        ]
+      },
+      "B10": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0315,
+          -0.0225,
+          0.005
+        ]
+      },
+      "B11": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.040499999999999994,
+          -0.0225,
+          0.005
+        ]
+      },
+      "B12": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.049499999999999995,
+          -0.0225,
+          0.005
+        ]
+      },
+      "C1": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.049499999999999995,
+          -0.013499999999999998,
+          0.005
+        ]
+      },
+      "C2": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.040499999999999994,
+          -0.013499999999999998,
+          0.005
+        ]
+      },
+      "C3": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0315,
+          -0.013499999999999998,
+          0.005
+        ]
+      },
+      "C4": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0225,
+          -0.013499999999999998,
+          0.005
+        ]
+      },
+      "C5": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.013499999999999998,
+          -0.013499999999999998,
+          0.005
+        ]
+      },
+      "C6": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0045,
+          -0.013499999999999998,
+          0.005
+        ]
+      },
+      "C7": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0045,
+          -0.013499999999999998,
+          0.005
+        ]
+      },
+      "C8": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.013499999999999998,
+          -0.013499999999999998,
+          0.005
+        ]
+      },
+      "C9": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0225,
+          -0.013499999999999998,
+          0.005
+        ]
+      },
+      "C10": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0315,
+          -0.013499999999999998,
+          0.005
+        ]
+      },
+      "C11": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.040499999999999994,
+          -0.013499999999999998,
+          0.005
+        ]
+      },
+      "C12": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.049499999999999995,
+          -0.013499999999999998,
+          0.005
+        ]
+      },
+      "D1": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.049499999999999995,
+          -0.0045,
+          0.005
+        ]
+      },
+      "D2": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.040499999999999994,
+          -0.0045,
+          0.005
+        ]
+      },
+      "D3": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0315,
+          -0.0045,
+          0.005
+        ]
+      },
+      "D4": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0225,
+          -0.0045,
+          0.005
+        ]
+      },
+      "D5": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.013499999999999998,
+          -0.0045,
+          0.005
+        ]
+      },
+      "D6": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0045,
+          -0.0045,
+          0.005
+        ]
+      },
+      "D7": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0045,
+          -0.0045,
+          0.005
+        ]
+      },
+      "D8": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.013499999999999998,
+          -0.0045,
+          0.005
+        ]
+      },
+      "D9": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0225,
+          -0.0045,
+          0.005
+        ]
+      },
+      "D10": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0315,
+          -0.0045,
+          0.005
+        ]
+      },
+      "D11": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.040499999999999994,
+          -0.0045,
+          0.005
+        ]
+      },
+      "D12": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.049499999999999995,
+          -0.0045,
+          0.005
+        ]
+      },
+      "E1": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.049499999999999995,
+          0.0045,
+          0.005
+        ]
+      },
+      "E2": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.040499999999999994,
+          0.0045,
+          0.005
+        ]
+      },
+      "E3": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0315,
+          0.0045,
+          0.005
+        ]
+      },
+      "E4": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0225,
+          0.0045,
+          0.005
+        ]
+      },
+      "E5": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.013499999999999998,
+          0.0045,
+          0.005
+        ]
+      },
+      "E6": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0045,
+          0.0045,
+          0.005
+        ]
+      },
+      "E7": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0045,
+          0.0045,
+          0.005
+        ]
+      },
+      "E8": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.013499999999999998,
+          0.0045,
+          0.005
+        ]
+      },
+      "E9": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0225,
+          0.0045,
+          0.005
+        ]
+      },
+      "E10": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0315,
+          0.0045,
+          0.005
+        ]
+      },
+      "E11": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.040499999999999994,
+          0.0045,
+          0.005
+        ]
+      },
+      "E12": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.049499999999999995,
+          0.0045,
+          0.005
+        ]
+      },
+      "F1": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.049499999999999995,
+          0.013499999999999998,
+          0.005
+        ]
+      },
+      "F2": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.040499999999999994,
+          0.013499999999999998,
+          0.005
+        ]
+      },
+      "F3": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0315,
+          0.013499999999999998,
+          0.005
+        ]
+      },
+      "F4": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0225,
+          0.013499999999999998,
+          0.005
+        ]
+      },
+      "F5": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.013499999999999998,
+          0.013499999999999998,
+          0.005
+        ]
+      },
+      "F6": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0045,
+          0.013499999999999998,
+          0.005
+        ]
+      },
+      "F7": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0045,
+          0.013499999999999998,
+          0.005
+        ]
+      },
+      "F8": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.013499999999999998,
+          0.013499999999999998,
+          0.005
+        ]
+      },
+      "F9": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0225,
+          0.013499999999999998,
+          0.005
+        ]
+      },
+      "F10": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0315,
+          0.013499999999999998,
+          0.005
+        ]
+      },
+      "F11": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.040499999999999994,
+          0.013499999999999998,
+          0.005
+        ]
+      },
+      "F12": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.049499999999999995,
+          0.013499999999999998,
+          0.005
+        ]
+      },
+      "G1": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.049499999999999995,
+          0.0225,
+          0.005
+        ]
+      },
+      "G2": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.040499999999999994,
+          0.0225,
+          0.005
+        ]
+      },
+      "G3": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0315,
+          0.0225,
+          0.005
+        ]
+      },
+      "G4": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0225,
+          0.0225,
+          0.005
+        ]
+      },
+      "G5": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.013499999999999998,
+          0.0225,
+          0.005
+        ]
+      },
+      "G6": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0045,
+          0.0225,
+          0.005
+        ]
+      },
+      "G7": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0045,
+          0.0225,
+          0.005
+        ]
+      },
+      "G8": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.013499999999999998,
+          0.0225,
+          0.005
+        ]
+      },
+      "G9": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0225,
+          0.0225,
+          0.005
+        ]
+      },
+      "G10": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0315,
+          0.0225,
+          0.005
+        ]
+      },
+      "G11": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.040499999999999994,
+          0.0225,
+          0.005
+        ]
+      },
+      "G12": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.049499999999999995,
+          0.0225,
+          0.005
+        ]
+      },
+      "H1": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.049499999999999995,
+          0.0315,
+          0.005
+        ]
+      },
+      "H2": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.040499999999999994,
+          0.0315,
+          0.005
+        ]
+      },
+      "H3": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0315,
+          0.0315,
+          0.005
+        ]
+      },
+      "H4": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0225,
+          0.0315,
+          0.005
+        ]
+      },
+      "H5": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.013499999999999998,
+          0.0315,
+          0.005
+        ]
+      },
+      "H6": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          -0.0045,
+          0.0315,
+          0.005
+        ]
+      },
+      "H7": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0045,
+          0.0315,
+          0.005
+        ]
+      },
+      "H8": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.013499999999999998,
+          0.0315,
+          0.005
+        ]
+      },
+      "H9": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0225,
+          0.0315,
+          0.005
+        ]
+      },
+      "H10": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.0315,
+          0.0315,
+          0.005
+        ]
+      },
+      "H11": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.040499999999999994,
+          0.0315,
+          0.005
+        ]
+      },
+      "H12": {
+        "body_id": "plate",
+        "endpoint_local_m": [
+          0.049499999999999995,
+          0.0315,
+          0.005
+        ]
+      },
+      "container_02": {
+        "body_id": "container_02",
+        "endpoint_local_m": [
+          0,
+          0,
+          0.084
+        ]
+      },
+      "container_03": {
+        "body_id": "container_03",
+        "endpoint_local_m": [
+          0,
+          0,
+          0.084
+        ]
+      },
+      "S1": {
+        "body_id": "S1",
+        "endpoint_local_m": [
+          0,
+          0,
+          0.084
+        ]
+      },
+      "S2": {
+        "body_id": "S2",
+        "endpoint_local_m": [
+          0,
+          0,
+          0.084
+        ]
+      },
+      "S3": {
+        "body_id": "S3",
+        "endpoint_local_m": [
+          0,
+          0,
+          0.084
+        ]
+      },
+      "container_01": {
+        "body_id": "container_01",
+        "endpoint_local_m": [
+          0,
+          0,
+          0.084
+        ]
+      }
+    },
+    "tip_remover_prim": "/World/TipRemover"
+  },
+  "tip_sets": {
+    "p20": [
+      "tip_06",
+      "tip_03",
+      "tip_02",
+      "tip_05",
+      "tip_04",
+      "tip_01",
+      "tip_07"
+    ]
   },
   "devices": {
     "device_01": {
@@ -5695,7 +5698,7 @@
           "lid_local_m": [
             0,
             0,
-            0.013
+            0.01535
           ]
         },
         "container_02": {
@@ -5789,14 +5792,14 @@
           "mass_kg": 0.05
         },
         "lid_01": {
-          "asset": "assets/lab/plate_lid.usda",
+          "asset": "assets/lab/plate_lid_inboard_grip.usda",
           "position_m": [
             0.94,
             -0.3,
             0.88
           ],
           "grasp_local_m": [
-            -0.08,
+            -0.05,
             -0.038,
             0.075
           ],
@@ -5838,7 +5841,7 @@
         "completion_zone": {
           "position_m": [
             0.7,
-            -0.43,
+            -0.38,
             0.88
           ],
           "objects": [
@@ -5989,7 +5992,7 @@
           "position_m": [
             0.78,
             -0.6,
-            0.97
+            1.05
           ],
           "objects": [
             "plate"
@@ -6034,8 +6037,14 @@
         "support": "S3_work"
       },
       {
+        "action": "pick_up",
+        "target": "pipette"
+      },
+      {
         "action": "attach_tip",
-        "pipette_type": "P20"
+        "tip_id": {
+          "next": "tip_sets.p20"
+        }
       },
       {
         "foreach": {
@@ -6062,14 +6071,25 @@
         "target": "waste"
       },
       {
+        "action": "put_down",
+        "target": "pipette",
+        "support": "tool_dock"
+      },
+      {
         "foreach": {
           "ref": "targets.wells"
         },
         "as": "well",
         "steps": [
           {
+            "action": "pick_up",
+            "target": "pipette"
+          },
+          {
             "action": "attach_tip",
-            "pipette_type": "P20"
+            "tip_id": {
+              "next": "tip_sets.p20"
+            }
           },
           {
             "action": "aspirate",
@@ -6086,12 +6106,23 @@
           {
             "action": "eject_tip",
             "target": "waste"
+          },
+          {
+            "action": "put_down",
+            "target": "pipette",
+            "support": "tool_dock"
           }
         ]
       },
       {
+        "action": "pick_up",
+        "target": "pipette"
+      },
+      {
         "action": "attach_tip",
-        "pipette_type": "P20"
+        "tip_id": {
+          "next": "tip_sets.p20"
+        }
       },
       {
         "action": "aspirate",
@@ -6108,8 +6139,19 @@
         "target": "waste"
       },
       {
+        "action": "put_down",
+        "target": "pipette",
+        "support": "tool_dock"
+      },
+      {
+        "action": "pick_up",
+        "target": "pipette"
+      },
+      {
         "action": "attach_tip",
-        "pipette_type": "P20"
+        "tip_id": {
+          "next": "tip_sets.p20"
+        }
       },
       {
         "action": "aspirate",
@@ -6126,8 +6168,19 @@
         "target": "waste"
       },
       {
+        "action": "put_down",
+        "target": "pipette",
+        "support": "tool_dock"
+      },
+      {
+        "action": "pick_up",
+        "target": "pipette"
+      },
+      {
         "action": "attach_tip",
-        "pipette_type": "P20"
+        "tip_id": {
+          "next": "tip_sets.p20"
+        }
       },
       {
         "action": "aspirate",
@@ -6144,8 +6197,22 @@
         "target": "waste"
       },
       {
+        "action": "put_down",
+        "target": "pipette",
+        "support": "tool_dock"
+      },
+      {
         "action": "plate_seal",
         "target": "plate"
+      },
+      {
+        "action": "pick_up",
+        "target": "plate"
+      },
+      {
+        "action": "put_down",
+        "target": "plate",
+        "support": "device_01"
       },
       {
         "action": "instrument_load",
@@ -6163,60 +6230,34 @@
       {
         "action": "instrument_unload",
         "target": "plate",
-        "device": "device_01",
+        "device": "device_01"
+      },
+      {
+        "action": "pick_up",
+        "target": "plate"
+      },
+      {
+        "action": "put_down",
+        "target": "plate",
         "support": "completion_zone"
       }
     ]
   },
-  "criteria": {
-    "expected_flows": [
-      {
-        "id": "reagent_A_into_empty_wells",
-        "carrying": [
-          "reagent_A"
-        ],
-        "into": []
-      },
-      {
-        "id": "reagent_B_into_reagent_A",
-        "carrying": [
-          "reagent_B"
-        ],
-        "into": [
-          "reagent_A"
-        ]
-      },
-      {
-        "id": "S1_into_reagent_A_reagent_B",
-        "carrying": [
-          "S1"
-        ],
-        "into": [
-          "reagent_A",
-          "reagent_B"
-        ]
-      },
-      {
-        "id": "S2_into_reagent_A_reagent_B",
-        "carrying": [
-          "S2"
-        ],
-        "into": [
-          "reagent_A",
-          "reagent_B"
-        ]
-      },
-      {
-        "id": "S3_into_reagent_A_reagent_B",
-        "carrying": [
-          "S3"
-        ],
-        "into": [
-          "reagent_A",
-          "reagent_B"
-        ]
-      }
-    ]
+  "protocol": {
+    "id": "two_reagents_then_samples",
+    "materials": {
+      "reagent_a": [
+        "reagent_A"
+      ],
+      "reagent_b": [
+        "reagent_B"
+      ],
+      "sample": [
+        "S1",
+        "S2",
+        "S3"
+      ]
+    }
   },
   "goals": {
     "entities": {

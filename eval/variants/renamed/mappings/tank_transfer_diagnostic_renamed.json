@@ -1,0 +1,16 @@
+{
+  "task": "tank_transfer_diagnostic",
+  "variant": "tank_transfer_diagnostic_renamed",
+  "seed": 7,
+  "files": {
+    "task": "tasks/tank_transfer_diagnostic_renamed.json",
+    "faults": [],
+    "brief": null
+  },
+  "task_id": "tank_transfer_diagnostic_renamed",
+  "entities": {
+    "dunk": "device_01"
+  },
+  "fault_extra_entities": {},
+  "components_kept": []
+}

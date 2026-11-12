@@ -167,6 +167,8 @@ def token_pattern(ids):
 
 def rewrite_text(text, mapping, keep_phrases=()):
     """Free text: token-wise replacement; ``keep_phrases`` are copied through untouched."""
+    if not mapping:
+        return text
     sentinels = {}
     for i, phrase in enumerate(keep_phrases):
         if phrase not in text:
@@ -185,6 +187,13 @@ def rewrite_text(text, mapping, keep_phrases=()):
 
 def rename_task(config, mapping, task_id):
     out = rewrite(deepcopy(config), mapping, components_of(config))
+    # Protocol roles and material names are vocabulary, not entity identifiers.
+    if "protocol" in config:
+        out["protocol"] = deepcopy(config["protocol"])
+        if "vessels" in config["protocol"]:
+            out["protocol"]["vessels"] = {
+                role: mapping.get(entity, entity)
+                for role, entity in config["protocol"]["vessels"].items()}
     out["task"]["id"] = task_id
     return out
 
@@ -203,6 +212,8 @@ def rename_brief(brief, mapping, task_id, keep_phrases):
 
 def residual_ids(node, mapping, components, key=None):
     """Old ids still present in ``node`` outside component positions (should be empty)."""
+    if key == "protocol" and isinstance(node, dict):
+        return [entity for entity in node.get("vessels", {}).values() if entity in mapping]
     found = []
     if isinstance(node, dict):
         for k, v in node.items():
@@ -224,7 +235,9 @@ def residual_ids(node, mapping, components, key=None):
 
 
 def reference_tasks():
-    return sorted(p.stem for p in (bench_root()/"configs"/"tasks").glob("*.json"))
+    sys.path.insert(0, str(REPO/"eval"))
+    import common
+    return common.reference_names()
 
 
 def fault_tasks(task):
@@ -350,7 +363,9 @@ def check(names, out=VARIANTS):
                      "lint_fail_lines": lint_text.count("FAIL"),
                      "lint_fail_lines_original": original_lint.count("FAIL"),
                      "outcome": outcome_line(run_text), "original_outcome": outcome_line(base_text),
-                     "same_as_original": outcome_line(run_text) == outcome_line(base_text),
+                     "same_as_original": rewrite_text(
+                         outcome_line(run_text), {v: k for k, v in info["entities"].items()}
+                     ) == outcome_line(base_text),
                      "brief": "real" if info["files"]["brief"] else "stub (plan_replay ignores it)",
                      "linted": len(files)})
         if not ok_lint:
@@ -367,6 +382,19 @@ def main(argv=None):
     parser.add_argument("--check", action="store_true", help="lint + plan_replay dry run")
     args = parser.parse_args(argv)
     names = [make_variant(t, args.out, args.seed) for t in args.tasks or reference_tasks()]
+    if not args.tasks:
+        # A full refresh must not retain tasks removed by a platform migration.
+        expected = set()
+        for name in names:
+            path = args.out/"mappings"/f"{name}.json"
+            expected.add(path)
+            files = read(path)["files"]
+            expected.update(args.out/f for f in [files["task"], *files["faults"], files["brief"]]
+                            if f)
+        for folder in ("tasks", "briefs", "mappings"):
+            for path in (args.out/folder).rglob("*.json"):
+                if path not in expected:
+                    path.unlink()
     for name in names:
         info = read(args.out/"mappings"/f"{name}.json")
         print(f"{name}: {len(info['entities'])} ids renamed, {len(info['files']['faults'])} "

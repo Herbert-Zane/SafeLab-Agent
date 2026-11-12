@@ -1,0 +1,1898 @@
+{
+  "schema_version": 1,
+  "task": {
+    "id": "rna_column_purification_v1_renamed",
+    "name": "pipette_p1000",
+    "output": "outputs/rna_column_purification",
+    "limitations": [
+      "Declarative spin-column proxy, not rotor or membrane fluid physics: bulk drainage is ideal, and membrane binding, washing, residual state and elution parameters are uncalibrated benchmark assumptions in protocols.json. Product validity means the declared proxy criteria hold, not measured RNA purity or yield.",
+      "Cell Lysis terminal composition and protocol-inactivated sample portions are an explicit declared state handoff, not evidence of an upstream execution. No additional 740 uL source reserve is used.",
+      "Dynamic column mount uses the enabled closure joint parent and assembly pose readback. The existing open_lid/close_lid path sets the column on its rest between tubes. Tubes remain latched at declared seats; no physical rack or rotor dynamics are modeled.",
+      "The device program is an authored setting, not measured RCF or temperature; physical intervals and an explicit accelerated experimental clock mapping support completed runs. AW1/AW2/AVE hazard formulations remain unknown pending verified SDS information.",
+      "Elution uses a fresh P1000 tip instead of the spec's P200: the validated bench layout has room for one instrument. Geometry, tool paths and the 83 operations are inherited from PR #29; changed liquid-level paths need new Isaac validation."
+    ]
+  },
+  "environment": {
+    "physics_dt_s": 0.008333333333333333,
+    "motion_speed": 1.0,
+    "force_feedback": {
+      "enabled": true,
+      "limits": {
+        "soft_force_n": 10.0,
+        "hard_force_n": 40.0,
+        "soft_torque_nm": 0.5,
+        "hard_torque_nm": 2.0,
+        "minimum_speed_scale": 0.2,
+        "contact_force_n": 0.02
+      }
+    }
+  },
+  "robot": {
+    "gripper_pad_local_m": [
+      0,
+      0,
+      0.005
+    ],
+    "gripper_open_angle_rad": 0.12,
+    "grasp_tolerance_m": 0.0015,
+    "grasp_surface_gap_tolerance_m": 0.00025,
+    "type": "G2",
+    "assets": "assets/pipetting",
+    "home_hand_m": [
+      0.7,
+      -0.32,
+      1.12
+    ]
+  },
+  "scene": {
+    "fixtures": [
+      {
+        "type": "reference",
+        "prim": "/World/Table",
+        "asset": "assets/lab/workbench.usda",
+        "position_m": [
+          0.81,
+          -0.385,
+          0.715
+        ]
+      },
+      {
+        "type": "waste",
+        "config": {
+          "table_z": 0.74,
+          "waste_tip_top": [
+            0.8333,
+            -0.6,
+            0.96
+          ],
+          "bin_asset": "assets/waste_bin.usd",
+          "remover_asset": "assets/tip_remover.usd",
+          "remover_position_m": [
+            0.7983,
+            -0.5982,
+            0.7465625
+          ]
+        }
+      },
+      {
+        "type": "reference",
+        "prim": "/World/Supports/centrifuge",
+        "asset": "assets/modeled/11_benchtop_microcentrifuge/benchtop_microcentrifuge_bench.usda",
+        "position_m": [
+          0.916569,
+          -0.276692,
+          0.74
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_1/Strip0",
+        "center_m": [
+          0.5599999999999999,
+          -0.5,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_1/Strip1",
+        "center_m": [
+          0.58,
+          -0.5,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_1/Strip2",
+        "center_m": [
+          0.57,
+          -0.51,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_1/Strip3",
+        "center_m": [
+          0.57,
+          -0.49,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_2/Strip0",
+        "center_m": [
+          0.5599999999999999,
+          -0.526,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_2/Strip1",
+        "center_m": [
+          0.58,
+          -0.526,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_2/Strip2",
+        "center_m": [
+          0.57,
+          -0.536,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_2/Strip3",
+        "center_m": [
+          0.57,
+          -0.516,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_3/Strip0",
+        "center_m": [
+          0.5599999999999999,
+          -0.552,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_3/Strip1",
+        "center_m": [
+          0.58,
+          -0.552,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_3/Strip2",
+        "center_m": [
+          0.57,
+          -0.562,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_3/Strip3",
+        "center_m": [
+          0.57,
+          -0.542,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_4/Strip0",
+        "center_m": [
+          0.5599999999999999,
+          -0.578,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_4/Strip1",
+        "center_m": [
+          0.58,
+          -0.578,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_4/Strip2",
+        "center_m": [
+          0.57,
+          -0.588,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_4/Strip3",
+        "center_m": [
+          0.57,
+          -0.568,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_5/Strip0",
+        "center_m": [
+          0.5599999999999999,
+          -0.604,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_5/Strip1",
+        "center_m": [
+          0.58,
+          -0.604,
+          0.878
+        ],
+        "size_m": [
+          0.008,
+          0.026,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_5/Strip2",
+        "center_m": [
+          0.57,
+          -0.614,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/TipStands/p1000_tip_5/Strip3",
+        "center_m": [
+          0.57,
+          -0.594,
+          0.878
+        ],
+        "size_m": [
+          0.026,
+          0.008,
+          0.006
+        ],
+        "color": [
+          0.65,
+          0.35,
+          0.8
+        ]
+      },
+      {
+        "type": "cylinder",
+        "prim": "/World/Supports/lysate_stand",
+        "radius_m": 0.012,
+        "height_m": 0.1,
+        "position_m": [
+          0.64,
+          -0.52,
+          0.79
+        ],
+        "color": [
+          0.55,
+          0.57,
+          0.6
+        ]
+      },
+      {
+        "type": "asset",
+        "entity": "container_03",
+        "asset": "assets/lab/reagent_container.usda",
+        "center_xy": [
+          0.64,
+          -0.52
+        ],
+        "size_m": [
+          0.017,
+          0.017,
+          0.057
+        ],
+        "base_z_m": 0.84,
+        "mesh_collision": true
+      },
+      {
+        "type": "cylinder",
+        "prim": "/World/Supports/AW1_stand",
+        "radius_m": 0.012,
+        "height_m": 0.1,
+        "position_m": [
+          0.64,
+          -0.56,
+          0.79
+        ],
+        "color": [
+          0.55,
+          0.57,
+          0.6
+        ]
+      },
+      {
+        "type": "asset",
+        "entity": "container_02",
+        "asset": "assets/lab/reagent_container.usda",
+        "center_xy": [
+          0.64,
+          -0.56
+        ],
+        "size_m": [
+          0.017,
+          0.017,
+          0.057
+        ],
+        "base_z_m": 0.84,
+        "mesh_collision": true
+      },
+      {
+        "type": "cylinder",
+        "prim": "/World/Supports/AW2_stand",
+        "radius_m": 0.012,
+        "height_m": 0.1,
+        "position_m": [
+          0.64,
+          -0.6,
+          0.79
+        ],
+        "color": [
+          0.55,
+          0.57,
+          0.6
+        ]
+      },
+      {
+        "type": "asset",
+        "entity": "container_09",
+        "asset": "assets/lab/reagent_container.usda",
+        "center_xy": [
+          0.64,
+          -0.6
+        ],
+        "size_m": [
+          0.017,
+          0.017,
+          0.057
+        ],
+        "base_z_m": 0.84,
+        "mesh_collision": true
+      },
+      {
+        "type": "cylinder",
+        "prim": "/World/Supports/AVE_stand",
+        "radius_m": 0.012,
+        "height_m": 0.1,
+        "position_m": [
+          0.64,
+          -0.64,
+          0.79
+        ],
+        "color": [
+          0.55,
+          0.57,
+          0.6
+        ]
+      },
+      {
+        "type": "asset",
+        "entity": "container_05",
+        "asset": "assets/lab/reagent_container.usda",
+        "center_xy": [
+          0.64,
+          -0.64
+        ],
+        "size_m": [
+          0.017,
+          0.017,
+          0.057
+        ],
+        "base_z_m": 0.84,
+        "mesh_collision": true
+      }
+    ],
+    "liquid_display": {
+      "container_03": {
+        "type": "marker",
+        "radius_m": 0.0072,
+        "height_m": 0.002,
+        "color": [
+          0.8,
+          0.6,
+          0.3
+        ],
+        "surface_offset_m": -0.001
+      },
+      "container_02": {
+        "type": "marker",
+        "radius_m": 0.0072,
+        "height_m": 0.002,
+        "color": [
+          0.85,
+          0.9,
+          0.95
+        ],
+        "surface_offset_m": -0.001
+      },
+      "container_09": {
+        "type": "marker",
+        "radius_m": 0.0072,
+        "height_m": 0.002,
+        "color": [
+          0.55,
+          0.8,
+          0.5
+        ],
+        "surface_offset_m": -0.001
+      },
+      "container_05": {
+        "type": "marker",
+        "radius_m": 0.0072,
+        "height_m": 0.002,
+        "color": [
+          0.7,
+          0.75,
+          0.95
+        ],
+        "surface_offset_m": -0.001
+      }
+    },
+    "camera": {
+      "eye": [
+        1.12,
+        -0.92,
+        1.25
+      ],
+      "target": [
+        0.72,
+        -0.35,
+        0.99
+      ]
+    }
+  },
+  "entities": {
+    "g2": {
+      "type": "robot",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/G2"
+    },
+    "table": {
+      "type": "surface",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/Table"
+    },
+    "tip_rack": {
+      "type": "rack",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/TipStands"
+    },
+    "waste": {
+      "type": "region",
+      "scientifically_relevant": false,
+      "initial": {
+        "membership_scope": "tip_top_point"
+      },
+      "prim": "/World/Waste",
+      "metadata": {
+        "point_region": {
+          "center_xy": [
+            0.8333,
+            -0.6
+          ],
+          "radius_xy": 0.058,
+          "bottom_z": 0.74,
+          "top_z": 0.92
+        }
+      }
+    },
+    "tip_remover": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/TipRemover"
+    },
+    "device_02": {
+      "type": "device",
+      "scientifically_relevant": true,
+      "prim": "/World/Supports/centrifuge",
+      "initial": {
+        "type": "instrument",
+        "status": "idle",
+        "active": false,
+        "loaded_entities": [],
+        "program": ""
+      }
+    },
+    "device_01": {
+      "type": "device",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "incubation_environment",
+        "condition": null,
+        "status": "idle",
+        "cumulative_simulation_time_s": 0.0,
+        "cumulative_logical_time_s": 0.0
+      }
+    },
+    "tip_03": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P1000",
+        "capacity_ul": 1000,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p1000_tip_1"
+    },
+    "tip_01": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P1000",
+        "capacity_ul": 1000,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p1000_tip_2"
+    },
+    "tip_04": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P1000",
+        "capacity_ul": 1000,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p1000_tip_3"
+    },
+    "tip_05": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P1000",
+        "capacity_ul": 1000,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p1000_tip_4"
+    },
+    "tip_02": {
+      "type": "tip",
+      "scientifically_relevant": true,
+      "initial": {
+        "type": "P1000",
+        "capacity_ul": 1000,
+        "volume_ul": 0.0,
+        "held_volume_ul": 0.0,
+        "components_ul": {},
+        "attached_to": null,
+        "location": "tip_rack",
+        "available": true,
+        "contact_history": [],
+        "contact_coverage": "modeled_liquid_region_only"
+      },
+      "prim": "/World/Tips/p1000_tip_5"
+    },
+    "container_03": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "initial": {
+        "capacity_ul": 5000,
+        "volume_ul": 1260.0,
+        "components_ul": {
+          "sample": 140.0,
+          "AVL": 560.0,
+          "ethanol_95": 560.0
+        },
+        "closure_status": "open",
+        "location": "table",
+        "support": "table",
+        "material_handoff": {
+          "basis": "declared_state_handoff",
+          "source": "declared_cell_lysis_terminal_state_not_execution",
+          "portions": [
+            {
+              "material": "sample",
+              "amount_ul": 140.0,
+              "origin": "cell_lysis:sample_source",
+              "treatment": "protocol_inactivated",
+              "state_evidence": {
+                "protocol": "guanidinium_ethanol_two_stage",
+                "verified": false,
+                "biosafety_level_after": 2,
+                "biosafety_source": "placeholder"
+              }
+            },
+            {
+              "material": "AVL",
+              "amount_ul": 560.0,
+              "origin": "cell_lysis:AVL",
+              "treatment": "untreated",
+              "state_evidence": {
+                "protocol": "guanidinium_ethanol_two_stage",
+                "verified": false,
+                "biosafety_level_after": null,
+                "biosafety_source": "placeholder"
+              }
+            },
+            {
+              "material": "ethanol_95",
+              "amount_ul": 560.0,
+              "origin": "cell_lysis:ethanol_95",
+              "treatment": "untreated",
+              "state_evidence": {
+                "protocol": "guanidinium_ethanol_two_stage",
+                "verified": false,
+                "biosafety_level_after": null,
+                "biosafety_source": "placeholder"
+              }
+            }
+          ]
+        }
+      },
+      "prim": "/World/lysate",
+      "region": {
+        "center_xy": [
+          0.64,
+          -0.52
+        ],
+        "radius_m": 0.0065,
+        "bottom_z": 0.840855,
+        "surface_z": 0.897
+      },
+      "liquid_level": {
+        "inner_radius_m": 0.0077
+      }
+    },
+    "container_02": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "initial": {
+        "capacity_ul": 5000,
+        "volume_ul": 2000.0,
+        "components_ul": {
+          "AW1": 2000.0
+        },
+        "closure_status": "open",
+        "location": "table",
+        "support": "table"
+      },
+      "prim": "/World/AW1",
+      "region": {
+        "center_xy": [
+          0.64,
+          -0.56
+        ],
+        "radius_m": 0.0065,
+        "bottom_z": 0.840855,
+        "surface_z": 0.897
+      },
+      "liquid_level": {
+        "inner_radius_m": 0.0077
+      }
+    },
+    "container_09": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "initial": {
+        "capacity_ul": 5000,
+        "volume_ul": 2000.0,
+        "components_ul": {
+          "AW2": 2000.0
+        },
+        "closure_status": "open",
+        "location": "table",
+        "support": "table"
+      },
+      "prim": "/World/AW2",
+      "region": {
+        "center_xy": [
+          0.64,
+          -0.6
+        ],
+        "radius_m": 0.0065,
+        "bottom_z": 0.840855,
+        "surface_z": 0.897
+      },
+      "liquid_level": {
+        "inner_radius_m": 0.0077
+      }
+    },
+    "container_05": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "initial": {
+        "capacity_ul": 5000,
+        "volume_ul": 1000.0,
+        "components_ul": {
+          "AVE": 1000.0
+        },
+        "closure_status": "open",
+        "location": "table",
+        "support": "table"
+      },
+      "prim": "/World/AVE",
+      "region": {
+        "center_xy": [
+          0.64,
+          -0.64
+        ],
+        "radius_m": 0.0065,
+        "bottom_z": 0.840855,
+        "surface_z": 0.897
+      },
+      "liquid_level": {
+        "inner_radius_m": 0.0077
+      }
+    },
+    "container_01_seat": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {}
+    },
+    "container_01": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "prim": "/World/Objects/ctube1",
+      "initial": {
+        "capacity_ul": 2000.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "container_01_seat",
+        "support": "container_01_seat"
+      }
+    },
+    "container_07_seat": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {}
+    },
+    "container_07": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "prim": "/World/Objects/ctube2",
+      "initial": {
+        "capacity_ul": 2000.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "container_07_seat",
+        "support": "container_07_seat"
+      }
+    },
+    "container_08_seat": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {}
+    },
+    "container_08": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "prim": "/World/Objects/ctube4",
+      "initial": {
+        "capacity_ul": 2000.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "container_08_seat",
+        "support": "container_08_seat"
+      }
+    },
+    "container_10_seat": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {}
+    },
+    "container_10": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "prim": "/World/Objects/etube",
+      "initial": {
+        "capacity_ul": 1500.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "container_10_seat",
+        "support": "container_10_seat"
+      }
+    },
+    "container_04_seat": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {}
+    },
+    "container_04": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "prim": "/World/Objects/ctube3",
+      "initial": {
+        "capacity_ul": 2000.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "location": "container_04_seat",
+        "support": "container_04_seat"
+      }
+    },
+    "container_06_rest": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {}
+    },
+    "container_06": {
+      "type": "container",
+      "scientifically_relevant": true,
+      "prim": "/World/Objects/column",
+      "initial": {
+        "capacity_ul": 700.0,
+        "volume_ul": 0.0,
+        "components_ul": {},
+        "closure_status": "open",
+        "spin_column_profile": "silica_rna_proxy_v1",
+        "location": "container_06_rest",
+        "support": "container_06_rest"
+      },
+      "region": {
+        "center_xy": [
+          0.62,
+          -0.4
+        ],
+        "radius_m": 0.00365,
+        "bottom_z": 0.89535,
+        "surface_z": 0.917
+      },
+      "region_binding": {
+        "body": "container_06",
+        "bottom_offset_m": 0.02535,
+        "surface_offset_m": 0.047
+      }
+    },
+    "tool_dock_p1000": {
+      "type": "support",
+      "scientifically_relevant": false,
+      "initial": {}
+    },
+    "pipette_p1000": {
+      "type": "pipette",
+      "scientifically_relevant": true,
+      "prim": "/World/Tools/P1000",
+      "initial": {
+        "type": "P1000",
+        "capacity_ul": 1000,
+        "attached_tip": null,
+        "location": "tool_dock_p1000",
+        "actuator_position": 0.0,
+        "previous_actuator_position": 0.0,
+        "actuator_delta": 0.0
+      }
+    }
+  },
+  "tools": {
+    "pipette_p1000": {
+      "type": "pipette",
+      "assets": "assets/pipetting",
+      "config": {
+        "entity_id": "pipette_p1000",
+        "prim": "/World/Tools/P1000",
+        "dock_id": "tool_dock_p1000",
+        "tool_start": [
+          0.9,
+          -0.6,
+          1.1
+        ],
+        "grip_local": [
+          0,
+          0,
+          0.04
+        ],
+        "pipette_type": "P1000",
+        "capacity_ul": 1000,
+        "label": {
+          "text": "P1000",
+          "color": [
+            0.55,
+            0.2,
+            0.8
+          ]
+        }
+      }
+    }
+  },
+  "pipetting": {
+    "table_z": 0.74,
+    "travel_tool_z": 1.16,
+    "waste_tip_top": [
+      0.8333,
+      -0.6,
+      0.96
+    ],
+    "tip_types": {
+      "tip_03": "P1000",
+      "tip_01": "P1000",
+      "tip_04": "P1000",
+      "tip_05": "P1000",
+      "tip_02": "P1000"
+    },
+    "tip_slots": {
+      "tip_03": [
+        0.57,
+        -0.5,
+        0.89
+      ],
+      "tip_01": [
+        0.57,
+        -0.526,
+        0.89
+      ],
+      "tip_04": [
+        0.57,
+        -0.552,
+        0.89
+      ],
+      "tip_05": [
+        0.57,
+        -0.578,
+        0.89
+      ],
+      "tip_02": [
+        0.57,
+        -0.604,
+        0.89
+      ]
+    },
+    "targets": {
+      "container_03": {
+        "endpoint_m": [
+          0.64,
+          -0.52,
+          0.825
+        ],
+        "immersion_depth_m": 0.002
+      },
+      "container_02": {
+        "endpoint_m": [
+          0.64,
+          -0.56,
+          0.825
+        ],
+        "immersion_depth_m": 0.002
+      },
+      "container_09": {
+        "endpoint_m": [
+          0.64,
+          -0.6,
+          0.825
+        ],
+        "immersion_depth_m": 0.002
+      },
+      "container_05": {
+        "endpoint_m": [
+          0.64,
+          -0.64,
+          0.825
+        ],
+        "immersion_depth_m": 0.002
+      },
+      "container_06": {
+        "body_id": "container_06",
+        "endpoint_local_m": [
+          0,
+          0,
+          0.032
+        ]
+      }
+    },
+    "tip_remover_prim": "/World/TipRemover"
+  },
+  "devices": {
+    "device_02": {
+      "type": "instrument",
+      "prim": "/World/Supports/centrifuge"
+    },
+    "device_01": {
+      "type": "incubation_environment",
+      "simulation_duration_s": 2.0,
+      "temperature_c": 22.0,
+      "temperature_source": "task_initial_condition_not_measurement"
+    }
+  },
+  "mechanisms": [
+    {
+      "type": "rigid_object",
+      "supports": {
+        "container_01_seat": {
+          "position_m": [
+            0.7,
+            -0.28,
+            0.87
+          ],
+          "objects": [
+            "container_01"
+          ]
+        },
+        "container_07_seat": {
+          "position_m": [
+            0.7,
+            -0.325,
+            0.87
+          ],
+          "objects": [
+            "container_07"
+          ]
+        },
+        "container_08_seat": {
+          "position_m": [
+            0.7,
+            -0.37,
+            0.87
+          ],
+          "objects": [
+            "container_08"
+          ]
+        },
+        "container_10_seat": {
+          "position_m": [
+            0.7,
+            -0.415,
+            0.87
+          ],
+          "objects": [
+            "container_10"
+          ]
+        },
+        "container_04_seat": {
+          "position_m": [
+            0.7,
+            -0.46,
+            0.87
+          ],
+          "objects": [
+            "container_04"
+          ]
+        },
+        "container_06_rest": {
+          "position_m": [
+            0.62,
+            -0.4,
+            0.87
+          ],
+          "objects": [
+            "container_06"
+          ]
+        },
+        "device_02": {
+          "object_positions_m": {
+            "container_01": [
+              0.86,
+              -0.3,
+              0.972
+            ],
+            "container_07": [
+              0.86,
+              -0.3,
+              0.972
+            ],
+            "container_08": [
+              0.86,
+              -0.3,
+              0.972
+            ],
+            "container_10": [
+              0.86,
+              -0.3,
+              0.972
+            ],
+            "container_04": [
+              0.86,
+              -0.3,
+              0.972
+            ]
+          },
+          "position_m": [
+            0.86,
+            -0.3,
+            0.972
+          ],
+          "objects": [
+            "container_01",
+            "container_07",
+            "container_08",
+            "container_10",
+            "container_04"
+          ]
+        }
+      },
+      "travel_z_m": 1.05,
+      "grasp_tolerance_m": 0.0015,
+      "objects": {
+        "container_01": {
+          "asset": "assets/modeled/02_qiaamp_column/collection_tube_rigid.usda",
+          "grasp_local_m": [
+            0,
+            0,
+            0.038
+          ],
+          "mass_kg": 0.0012,
+          "position_m": [
+            0.7,
+            -0.28,
+            0.87
+          ],
+          "initial_support": "container_01_seat",
+          "lid_id": "container_06",
+          "lid_local_m": [
+            0.0,
+            0.0,
+            0.0003
+          ]
+        },
+        "container_07": {
+          "asset": "assets/modeled/02_qiaamp_column/collection_tube_rigid.usda",
+          "grasp_local_m": [
+            0,
+            0,
+            0.038
+          ],
+          "mass_kg": 0.0012,
+          "position_m": [
+            0.7,
+            -0.325,
+            0.87
+          ],
+          "initial_support": "container_07_seat",
+          "lid_id": "container_06",
+          "lid_local_m": [
+            0.0,
+            0.0,
+            0.0003
+          ]
+        },
+        "container_08": {
+          "asset": "assets/modeled/02_qiaamp_column/collection_tube_rigid.usda",
+          "grasp_local_m": [
+            0,
+            0,
+            0.038
+          ],
+          "mass_kg": 0.0012,
+          "position_m": [
+            0.7,
+            -0.37,
+            0.87
+          ],
+          "initial_support": "container_08_seat",
+          "lid_id": "container_06",
+          "lid_local_m": [
+            0.0,
+            0.0,
+            0.0003
+          ]
+        },
+        "container_10": {
+          "asset": "assets/modeled/02_qiaamp_column/collection_tube_rigid.usda",
+          "grasp_local_m": [
+            0,
+            0,
+            0.038
+          ],
+          "mass_kg": 0.0012,
+          "position_m": [
+            0.7,
+            -0.415,
+            0.87
+          ],
+          "initial_support": "container_10_seat",
+          "lid_id": "container_06",
+          "lid_local_m": [
+            0.0,
+            0.0,
+            0.0003
+          ]
+        },
+        "container_04": {
+          "asset": "assets/modeled/02_qiaamp_column/collection_tube_rigid.usda",
+          "grasp_local_m": [
+            0,
+            0,
+            0.038
+          ],
+          "mass_kg": 0.0012,
+          "position_m": [
+            0.7,
+            -0.46,
+            0.87
+          ],
+          "initial_support": "container_04_seat",
+          "lid_id": "container_06",
+          "lid_local_m": [
+            0.0,
+            0.0,
+            0.0003
+          ]
+        },
+        "container_06": {
+          "asset": "assets/modeled/02_qiaamp_column/qiaamp_column_rigid.usda",
+          "grasp_local_m": [
+            0,
+            0,
+            0.0455
+          ],
+          "mass_kg": 0.0008,
+          "position_m": [
+            0.62,
+            -0.4,
+            0.87
+          ],
+          "initial_support": "container_06_rest"
+        }
+      }
+    }
+  ],
+  "controller": {
+    "type": "scripted_atomic",
+    "steps": [
+      {
+        "action": "close_lid",
+        "target": "container_01"
+      },
+      {
+        "action": "pick_up",
+        "target": "pipette_p1000"
+      },
+      {
+        "action": "attach_tip",
+        "tip_id": "tip_03"
+      },
+      {
+        "action": "aspirate",
+        "target": "container_03",
+        "volume_ul": 630.0
+      },
+      {
+        "action": "dispense",
+        "target": "container_06",
+        "volume_ul": 630.0
+      },
+      {
+        "action": "eject_tip",
+        "target": "waste"
+      },
+      {
+        "action": "put_down",
+        "target": "pipette_p1000",
+        "support": "tool_dock_p1000"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_01"
+      },
+      {
+        "action": "put_down",
+        "target": "container_01",
+        "support": "device_02"
+      },
+      {
+        "action": "instrument_load",
+        "target": "container_01",
+        "device": "device_02"
+      },
+      {
+        "action": "instrument_start",
+        "device": "device_02",
+        "program": "rcf6000_60s_25c_brake_on",
+        "duration_s": 60,
+        "simulation_duration_s": 2.0
+      },
+      {
+        "action": "instrument_unload",
+        "target": "container_01",
+        "device": "device_02"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_01"
+      },
+      {
+        "action": "put_down",
+        "target": "container_01",
+        "support": "container_01_seat"
+      },
+      {
+        "action": "pick_up",
+        "target": "pipette_p1000"
+      },
+      {
+        "action": "attach_tip",
+        "tip_id": "tip_01"
+      },
+      {
+        "action": "aspirate",
+        "target": "container_03",
+        "volume_ul": 630.0
+      },
+      {
+        "action": "dispense",
+        "target": "container_06",
+        "volume_ul": 630.0
+      },
+      {
+        "action": "eject_tip",
+        "target": "waste"
+      },
+      {
+        "action": "put_down",
+        "target": "pipette_p1000",
+        "support": "tool_dock_p1000"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_01"
+      },
+      {
+        "action": "put_down",
+        "target": "container_01",
+        "support": "device_02"
+      },
+      {
+        "action": "instrument_load",
+        "target": "container_01",
+        "device": "device_02"
+      },
+      {
+        "action": "instrument_start",
+        "device": "device_02",
+        "program": "rcf6000_60s_25c_brake_on",
+        "duration_s": 60,
+        "simulation_duration_s": 2.0
+      },
+      {
+        "action": "instrument_unload",
+        "target": "container_01",
+        "device": "device_02"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_01"
+      },
+      {
+        "action": "put_down",
+        "target": "container_01",
+        "support": "container_01_seat"
+      },
+      {
+        "action": "open_lid",
+        "target": "container_01"
+      },
+      {
+        "action": "close_lid",
+        "target": "container_07"
+      },
+      {
+        "action": "pick_up",
+        "target": "pipette_p1000"
+      },
+      {
+        "action": "attach_tip",
+        "tip_id": "tip_04"
+      },
+      {
+        "action": "aspirate",
+        "target": "container_02",
+        "volume_ul": 500.0
+      },
+      {
+        "action": "dispense",
+        "target": "container_06",
+        "volume_ul": 500.0
+      },
+      {
+        "action": "eject_tip",
+        "target": "waste"
+      },
+      {
+        "action": "put_down",
+        "target": "pipette_p1000",
+        "support": "tool_dock_p1000"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_07"
+      },
+      {
+        "action": "put_down",
+        "target": "container_07",
+        "support": "device_02"
+      },
+      {
+        "action": "instrument_load",
+        "target": "container_07",
+        "device": "device_02"
+      },
+      {
+        "action": "instrument_start",
+        "device": "device_02",
+        "program": "rcf6000_60s_25c_brake_on",
+        "duration_s": 60,
+        "simulation_duration_s": 2.0
+      },
+      {
+        "action": "instrument_unload",
+        "target": "container_07",
+        "device": "device_02"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_07"
+      },
+      {
+        "action": "put_down",
+        "target": "container_07",
+        "support": "container_07_seat"
+      },
+      {
+        "action": "open_lid",
+        "target": "container_07"
+      },
+      {
+        "action": "close_lid",
+        "target": "container_04"
+      },
+      {
+        "action": "pick_up",
+        "target": "pipette_p1000"
+      },
+      {
+        "action": "attach_tip",
+        "tip_id": "tip_05"
+      },
+      {
+        "action": "aspirate",
+        "target": "container_09",
+        "volume_ul": 500.0
+      },
+      {
+        "action": "dispense",
+        "target": "container_06",
+        "volume_ul": 500.0
+      },
+      {
+        "action": "eject_tip",
+        "target": "waste"
+      },
+      {
+        "action": "put_down",
+        "target": "pipette_p1000",
+        "support": "tool_dock_p1000"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_04"
+      },
+      {
+        "action": "put_down",
+        "target": "container_04",
+        "support": "device_02"
+      },
+      {
+        "action": "instrument_load",
+        "target": "container_04",
+        "device": "device_02"
+      },
+      {
+        "action": "instrument_start",
+        "device": "device_02",
+        "program": "rcf20000_180s_25c_brake_on",
+        "duration_s": 180,
+        "simulation_duration_s": 2.0
+      },
+      {
+        "action": "instrument_unload",
+        "target": "container_04",
+        "device": "device_02"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_04"
+      },
+      {
+        "action": "put_down",
+        "target": "container_04",
+        "support": "container_04_seat"
+      },
+      {
+        "action": "open_lid",
+        "target": "container_04"
+      },
+      {
+        "action": "close_lid",
+        "target": "container_08"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_08"
+      },
+      {
+        "action": "put_down",
+        "target": "container_08",
+        "support": "device_02"
+      },
+      {
+        "action": "instrument_load",
+        "target": "container_08",
+        "device": "device_02"
+      },
+      {
+        "action": "instrument_start",
+        "device": "device_02",
+        "program": "rcf20000_60s_25c_brake_on",
+        "duration_s": 60,
+        "simulation_duration_s": 2.0
+      },
+      {
+        "action": "instrument_unload",
+        "target": "container_08",
+        "device": "device_02"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_08"
+      },
+      {
+        "action": "put_down",
+        "target": "container_08",
+        "support": "container_08_seat"
+      },
+      {
+        "action": "open_lid",
+        "target": "container_08"
+      },
+      {
+        "action": "close_lid",
+        "target": "container_10"
+      },
+      {
+        "action": "pick_up",
+        "target": "pipette_p1000"
+      },
+      {
+        "action": "attach_tip",
+        "tip_id": "tip_02"
+      },
+      {
+        "action": "aspirate",
+        "target": "container_05",
+        "volume_ul": 55.0
+      },
+      {
+        "action": "dispense",
+        "target": "container_06",
+        "volume_ul": 55.0
+      },
+      {
+        "action": "eject_tip",
+        "target": "waste"
+      },
+      {
+        "action": "put_down",
+        "target": "pipette_p1000",
+        "support": "tool_dock_p1000"
+      },
+      {
+        "action": "incubate",
+        "target": "container_10",
+        "duration_s": 300,
+        "condition": "room_temperature"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_10"
+      },
+      {
+        "action": "put_down",
+        "target": "container_10",
+        "support": "device_02"
+      },
+      {
+        "action": "instrument_load",
+        "target": "container_10",
+        "device": "device_02"
+      },
+      {
+        "action": "instrument_start",
+        "device": "device_02",
+        "program": "rcf6000_60s_25c_brake_on",
+        "duration_s": 60,
+        "simulation_duration_s": 2.0
+      },
+      {
+        "action": "instrument_unload",
+        "target": "container_10",
+        "device": "device_02"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_10"
+      },
+      {
+        "action": "put_down",
+        "target": "container_10",
+        "support": "container_10_seat"
+      },
+      {
+        "action": "open_lid",
+        "target": "container_10"
+      }
+    ]
+  },
+  "protocol": {
+    "id": "spin_column_wash_elute",
+    "vessels": {
+      "column": "container_06",
+      "load_receiver": "container_01",
+      "wash_1_receiver": "container_07",
+      "wash_2_receiver": "container_04",
+      "dry_receiver": "container_08",
+      "product": "container_10"
+    }
+  },
+  "goals": {
+    "entities": {
+      "pipette_p1000": {
+        "attached_tip": null
+      }
+    },
+    "tip_held_ul": 0.0,
+    "conserve_volume": true,
+    "conserve_components": true,
+    "tolerance_ul": 0.01
+  },
+  "parameters": {
+    "test_values": false,
+    "provenance": {
+      "load_ul": "spec 3.2.3 steps 23-28: 630 uL, the single-load limit of the QIAamp column",
+      "aw1_ul": "spec step 34: 500 uL",
+      "aw2_ul": "spec step 41: 500 uL",
+      "ave_ul": "spec step 51: 55 uL, inside the SOP range of 50-60 uL; the spec uses a P200 and this task uses a P1000 (see limitations)",
+      "spin_load_and_aw1": "spec steps 25, 29, 36: 6000 x g, 60 s, 25 C, brake on",
+      "spin_aw2": "spec step 43: 20000 x g, 180 s",
+      "spin_dry": "spec step 47: 20000 x g, 60 s",
+      "spin_elute": "spec step 54: 6000 x g, 60 s",
+      "elution_incubation": "spec step 53: 300 s at 25 C",
+      "lysate_ul": "spec 3.2.2 steps 17-19: 1260 uL of the cell_lysis product, of which the task loads 2 x 630 uL; declared state handoff of sample 140 / AVL 560 / ethanol_95 560 uL; no upstream run is claimed",
+      "layout": "engineering placeholder: poses chosen by Isaac layout scans of 2026-10-28, then by the 2026-10-31 pose scans that set the seat height to 0.870 m and the spacing to 45 mm (the dispense-into-column pose is the only one near the 0.3 mm tool tolerance)",
+      "motion_speed": "engineering placeholder: 1.0, chosen because 2.0 swings the lowered column against 0.48 mm of clearance"
+    }
+  }
+}

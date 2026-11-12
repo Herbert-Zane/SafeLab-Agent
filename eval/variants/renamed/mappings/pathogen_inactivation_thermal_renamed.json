@@ -1,0 +1,20 @@
+{
+  "task": "pathogen_inactivation_thermal",
+  "variant": "pathogen_inactivation_thermal_renamed",
+  "seed": 7,
+  "files": {
+    "task": "tasks/pathogen_inactivation_thermal_renamed.json",
+    "faults": [],
+    "brief": null
+  },
+  "task_id": "pathogen_heat_inactivation_v1_renamed",
+  "entities": {
+    "specimen_lid": "lid_01",
+    "specimen_tube": "container_01",
+    "water_bath": "device_01"
+  },
+  "fault_extra_entities": {},
+  "components_kept": [
+    "sample_infectious_unknown"
+  ]
+}

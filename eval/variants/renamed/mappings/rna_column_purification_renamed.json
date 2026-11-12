@@ -1,0 +1,45 @@
+{
+  "task": "rna_column_purification",
+  "variant": "rna_column_purification_renamed",
+  "seed": 7,
+  "files": {
+    "task": "tasks/rna_column_purification_renamed.json",
+    "faults": [],
+    "brief": null
+  },
+  "task_id": "rna_column_purification_v1_renamed",
+  "entities": {
+    "AVE": "container_05",
+    "AW1": "container_02",
+    "AW2": "container_09",
+    "ambient": "device_01",
+    "centrifuge": "device_02",
+    "column": "container_06",
+    "column_rest": "container_06_rest",
+    "ctube1": "container_01",
+    "ctube1_seat": "container_01_seat",
+    "ctube2": "container_07",
+    "ctube2_seat": "container_07_seat",
+    "ctube3": "container_04",
+    "ctube3_seat": "container_04_seat",
+    "ctube4": "container_08",
+    "ctube4_seat": "container_08_seat",
+    "etube": "container_10",
+    "etube_seat": "container_10_seat",
+    "lysate": "container_03",
+    "p1000_tip_1": "tip_03",
+    "p1000_tip_2": "tip_01",
+    "p1000_tip_3": "tip_04",
+    "p1000_tip_4": "tip_05",
+    "p1000_tip_5": "tip_02"
+  },
+  "fault_extra_entities": {},
+  "components_kept": [
+    "AVE",
+    "AVL",
+    "AW1",
+    "AW2",
+    "ethanol_95",
+    "sample"
+  ]
+}

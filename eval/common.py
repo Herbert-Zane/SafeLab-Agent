@@ -20,7 +20,8 @@ from safelab import bench  # noqa: E402
 from safelab.ledger import Ledger  # noqa: E402
 
 #: Task-file keys the dry run needs. Everything else (criteria, goals, ...) is dropped on load.
-SCENE_KEYS = ("task", "entities", "tools", "devices", "controller", "parameters", "target_sets")
+SCENE_KEYS = ("task", "entities", "tools", "devices", "controller", "parameters", "target_sets",
+              "tip_sets", "pipetting", "mechanisms")
 
 #: reference task -> fault task files (relative to configs/tasks) built from it.
 FAULTS = {
@@ -54,8 +55,13 @@ def load_scene(name):
 
 
 def reference_names():
-    """Reference tasks: every top-level task file; the faults/ directory is excluded."""
-    return sorted(p.stem for p in task_dir().glob("*.json"))
+    """Top-level tasks with an atomic first step (pure scripted holds are not agent actions)."""
+    names = []
+    for path in sorted(task_dir().glob("*.json")):
+        plan = plan_of(load_scene(path.stem))
+        if plan and plan[0].get("action"):
+            names.append(path.stem)
+    return names
 
 
 def plan_of(scene):
@@ -116,6 +122,8 @@ class Rollout:
         self.state()
         self._state = None
         try:
+            if not action.get("action"):
+                raise self._rejected("Scripted hold has no atomic dry-run action")
             self.env.execute(deepcopy(action), step_index=self.step)
         except self._rejected as exc:
             self.error = str(exc)

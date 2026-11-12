@@ -3,8 +3,10 @@
 Format and label tests read eval/cases/*.jsonl only. Tests that rebuild states need the
 platform and skip without it.
 """
+import re
 import sys
 from collections import Counter
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -157,11 +159,22 @@ def test_rule_tip_into_stock_and_overfill_and_open_vortex():
 # -- needs the platform ------------------------------------------------------------------------
 
 
-@pytest.mark.slow
-def test_mutations_change_the_action_and_their_states_are_reachable(bench, cases):
+@pytest.fixture(scope="module")
+def references(bench):
     refs = {}
+
+    def get(name):
+        if name not in refs:
+            refs[name] = build_cases.Reference(name)
+        return refs[name]
+
+    return get
+
+
+@pytest.mark.slow
+def test_mutations_change_the_action_and_their_states_are_reachable(references, cases):
     for case in cases["mutation"]:
-        ref = refs.setdefault(case["task"], build_cases.Reference(case["task"]))
+        ref = references(case["task"])
         mutated = [*case["prefix"], case["action"]]
         assert mutated != ref.plan[:len(mutated)], case["id"]
         # The recorded snapshot is what executing the mutated prefix really gives.
@@ -171,10 +184,9 @@ def test_mutations_change_the_action_and_their_states_are_reachable(bench, cases
 
 
 @pytest.mark.slow
-def test_the_operators_do_what_they_say(bench, cases):
-    refs = {}
+def test_the_operators_do_what_they_say(references, cases):
     for case in cases["mutation"]:
-        ref = refs.setdefault(case["task"], build_cases.Reference(case["task"]))
+        ref = references(case["task"])
         prefix, op, action = case["prefix"], case["operator"], case["action"]
         names = [a["action"] for a in prefix]
         if op == "M1":
@@ -187,8 +199,17 @@ def test_the_operators_do_what_they_say(bench, cases):
             assert names.count("close_lid") < sum(
                 s["action"] == "close_lid" for s in ref.plan[:len(prefix)+1])
         elif op == "M3":
-            assert names.count("attach_tip") < sum(
-                s["action"] == "attach_tip" for s in ref.plan[:len(prefix)+3])
+            # Removing tool docking/pickup also shortens the prefix; its length no longer
+            # identifies the corresponding reference step. Use the recorded mutation origin.
+            match = re.search(r"eject_tip #(\d+), attach_tip #(\d+)", case["label_basis"])
+            assert match, case["id"]
+            eject, attach = map(int, match.groups())
+            assert names.count("attach_tip") == sum(
+                s["action"] == "attach_tip" for s in ref.plan[:attach+1])-1
+            assert case["snapshot"]["robot"]["attached_tip"] == ref.states[eject][1][
+                "robot"]["attached_tip"]
+            assert case["snapshot"]["robot"]["held_tool"] == ref.states[eject][1][
+                "robot"]["held_tool"]
         elif op == "M4":
             assert prefix[-1]["action"] == "dispense" and action["action"] == "aspirate"
         elif op == "M5":
@@ -198,19 +219,72 @@ def test_the_operators_do_what_they_say(bench, cases):
 
 
 @pytest.mark.slow
-def test_reference_cases_come_from_the_dry_run_replay(bench, cases):
-    refs = {}
+def test_reference_cases_come_from_the_dry_run_replay(references, cases):
     for case in cases["reference"]:
-        ref = refs.setdefault(case["task"], build_cases.Reference(case["task"]))
+        ref = references(case["task"])
         assert ref.plan[case["step"]] == case["action"]
         assert ref.states[case["step"]][1] == case["snapshot"]
 
 
-def test_fault_cases_differ_from_the_reference(bench, cases):
-    refs = {}
+def test_fault_cases_differ_from_the_reference(references, cases):
     for case in cases["fault"]:
-        ref = refs.setdefault(case["task"], build_cases.Reference(case["task"]))
+        ref = references(case["task"])
         assert [*case["prefix"], case["action"]] != ref.plan[:case["step"]+1], case["id"]
     # every top-level task is a reference; the faults directory is not
     assert not any(name.startswith("faults") for name in common.reference_names())
     assert Counter(c["task"] for c in cases["reference"]).keys() == set(common.reference_names())
+
+
+def test_scene_loader_keeps_new_top_level_bindings_and_drops_evaluator_keys(tmp_path, monkeypatch):
+    import json
+    scene = {key: {} for key in common.SCENE_KEYS}
+    scene.update({key: {"secret": True} for key in (*EVALUATOR_KEYS, "protocol")})
+    (tmp_path/"synthetic.json").write_text(json.dumps(scene), encoding="utf-8")
+    monkeypatch.setattr(common, "task_dir", lambda: tmp_path)
+    loaded = common.load_scene("synthetic")
+    assert {"tip_sets", "pipetting", "mechanisms"} <= loaded.keys()
+    assert EVALUATOR_KEYS.isdisjoint(loaded) and "protocol" not in loaded
+
+
+def test_builder_preserves_historical_natural_bytes(tmp_path, monkeypatch):
+    raw = b'{"label":"safe","category":"none"}\r\n'
+    natural = tmp_path/"natural.jsonl"
+    natural.write_bytes(raw)
+    monkeypatch.setattr(build_cases, "build", lambda: {s: [] for s in SOURCES})
+    assert build_cases.main(["--out", str(tmp_path)]) == 0
+    assert natural.read_bytes() == raw
+
+
+def test_m3_keeps_the_used_pipette_and_clamps_the_next_aspirate(bench, monkeypatch):
+    scene = common.load_scene("cell_lysis")
+    plan = common.plan_of(scene)
+    # Direct tool switch without the intervening mixing stage isolates M3's mutation.
+    scene["controller"]["steps"] = plan[:6]+plan[14:17]
+    monkeypatch.setattr(common, "load_scene", lambda name: deepcopy(scene))
+    ref = build_cases.Reference("synthetic")
+    builder = build_cases.Builder()
+    build_cases.mutate_m3(builder, ref)
+    case, = builder.cases["mutation"]
+    assert case["snapshot"]["robot"]["held_tool"] == "pipette_p200"
+    assert case["snapshot"]["robot"]["attached_tip"] == "p200_tip"
+    assert case["action"]["volume_ul"] == 200
+    roll = common.Rollout(scene)
+    assert roll.advance(case["prefix"]+[case["action"]]), roll.error
+
+
+def test_repeat_dose_uses_an_available_tip_and_stops_when_stock_is_exhausted(bench, monkeypatch):
+    scene = common.load_scene("cell_lysis")
+    scene["controller"]["steps"] = common.plan_of(scene)[:5]
+    scene["controller"]["steps"][2]["volume_ul"] = 10
+    scene["controller"]["steps"][3]["volume_ul"] = 10
+    scene["entities"]["spare"] = deepcopy(scene["entities"]["p200_tip"])
+    scene["pipetting"]["tip_types"]["spare"] = "P200"
+    monkeypatch.setattr(common, "load_scene", lambda name: deepcopy(scene))
+    ref = build_cases.Reference("synthetic")
+    prefix, state = build_cases.repeat_dose(ref, 3, 10)
+    assert prefix[-2] == {"action": "attach_tip", "tip_id": "spare"}
+    assert state[1]["robot"]["attached_tip"] == "spare"
+    assert common.state_after(scene, prefix)[1] == state[1]
+    scene["entities"]["spare"]["initial"]["available"] = False
+    exhausted = build_cases.Reference("synthetic")
+    assert build_cases.repeat_dose(exhausted, 3, 10) is None

@@ -79,7 +79,8 @@ def usage_of(verdict):
     get = (lambda key: usage.get(key)) if isinstance(usage, dict) \
         else (lambda key: getattr(usage, key, None))
     tokens = (get("tokens") or get("total_tokens")
-              or (get("input_tokens") or 0)+(get("output_tokens") or 0))
+              or (get("input_tokens") or 0)+(get("output_tokens") or 0)
+              +(get("cache_read_tokens") or 0))
     cost = get("cost") or get("cost_usd") or 0.
     latency = get("latency") or get("latency_s") or 0.
     return tokens, cost, latency
@@ -140,9 +141,11 @@ def g2(metrics):
 # -- cases ---------------------------------------------------------------------------------------
 
 
-def load_cases(cases_dir=CASES):
+def load_cases(cases_dir=CASES, *, include_legacy_natural=False):
     main, natural = [], []
     for path in sorted(Path(cases_dir).glob("*.jsonl")):
+        if path.stem == "natural" and not include_legacy_natural:
+            continue
         rows = common.read_jsonl(path)
         (natural if path.stem == "natural" else main).extend(rows)
     return main, natural
@@ -370,7 +373,11 @@ def main(argv=None):
     parser.add_argument("--modes", nargs="+", choices=MODES, default=list(MODES))
     parser.add_argument("--models", nargs="+", default=list(MODELS))
     parser.add_argument("--limit", type=int, help="use only this many cases (spread over all)")
-    parser.add_argument("--no-natural", action="store_true", help="skip the natural-error file")
+    natural_group = parser.add_mutually_exclusive_group()
+    natural_group.add_argument("--include-legacy-natural", action="store_true",
+                               help="include old-platform natural cases (historical use only)")
+    natural_group.add_argument("--no-natural", action="store_true",
+                               help="skip the natural-error file (the default)")
     parser.add_argument("--dry-plan", action="store_true",
                         help="print the number of calls and the estimated cost; call nothing")
     parser.add_argument("--stub", choices=("pass", "block", "rule"),
@@ -381,7 +388,8 @@ def main(argv=None):
     parser.add_argument("--name", default=None, help="report file stem")
     args = parser.parse_args(argv)
 
-    main_cases, natural = load_cases(args.cases)
+    main_cases, natural = load_cases(args.cases,
+                                    include_legacy_natural=args.include_legacy_natural)
     main_cases = limit_cases(main_cases, args.limit)
     natural = [] if args.no_natural else limit_cases(natural, args.limit)
     if args.dry_plan:

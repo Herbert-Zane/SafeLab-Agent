@@ -1,0 +1,16 @@
+{
+  "task": "dual_g2_passive_dunk",
+  "variant": "dual_g2_passive_dunk_renamed",
+  "seed": 7,
+  "files": {
+    "task": "tasks/dual_g2_passive_dunk_renamed.json",
+    "faults": [],
+    "brief": null
+  },
+  "task_id": "dual_g2_passive_dunk_renamed",
+  "entities": {
+    "dunk": "device_01"
+  },
+  "fault_extra_entities": {},
+  "components_kept": []
+}

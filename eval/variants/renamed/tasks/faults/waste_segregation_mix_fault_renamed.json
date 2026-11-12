@@ -432,71 +432,69 @@
       "type": "pipette",
       "assets": "assets/pipetting",
       "config": {
-        "table_z": 0.74,
+        "entity_id": "pipette",
+        "prim": "/World/Tool",
+        "dock_id": "tool_dock",
         "tool_start": [
           0.9,
           -0.6,
           1.1
         ],
-        "travel_tool_z": 1.16,
         "grip_local": [
           0,
           0,
           0.04
         ],
-        "waste_tip_top": [
-          0.93,
-          -0.43,
-          0.96
-        ],
-        "default_tip_id": "tip_01",
-        "capacity_ul": 1000,
         "pipette_type": "P1000",
-        "tip_types": {
-          "tip_01": "P1000"
-        },
-        "tip_slots": {
-          "tip_01": [
-            0.82,
-            -0.26,
-            0.89
-          ]
-        },
-        "targets": {
-          "container_03": {
-            "body_id": "container_03",
-            "endpoint_local_m": [
-              0,
-              0,
-              0.084
-            ]
-          },
-          "container_02": {
-            "body_id": "container_02",
-            "endpoint_local_m": [
-              0,
-              0,
-              0.084
-            ]
-          },
-          "container_01": {
-            "body_id": "container_01",
-            "endpoint_local_m": [
-              0,
-              0,
-              0.084
-            ]
-          }
-        },
-        "tip_remover_prim": "/World/TipRemover"
-      },
-      "profiles": {
-        "P1000": {
-          "capacity_ul": 1000,
-          "tip_id": "tip_01"
-        }
+        "capacity_ul": 1000
       }
     }
+  },
+  "pipetting": {
+    "table_z": 0.74,
+    "travel_tool_z": 1.16,
+    "waste_tip_top": [
+      0.93,
+      -0.43,
+      0.96
+    ],
+    "tip_types": {
+      "tip_01": "P1000"
+    },
+    "tip_slots": {
+      "tip_01": [
+        0.82,
+        -0.26,
+        0.89
+      ]
+    },
+    "targets": {
+      "container_03": {
+        "body_id": "container_03",
+        "endpoint_local_m": [
+          0,
+          0,
+          0.084
+        ]
+      },
+      "container_02": {
+        "body_id": "container_02",
+        "endpoint_local_m": [
+          0,
+          0,
+          0.084
+        ]
+      },
+      "container_01": {
+        "body_id": "container_01",
+        "endpoint_local_m": [
+          0,
+          0,
+          0.084
+        ]
+      }
+    },
+    "tip_remover_prim": "/World/TipRemover"
   },
   "devices": {
     "device_01": {
@@ -614,8 +612,12 @@
     "type": "scripted_atomic",
     "steps": [
       {
+        "action": "pick_up",
+        "target": "pipette"
+      },
+      {
         "action": "attach_tip",
-        "pipette_type": "P1000"
+        "tip_id": "tip_01"
       },
       {
         "action": "aspirate",
@@ -632,10 +634,24 @@
         "target": "waste"
       },
       {
+        "action": "put_down",
+        "target": "pipette",
+        "support": "tool_dock"
+      },
+      {
         "action": "wait",
         "target": "container_01",
         "duration_s": 1800,
         "simulation_duration_s": 2.0
+      },
+      {
+        "action": "pick_up",
+        "target": "container_03"
+      },
+      {
+        "action": "put_down",
+        "target": "container_03",
+        "support": "device_01"
       },
       {
         "action": "instrument_load",
@@ -651,13 +667,18 @@
       {
         "action": "instrument_unload",
         "target": "container_03",
-        "device": "device_01",
+        "device": "device_01"
+      },
+      {
+        "action": "pick_up",
+        "target": "container_03"
+      },
+      {
+        "action": "put_down",
+        "target": "container_03",
         "support": "device_01_outfeed"
       }
     ]
-  },
-  "criteria": {
-    "expected_flows": []
   },
   "goals": {
     "entities": {

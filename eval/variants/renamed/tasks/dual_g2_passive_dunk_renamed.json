@@ -1,0 +1,644 @@
+{
+  "schema_version": 1,
+  "task": {
+    "id": "dual_g2_passive_dunk_renamed",
+    "name": "Robot-operated passive Dunk Tank",
+    "output": "outputs/dual_g2_passive_dunk",
+    "limitations": [
+      "Derived passive asset with service slots, not a hermetic barrier or validated biosafety device",
+      "Constraint grasp and pose-based basket/pusher dock latches are declared execution proxies",
+      "Submersion is package geometry against a declared plane, not fluid or disinfection simulation",
+      "Fixed robots act sequentially; no navigation or dual-robot agent schema"
+    ]
+  },
+  "environment": {
+    "physics_dt_s": 0.008333333333333333,
+    "motion_speed": 2.0
+  },
+  "robot": {
+    "gripper_pad_local_m": [
+      0,
+      0,
+      0.005
+    ],
+    "gripper_open_angle_rad": 0.12,
+    "grasp_tolerance_m": 0.0015,
+    "grasp_surface_gap_tolerance_m": 0.00025,
+    "type": "G2",
+    "assets": "assets/pipetting",
+    "home_hand_m": [
+      0.7,
+      -0.32,
+      1.12
+    ],
+    "id": "g2",
+    "prim": "/World/G2",
+    "initial_pose": {
+      "position_m": [
+        2.9,
+        -0.15,
+        0.04
+      ],
+      "yaw_rad": 3.141592653589793
+    },
+    "home_local_m": [
+      0.7,
+      -0.32,
+      1.25
+    ],
+    "tcp_feedback_iterations": 3
+  },
+  "scene": {
+    "fixtures": [
+      {
+        "type": "reference",
+        "prim": "/World/Laboratory",
+        "asset": "assets/lab/Complete_Laboratory_Robot_Dunk.usda",
+        "position_m": [
+          2.0,
+          0.0,
+          0.0
+        ],
+        "exclude_prims": [
+          "PhysicsScene"
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/lab_supply",
+        "center_m": [
+          2.45,
+          0.4,
+          1.025
+        ],
+        "size_m": [
+          0.24,
+          0.2,
+          0.05
+        ],
+        "color": [
+          0.4,
+          0.4,
+          0.45
+        ]
+      },
+      {
+        "type": "box",
+        "prim": "/World/clean_output",
+        "center_m": [
+          1.55,
+          -0.4,
+          1.025
+        ],
+        "size_m": [
+          0.24,
+          0.2,
+          0.05
+        ],
+        "color": [
+          0.4,
+          0.4,
+          0.45
+        ]
+      }
+    ],
+    "camera": {
+      "eye": [
+        3.8,
+        -2.2,
+        2.4
+      ],
+      "target": [
+        2.0,
+        0.0,
+        0.75
+      ]
+    }
+  },
+  "entities": {
+    "g2": {
+      "type": "robot",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/G2"
+    },
+    "g2_clean": {
+      "type": "robot",
+      "prim": "/World/G2Clean",
+      "initial": {},
+      "scientifically_relevant": false
+    },
+    "device_01": {
+      "type": "device",
+      "prim": "/World/Laboratory/RobotTransfer",
+      "initial": {}
+    },
+    "package": {
+      "type": "object",
+      "prim": "/World/Laboratory/RobotTransfer/RobotPackage",
+      "initial": {}
+    },
+    "basket_lab": {
+      "type": "object",
+      "prim": "/World/Laboratory/RobotTransfer/BasketLab",
+      "initial": {}
+    },
+    "basket_clean": {
+      "type": "object",
+      "prim": "/World/Laboratory/RobotTransfer/BasketClean",
+      "initial": {}
+    },
+    "pusher": {
+      "type": "object",
+      "prim": "/World/Laboratory/RobotTransfer/Pusher",
+      "initial": {}
+    },
+    "cover_lab": {
+      "type": "object",
+      "prim": "/World/Laboratory/RobotTransfer/SlideLab",
+      "initial": {}
+    },
+    "cover_clean": {
+      "type": "object",
+      "prim": "/World/Laboratory/RobotTransfer/SlideClean",
+      "initial": {}
+    },
+    "transfer_bridge": {
+      "type": "support",
+      "prim": "/World/Laboratory/RobotTransfer/Body/TransferBridge",
+      "initial": {}
+    },
+    "lab_supply": {
+      "type": "support",
+      "prim": "/World/lab_supply",
+      "initial": {}
+    },
+    "clean_output": {
+      "type": "support",
+      "prim": "/World/clean_output",
+      "initial": {}
+    },
+    "basket_lab_upper": {
+      "type": "support",
+      "initial": {}
+    },
+    "basket_lab_lower": {
+      "type": "support",
+      "initial": {}
+    },
+    "basket_clean_upper": {
+      "type": "support",
+      "initial": {}
+    },
+    "basket_clean_lower": {
+      "type": "support",
+      "initial": {}
+    },
+    "pusher_retracted": {
+      "type": "support",
+      "initial": {}
+    },
+    "pusher_extended": {
+      "type": "support",
+      "initial": {}
+    }
+  },
+  "devices": {
+    "device_01": {
+      "type": "passive_dunk_tank",
+      "prim": "/World/Laboratory/RobotTransfer",
+      "package_id": "package",
+      "basket_ids": [
+        "basket_lab",
+        "basket_clean"
+      ],
+      "bodies": {
+        "package": "/World/Laboratory/RobotTransfer/RobotPackage",
+        "basket_lab": "/World/Laboratory/RobotTransfer/BasketLab",
+        "basket_clean": "/World/Laboratory/RobotTransfer/BasketClean",
+        "pusher": "/World/Laboratory/RobotTransfer/Pusher",
+        "cover_lab": "/World/Laboratory/RobotTransfer/SlideLab",
+        "cover_clean": "/World/Laboratory/RobotTransfer/SlideClean"
+      },
+      "covers": {
+        "Lab": {
+          "id": "cover_lab"
+        },
+        "Clean": {
+          "id": "cover_clean"
+        }
+      }
+    }
+  },
+  "controller": {
+    "type": "scripted_atomic",
+    "steps": [
+      {
+        "action": "open_lid",
+        "target": "cover_lab",
+        "robot": "g2"
+      },
+      {
+        "action": "open_lid",
+        "target": "cover_clean",
+        "robot": "g2_clean"
+      },
+      {
+        "action": "pick_up",
+        "target": "package",
+        "robot": "g2"
+      },
+      {
+        "action": "put_down",
+        "target": "package",
+        "robot": "g2",
+        "support": "basket_lab"
+      },
+      {
+        "action": "pick_up",
+        "target": "basket_lab",
+        "robot": "g2"
+      },
+      {
+        "action": "put_down",
+        "target": "basket_lab",
+        "robot": "g2",
+        "support": "basket_lab_lower"
+      },
+      {
+        "action": "close_lid",
+        "target": "cover_lab",
+        "robot": "g2"
+      },
+      {
+        "action": "close_lid",
+        "target": "cover_clean",
+        "robot": "g2_clean"
+      },
+      {
+        "hold_s": 3.0
+      },
+      {
+        "action": "open_lid",
+        "target": "cover_lab",
+        "robot": "g2"
+      },
+      {
+        "action": "open_lid",
+        "target": "cover_clean",
+        "robot": "g2_clean"
+      },
+      {
+        "action": "pick_up",
+        "target": "pusher",
+        "robot": "g2"
+      },
+      {
+        "action": "put_down",
+        "target": "pusher",
+        "robot": "g2",
+        "support": "pusher_extended"
+      },
+      {
+        "action": "pick_up",
+        "target": "pusher",
+        "robot": "g2"
+      },
+      {
+        "action": "put_down",
+        "target": "pusher",
+        "robot": "g2",
+        "support": "pusher_retracted"
+      },
+      {
+        "action": "pick_up",
+        "target": "basket_clean",
+        "robot": "g2_clean"
+      },
+      {
+        "action": "put_down",
+        "target": "basket_clean",
+        "robot": "g2_clean",
+        "support": "basket_clean_upper"
+      },
+      {
+        "action": "pick_up",
+        "target": "package",
+        "robot": "g2_clean"
+      },
+      {
+        "action": "put_down",
+        "target": "package",
+        "robot": "g2_clean",
+        "support": "clean_output"
+      },
+      {
+        "action": "close_lid",
+        "target": "cover_lab",
+        "robot": "g2"
+      },
+      {
+        "action": "close_lid",
+        "target": "cover_clean",
+        "robot": "g2_clean"
+      }
+    ]
+  },
+  "goals": {
+    "entities": {
+      "package": {
+        "location": "clean_output",
+        "stable": true
+      },
+      "device_01": {
+        "covers_closed": {
+          "Lab": true,
+          "Clean": true
+        },
+        "loaded_entities": []
+      }
+    }
+  },
+  "additional_robots": {
+    "g2_clean": {
+      "gripper_pad_local_m": [
+        0,
+        0,
+        0.005
+      ],
+      "gripper_open_angle_rad": 0.12,
+      "grasp_tolerance_m": 0.0015,
+      "grasp_surface_gap_tolerance_m": 0.00025,
+      "type": "G2",
+      "assets": "assets/pipetting",
+      "home_hand_m": [
+        0.7,
+        -0.32,
+        1.12
+      ],
+      "id": "g2_clean",
+      "prim": "/World/G2Clean",
+      "initial_pose": {
+        "position_m": [
+          1.1,
+          0.15,
+          0.04
+        ],
+        "yaw_rad": 0.0
+      },
+      "home_local_m": [
+        0.7,
+        -0.32,
+        1.25
+      ],
+      "tcp_feedback_iterations": 3
+    }
+  },
+  "mechanisms": [
+    {
+      "type": "rigid_object",
+      "bind_after_devices": true,
+      "travel_z_m": 1.25,
+      "objects": {
+        "package": {
+          "bind_existing": true,
+          "grasp_local_m": [
+            0,
+            0,
+            0.065
+          ],
+          "mass_kg": 0.3,
+          "rest": "gravity",
+          "initial_support": "lab_supply",
+          "require_physical_support": true
+        }
+      },
+      "supports": {
+        "lab_supply": {
+          "objects": [
+            "package"
+          ],
+          "position_m": [
+            2.45,
+            0.4,
+            1.08
+          ],
+          "rotation_rad": [
+            0,
+            0,
+            1.5707963267948966
+          ]
+        },
+        "clean_output": {
+          "objects": [
+            "package"
+          ],
+          "position_m": [
+            1.55,
+            -0.4,
+            1.08
+          ],
+          "rotation_rad": [
+            0,
+            0,
+            1.5707963267948966
+          ]
+        },
+        "basket_lab": {
+          "objects": [
+            "package"
+          ],
+          "body": "basket_lab",
+          "local_position_m": [
+            0,
+            0,
+            0.036
+          ]
+        },
+        "basket_clean": {
+          "objects": [
+            "package"
+          ],
+          "body": "basket_clean",
+          "local_position_m": [
+            0,
+            0,
+            0.036
+          ]
+        }
+      }
+    },
+    {
+      "type": "guided_rigid",
+      "bind_after_devices": true,
+      "travel_z_m": 1.25,
+      "transfer_height_m": 0.5,
+      "objects": {
+        "basket_lab": {
+          "bind_existing": true,
+          "grasp_local_m": [
+            0.14,
+            -0.4,
+            0.5
+          ],
+          "mass_kg": 0.5,
+          "rest": "latched",
+          "initial_support": "basket_lab_upper"
+        },
+        "basket_clean": {
+          "bind_existing": true,
+          "grasp_local_m": [
+            -0.14,
+            0.4,
+            0.5
+          ],
+          "mass_kg": 0.5,
+          "rest": "latched",
+          "initial_support": "basket_clean_lower"
+        }
+      },
+      "supports": {
+        "basket_lab_upper": {
+          "objects": [
+            "basket_lab"
+          ],
+          "position_m": [
+            2.1,
+            0,
+            0.94
+          ],
+          "rotation_rad": [
+            0,
+            0,
+            1.5707963267948966
+          ]
+        },
+        "basket_lab_lower": {
+          "objects": [
+            "basket_lab"
+          ],
+          "position_m": [
+            2.1,
+            0,
+            0.5
+          ],
+          "rotation_rad": [
+            0,
+            0,
+            1.5707963267948966
+          ]
+        },
+        "basket_clean_upper": {
+          "objects": [
+            "basket_clean"
+          ],
+          "position_m": [
+            1.85,
+            0,
+            0.94
+          ],
+          "rotation_rad": [
+            0,
+            0,
+            1.5707963267948966
+          ]
+        },
+        "basket_clean_lower": {
+          "objects": [
+            "basket_clean"
+          ],
+          "position_m": [
+            1.85,
+            0,
+            0.5
+          ],
+          "rotation_rad": [
+            0,
+            0,
+            1.5707963267948966
+          ]
+        }
+      }
+    },
+    {
+      "type": "guided_rigid",
+      "bind_after_devices": true,
+      "travel_z_m": 1.25,
+      "objects": {
+        "pusher": {
+          "bind_existing": true,
+          "grasp_local_m": [
+            -0.12,
+            -0.15,
+            0.5
+          ],
+          "mass_kg": 0.25,
+          "rest": "latched",
+          "initial_support": "pusher_retracted"
+        }
+      },
+      "supports": {
+        "pusher_retracted": {
+          "objects": [
+            "pusher"
+          ],
+          "position_m": [
+            2.39,
+            0,
+            0.5
+          ],
+          "rotation_rad": [
+            0,
+            0,
+            1.5707963267948966
+          ]
+        },
+        "pusher_extended": {
+          "objects": [
+            "pusher"
+          ],
+          "position_m": [
+            2.095,
+            0,
+            0.54
+          ],
+          "rotation_rad": [
+            0,
+            0,
+            1.5707963267948966
+          ]
+        }
+      }
+    },
+    {
+      "type": "sliding",
+      "bind_after_devices": true,
+      "objects": {
+        "cover_lab": {
+          "bind_existing": true,
+          "rest": "gravity",
+          "mass_kg": 0.5,
+          "grasp_local_m": [
+            -0.1,
+            -0.1,
+            0.085
+          ],
+          "joint": "/World/Laboratory/RobotTransfer/RobotJoints/LabSlide",
+          "open_m": 0.46
+        },
+        "cover_clean": {
+          "bind_existing": true,
+          "rest": "gravity",
+          "mass_kg": 0.5,
+          "grasp_local_m": [
+            0.1,
+            0.1,
+            0.085
+          ],
+          "joint": "/World/Laboratory/RobotTransfer/RobotJoints/CleanSlide",
+          "open_m": -0.46
+        }
+      }
+    }
+  ]
+}

@@ -293,6 +293,37 @@ def test_usage_adds_up_by_role(tmp_path):
     assert usage["platform"]["cost_usd"] == 0.011
 
 
+def test_observation_retains_tool_instances_power_and_tip_availability():
+    observation = {"step_index": 0, "robot": {"tool_held": True}, "entities": [
+        {"entity_id": "p200", "kind": "pipette", "type": "P200",
+         "location": "dock200", "attached_tip": None},
+        {"entity_id": "p1000", "kind": "pipette", "type": "P1000",
+         "location": "g2", "attached_tip": "tip1"},
+        {"entity_id": "tip1", "kind": "tip", "available": False, "attached_to": "p1000"},
+        {"entity_id": "vortex", "kind": "device", "power": "on"}]}
+    state = runstore.observation_state(observation)
+    assert set(state["pipettes"]) == {"p200", "p1000"}
+    assert state["pipettes"]["p200"]["type"] == "P200"
+    assert state["pipettes"]["p1000"]["attached_tip"] == "tip1"
+    assert state["robot"]["held_tool"] == "p1000"
+    assert state["devices"]["vortex"]["power"] == "on"
+    assert state["tips"]["tip1"]["available"] is False
+    assert observation["robot"] == {"tool_held": True}
+
+
+def test_cached_tokens_are_counted_for_each_role():
+    turns = [{"usage": [
+        {"role": "actor", "usage": {"input_tokens": 56, "output_tokens": 45,
+                                    "cache_read_tokens": 64}},
+        {"role": "critic", "usage": {"input_tokens": 10, "cache_read_tokens": 20}},
+        {"role": "actor", "usage": {"output_tokens": 2}}]}]
+    got = runstore.usage_totals(turns)
+    assert got["total"]["cache_read_tokens"] == 84
+    assert got["by_role"]["actor"]["cache_read_tokens"] == 64
+    assert got["by_role"]["critic"]["cache_read_tokens"] == 20
+    assert got["total"]["input_tokens"] == 66
+
+
 # ------------------------------------------------------------------ degraded runs
 
 def test_condition_a_falls_back_to_the_platform_rows(tmp_path):

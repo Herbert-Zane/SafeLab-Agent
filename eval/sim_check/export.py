@@ -18,11 +18,14 @@ import common  # noqa: E402
 
 N = 20
 OPERATORS = ("M1", "M2", "M3", "M4", "M5")
+MAX_PREFIX_STEPS = 40
 
 
 def pick(cases, n=N):
     by_operator = defaultdict(list)
     for case in sorted(cases, key=lambda c: (len(c["prefix"]), c["id"])):
+        if len(case["prefix"]) > MAX_PREFIX_STEPS:
+            continue
         by_operator[case["operator"]].append(case)
     chosen, quota = [], n//len(OPERATORS)
     for operator in OPERATORS:

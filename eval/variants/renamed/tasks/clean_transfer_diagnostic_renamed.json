@@ -1,0 +1,591 @@
+{
+  "schema_version": 1,
+  "task": {
+    "id": "clean_transfer_diagnostic_renamed",
+    "name": "G2 hood pickup and submerged tube transfer with torso motion",
+    "output": "outputs/dual_g2_mobile_tube_dunk",
+    "limitations": [
+      "Closed rigid assembly reuses Cell Lysis tube/cap geometry; no unsealing, thread or seal validation",
+      "Constraint grasp; tube support requires actual contact and pose readback",
+      "No basket, lift or automatic transport; fixed shared cradle under the original partition",
+      "Full immersion is geometry against a declared reference plane, not fluid or disinfection kinetics",
+      "Torso/right-arm regularized planning; no calibrated posture comfort or damage model",
+      "Planar four-wheel navigation uses declared waypoints; no obstacle planner",
+      "Whole-body, two-robot mobile execution is a candidate pending physical acceptance",
+      "Derived single-tube cradle at 0.44 m and baffle lower edge at 0.82 m; geometric liquid reference remains 0.86 m, no seal or fluid validation"
+    ]
+  },
+  "environment": {
+    "physics_dt_s": 0.008333333333333333,
+    "motion_speed": 2.0
+  },
+  "robot": {
+    "gripper_pad_local_m": [
+      0,
+      0,
+      0.005
+    ],
+    "gripper_open_angle_rad": 0.12,
+    "grasp_tolerance_m": 0.0015,
+    "grasp_surface_gap_tolerance_m": 0.00025,
+    "type": "G2",
+    "assets": "assets/pipetting",
+    "home_hand_m": [
+      0.7,
+      -0.32,
+      1.12
+    ],
+    "id": "g2",
+    "prim": "/World/G2",
+    "initial_pose": {
+      "position_m": [
+        2.9,
+        -0.42,
+        0.04
+      ],
+      "yaw_rad": 3.141592653589793
+    },
+    "home_local_m": [
+      0.7,
+      -0.32,
+      1.25
+    ],
+    "tcp_feedback_iterations": 1,
+    "initial_body_joints_rad": [
+      0,
+      0,
+      0.34,
+      0,
+      0
+    ],
+    "base_mode": "mobile",
+    "initial_station": "tank",
+    "workstations": {
+      "tank": {
+        "position_m": [
+          2.9,
+          -0.42,
+          0.04
+        ],
+        "yaw_rad": 3.141592653589793
+      },
+      "clear": {
+        "position_m": [
+          3.5,
+          -0.42,
+          0.04
+        ],
+        "yaw_rad": 3.141592653589793
+      },
+      "lane": {
+        "position_m": [
+          4.5,
+          -1.18,
+          0.04
+        ],
+        "yaw_rad": 0.0
+      },
+      "hood": {
+        "position_m": [
+          5.45,
+          -1.18,
+          0.04
+        ],
+        "yaw_rad": 0.0
+      }
+    },
+    "navigation_mode": "planar",
+    "torso_motion": true,
+    "initial_left_arm_joints_rad": [
+      2.4,
+      -0.717023,
+      -1.524419,
+      -1.537612,
+      0.27811,
+      -0.925845,
+      -0.839257
+    ],
+    "preferred_body_joints_rad": [
+      -0.3,
+      0.1,
+      0.34,
+      0,
+      0
+    ],
+    "posture_body_weight_scale": 8.0,
+    "forearm_clearance_objects": [
+      {
+        "object": "cover_lab",
+        "half_size_m": [
+          0.23,
+          0.19,
+          0.01
+        ],
+        "radius_m": 0.075
+      }
+    ],
+    "arm_continuity_weight_scale": 8.0,
+    "clearance_static_roots": [
+      "/World/Laboratory/RobotTransfer/Body",
+      "/World/Laboratory/BSL2/Environment/Architecture/TransferWall"
+    ]
+  },
+  "scene": {
+    "fixtures": [
+      {
+        "type": "reference",
+        "prim": "/World/Laboratory",
+        "asset": "assets/lab/Complete_Laboratory_Mobile_Tube_Dunk.usda",
+        "position_m": [
+          2.0,
+          0.0,
+          0.0
+        ],
+        "exclude_prims": [
+          "PhysicsScene"
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/lab_supply",
+        "asset": "assets/lab/tube_support_low_collar.usda",
+        "position_m": [
+          2.45,
+          0.4,
+          0.912
+        ]
+      },
+      {
+        "type": "reference",
+        "prim": "/World/clean_output",
+        "asset": "assets/lab/tube_support_low_collar.usda",
+        "position_m": [
+          1.55,
+          -0.4,
+          0.912
+        ]
+      }
+    ],
+    "camera": {
+      "eye": [
+        3.8,
+        -2.2,
+        2.4
+      ],
+      "target": [
+        2.0,
+        0.0,
+        0.75
+      ]
+    }
+  },
+  "entities": {
+    "g2": {
+      "type": "robot",
+      "scientifically_relevant": false,
+      "initial": {},
+      "prim": "/World/G2"
+    },
+    "g2_clean": {
+      "type": "robot",
+      "prim": "/World/G2Clean",
+      "initial": {},
+      "scientifically_relevant": false
+    },
+    "device_01": {
+      "type": "device",
+      "prim": "/World/Laboratory/RobotTransfer",
+      "initial": {}
+    },
+    "cover_lab": {
+      "type": "object",
+      "prim": "/World/Laboratory/RobotTransfer/SlideLab",
+      "initial": {}
+    },
+    "cover_clean": {
+      "type": "object",
+      "prim": "/World/Laboratory/RobotTransfer/SlideClean",
+      "initial": {}
+    },
+    "tube": {
+      "type": "object",
+      "prim": "/World/TransferTube",
+      "initial": {}
+    },
+    "lab_supply": {
+      "type": "support",
+      "prim": "/World/lab_supply",
+      "initial": {}
+    },
+    "clean_output": {
+      "type": "support",
+      "prim": "/World/clean_output",
+      "initial": {}
+    },
+    "tube_cradle": {
+      "type": "support",
+      "prim": "/World/Laboratory/RobotTransfer/TubeCradle",
+      "initial": {}
+    }
+  },
+  "devices": {
+    "device_01": {
+      "type": "passive_dunk_tank",
+      "prim": "/World/Laboratory/RobotTransfer",
+      "package_id": "tube",
+      "basket_ids": [],
+      "bodies": {
+        "tube": "/World/TransferTube",
+        "cover_lab": "/World/Laboratory/RobotTransfer/SlideLab",
+        "cover_clean": "/World/Laboratory/RobotTransfer/SlideClean"
+      },
+      "covers": {
+        "Lab": {
+          "id": "cover_lab",
+          "axis_local": [
+            0,
+            1,
+            0
+          ],
+          "closed_local_m": [
+            0,
+            -0.2,
+            0.955
+          ]
+        },
+        "Clean": {
+          "id": "cover_clean",
+          "axis_local": [
+            0,
+            1,
+            0
+          ],
+          "closed_local_m": [
+            0,
+            0.2,
+            0.955
+          ]
+        }
+      },
+      "carrier_model": "direct_robot_handling_with_fixed_contact_supported_tube_cradle",
+      "payload_geometry": {
+        "source": "Unmodified body/cap meshes and seated transforms of the existing Cell Lysis proxy",
+        "limitations": "Closed rigid assembly only; no cap opening, seal or thread-contact validation",
+        "bounds_local_m": [
+          [
+            -0.006206000689417124,
+            -0.006196898874664037,
+            2.168404344971009e-19
+          ],
+          [
+            0.006206000689417124,
+            0.006205526180565357,
+            0.04455000000055649
+          ]
+        ],
+        "center_local_m": [
+          0.0,
+          4.313652950660267e-06,
+          0.022275000000278246
+        ],
+        "half_size_m": [
+          0.006206000689417124,
+          0.006201212527614697,
+          0.022275000000278246
+        ],
+        "mass_kg": 0.0020322431228123605
+      }
+    }
+  },
+  "controller": {
+    "type": "scripted_atomic",
+    "steps": [
+      {
+        "action": "open_lid",
+        "target": "cover_clean",
+        "robot": "g2_clean"
+      },
+      {
+        "action": "pick_up",
+        "target": "tube",
+        "robot": "g2_clean"
+      },
+      {
+        "action": "put_down",
+        "target": "tube",
+        "support": "clean_output",
+        "robot": "g2_clean"
+      },
+      {
+        "action": "close_lid",
+        "target": "cover_clean",
+        "robot": "g2_clean"
+      }
+    ],
+    "step_timeout_s": 180.0,
+    "operation_timeout_s": {
+      "navigate_to": 600.0,
+      "pick_up": 360.0,
+      "put_down": 360.0,
+      "open_lid": 360.0,
+      "close_lid": 360.0
+    }
+  },
+  "goals": {
+    "entities": {
+      "tube": {
+        "location": "clean_output",
+        "stable": true,
+        "closure_status": "closed"
+      },
+      "device_01": {
+        "covers_closed": {
+          "Lab": true,
+          "Clean": true
+        },
+        "loaded_entities": []
+      }
+    }
+  },
+  "additional_robots": {
+    "g2_clean": {
+      "gripper_pad_local_m": [
+        0,
+        0,
+        0.005
+      ],
+      "gripper_open_angle_rad": 0.12,
+      "grasp_tolerance_m": 0.0015,
+      "grasp_surface_gap_tolerance_m": 0.00025,
+      "type": "G2",
+      "assets": "assets/pipetting",
+      "home_hand_m": [
+        0.7,
+        -0.32,
+        1.12
+      ],
+      "id": "g2_clean",
+      "prim": "/World/G2Clean",
+      "initial_pose": {
+        "position_m": [
+          1.1,
+          0.42,
+          0.042
+        ],
+        "yaw_rad": 0.0
+      },
+      "home_local_m": [
+        0.7,
+        -0.32,
+        1.25
+      ],
+      "tcp_feedback_iterations": 1,
+      "initial_body_joints_rad": [
+        0,
+        0,
+        0.34,
+        0,
+        0
+      ],
+      "torso_motion": true,
+      "preferred_body_joints_rad": [
+        -0.3,
+        0.1,
+        0.34,
+        0,
+        0
+      ],
+      "posture_body_weight_scale": 8.0,
+      "forearm_clearance_objects": [
+        {
+          "object": "cover_clean",
+          "half_size_m": [
+            0.23,
+            0.19,
+            0.01
+          ],
+          "radius_m": 0.075
+        }
+      ],
+      "arm_continuity_weight_scale": 8.0,
+      "clearance_static_roots": [
+        "/World/Laboratory/RobotTransfer/Body",
+        "/World/Laboratory/BSL2/Environment/Architecture/TransferWall"
+      ],
+      "initial_left_arm_joints_rad": [
+        2.4,
+        -0.717023,
+        -1.524419,
+        -1.537612,
+        0.27811,
+        -0.925845,
+        -0.839257
+      ],
+      "joint_limit_weight": 0.2
+    }
+  },
+  "mechanisms": [
+    {
+      "type": "passage_rigid",
+      "travel_z_m": 1.1,
+      "shared_position_m": [
+        2.0,
+        0.0,
+        0.44
+      ],
+      "passage_ceiling_m": 0.82,
+      "objects": {
+        "tube": {
+          "asset": "assets/autobio/centrifuge_2ml_proxy/closed_transport.usda",
+          "position_m": [
+            2,
+            0,
+            0.44
+          ],
+          "grasp_local_m": [
+            0,
+            0,
+            0.036
+          ],
+          "mass_kg": 0.0020322431228123605,
+          "rest": "gravity",
+          "initial_support": "tube_cradle",
+          "require_physical_support": true
+        }
+      },
+      "supports": {
+        "lab_supply": {
+          "objects": [
+            "tube"
+          ],
+          "position_m": [
+            2.45,
+            0.4,
+            1.0
+          ],
+          "rotation_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "clean_output": {
+          "objects": [
+            "tube"
+          ],
+          "position_m": [
+            1.55,
+            -0.4,
+            1.0
+          ],
+          "rotation_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "tube_cradle": {
+          "objects": [
+            "tube"
+          ],
+          "position_m": [
+            2.0,
+            0.0,
+            0.44
+          ],
+          "rotation_rad": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "access_by_robot": {
+        "g2": {
+          "entry_position_m": [
+            2.14,
+            0,
+            0.44
+          ]
+        },
+        "g2_clean": {
+          "entry_position_m": [
+            1.86,
+            0,
+            0.44
+          ]
+        }
+      },
+      "enclosures": [
+        {
+          "min_m": [
+            5.99,
+            -2.17,
+            0.75
+          ],
+          "max_m": [
+            6.64,
+            -0.83,
+            1.39
+          ],
+          "entry_xy_m": [
+            5.8,
+            -1.5
+          ],
+          "entry_height_m": 1.05
+        }
+      ],
+      "top_grasp": true,
+      "top_grasp_yaw_rad": 0.0,
+      "support_entry_clearance_m": 0.004
+    },
+    {
+      "type": "sliding",
+      "bind_after_devices": true,
+      "objects": {
+        "cover_lab": {
+          "bind_existing": true,
+          "rest": "gravity",
+          "mass_kg": 0.5,
+          "grasp_local_m": [
+            0.1,
+            0.0,
+            0.085
+          ],
+          "joint": "/World/Laboratory/RobotTransfer/RobotJoints/LabSlide",
+          "open_m": -0.4,
+          "approach": "above",
+          "grasp_yaw_offset_rad": 0.0,
+          "slide_axis_local": [
+            0,
+            1,
+            0
+          ],
+          "orient_while_raising": false,
+          "travel_speed_m_s": 0.04
+        },
+        "cover_clean": {
+          "bind_existing": true,
+          "rest": "gravity",
+          "mass_kg": 0.5,
+          "grasp_local_m": [
+            -0.1,
+            0.0,
+            0.085
+          ],
+          "joint": "/World/Laboratory/RobotTransfer/RobotJoints/CleanSlide",
+          "open_m": 0.4,
+          "approach": "above",
+          "grasp_yaw_offset_rad": 0.0,
+          "slide_axis_local": [
+            0,
+            1,
+            0
+          ],
+          "orient_while_raising": true,
+          "travel_speed_m_s": 0.04
+        }
+      }
+    }
+  ]
+}

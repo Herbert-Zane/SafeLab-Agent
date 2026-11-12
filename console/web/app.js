@@ -562,7 +562,7 @@ function metricsLine(turn) {
   if (turn.decide_s != null) pieces_.push(`决策耗时 ${secs(turn.decide_s)}`);
   if (turn.review_latency_s) pieces_.push(`其中审查 ${secs(turn.review_latency_s)}`);
   if (turn.cost_usd) pieces_.push(`费用 ${money(turn.cost_usd)}`);
-  const tokens = turn.usage.filter(seen).reduce((a, u) => a + ((u.usage || {}).input_tokens || 0) + ((u.usage || {}).output_tokens || 0), 0);
+  const tokens = turn.usage.filter(seen).reduce((a, u) => a + ((u.usage || {}).input_tokens || 0) + ((u.usage || {}).output_tokens || 0) + ((u.usage || {}).cache_read_tokens || 0), 0);
   if (tokens) pieces_.push(`tokens ${num(tokens)}`);
   return pieces_.length ? h("div", { class: "metrics" }, pieces_.join("　·　")) : null;
 }
@@ -680,6 +680,12 @@ async function renderLedger() {
       changed: hit(`containers.${id}`),
       cells: [id, fmtValue(c.volume_ul), comp(c.components_ul), c.closure_status || "—", c.location || "—"],
     }))));
+  const pipettes = Object.entries(ledger.pipettes || {});
+  if (pipettes.length) {
+    parts.push(h("h3", {}, "移液器"), tableOf(["实例", "型号", "位置", "已装枪头"], pipettes.map(([id, p]) => ({
+      changed: hit(`pipettes.${id}`), cells: [id, p.pipette_type || p.type || "—", p.location || "—", p.attached_tip || "无"],
+    }))));
+  }
   const tips = Object.entries(ledger.tips || {});
   parts.push(h("h3", {}, "枪头与接触史"));
   if (!tips.length) parts.push(h("div", { class: "muted small" }, "无枪头"));
@@ -688,7 +694,7 @@ async function renderLedger() {
     const contacts = tip.contacts || [];
     parts.push(h("div", { class: "eval-dim" + (tipChanged ? " tone-warn" : "") },
       h("div", {}, h("b", {}, id), `　${tip.tip_type || ""}　状态 `, h("span", { class: hit(`tips.${id}.status`) ? "chgv" : "" }, tip.status || "—"),
-        `　位置 ${tip.location || "—"}`, tip.held_volume_ul ? `　吸持 ${fmtValue(tip.held_volume_ul)} µL（${comp(tip.components_ul)}）` : ""),
+        `　位置 ${tip.location || "—"}　可用 ${tip.available == null ? "—" : plainValue(tip.available)}`, tip.held_volume_ul ? `　吸持 ${fmtValue(tip.held_volume_ul)} µL（${comp(tip.components_ul)}）` : ""),
       data.kind === "observation" ? null : contacts.length
         ? h("ul", { class: "contacts" }, ...contacts.map((c, i) => h("li", { class: hit(`tips.${id}.contacts[${i}]`) ? "chgv" : "" },
           `步 ${c.step} ${c.action} → ${c.container}（接触前：${comp(c.composition_before_ul)}；接触后：${comp(c.composition_after_ul)}）`)))
@@ -696,8 +702,8 @@ async function renderLedger() {
   }
   const devices = Object.entries(ledger.devices || {});
   if (devices.length) {
-    parts.push(h("h3", {}, "设备"), tableOf(["设备", "状态", "已装载", "程序"], devices.map(([id, d]) => ({
-      changed: hit(`devices.${id}`), cells: [id, d.status || "—", (d.loaded_entities || []).join(", ") || "—", d.program || "—"],
+    parts.push(h("h3", {}, "设备"), tableOf(["设备", "状态", "电源", "已装载", "程序"], devices.map(([id, d]) => ({
+      changed: hit(`devices.${id}`), cells: [id, d.status || "—", d.power ?? "—", (d.loaded_entities || []).join(", ") || "—", d.program || "—"],
     }))));
   }
   const unconfirmed = data.unconfirmed || ledger.unconfirmed || [];
@@ -712,7 +718,7 @@ async function renderLedger() {
   box.replaceChildren(...parts);
 }
 
-const ROBOT_FIELDS = { held_object: "手持", attached_tip: "已装枪头", pipette_type: "移液器规格", tool_held: "手中有工具" };
+const ROBOT_FIELDS = { held_object: "手持物体", held_object_id: "手持物体", held_tool: "手持工具", attached_tip: "已装枪头", pipette_type: "移液器规格", tool_held: "手中有工具" };
 const plainValue = (v) => (v == null || v === "" ? "无" : v === true ? "是" : v === false ? "否" : String(v));
 
 // The robot row of the ledger as labelled values; fields this page does not know are listed as they are.
@@ -747,8 +753,9 @@ function renderUsage() {
   const sum = (f) => rowsSeen.reduce((a, u) => a + (f(u) || 0), 0);
   const byRole = {};
   for (const u of rowsSeen) {
-    const r = (byRole[u.role || "?"] ||= { calls: 0, inp: 0, out: 0, cost: 0, lat: 0 });
+    const r = (byRole[u.role || "?"] ||= { calls: 0, inp: 0, out: 0, cache: 0, cost: 0, lat: 0 });
     r.calls += 1; r.inp += (u.usage || {}).input_tokens || 0; r.out += (u.usage || {}).output_tokens || 0;
+    r.cache += (u.usage || {}).cache_read_tokens || 0;
     r.cost += u.cost_usd || 0; r.lat += u.latency_s || 0;
   }
   const maxDecide = Math.max(15, ...turns.map((t) => t.decide_s || 0));
@@ -756,10 +763,10 @@ function renderUsage() {
   const box = $("#usage-card");
   box.replaceChildren(h("h2", {}, "Token、费用、时延"),
     h("div", { class: "head-grid" }, kv("子调用", rowsSeen.length || null), kv("输入 tokens", num(sum((u) => (u.usage || {}).input_tokens))),
-      kv("输出 tokens", num(sum((u) => (u.usage || {}).output_tokens))), kv("费用（按列表价估算）", money(sum((u) => u.cost_usd))),
+      kv("输出 tokens", num(sum((u) => (u.usage || {}).output_tokens))), kv("缓存 tokens", num(sum((u) => (u.usage || {}).cache_read_tokens))), kv("费用（按列表价估算）", money(sum((u) => u.cost_usd))),
       kv("子调用时延合计", secs(sum((u) => u.latency_s)))),
-    Object.keys(byRole).length ? tableOf(["角色", "调用", "输入", "输出", "费用", "时延"], Object.entries(byRole).map(([k, v]) => ({
-      cells: [{ planner: "规划器", actor: "执行者", critic: "审查器" }[k] || k, v.calls, num(v.inp), num(v.out), money(v.cost), secs(v.lat)] }))) : null,
+    Object.keys(byRole).length ? tableOf(["角色", "调用", "输入", "输出", "缓存", "费用", "时延"], Object.entries(byRole).map(([k, v]) => ({
+      cells: [{ planner: "规划器", actor: "执行者", critic: "审查器" }[k] || k, v.calls, num(v.inp), num(v.out), num(v.cache), money(v.cost), secs(v.lat)] }))) : null,
     h("h3", {}, "每步可见时延（红色表示超过 15 秒）"),
     h("table", {}, ...turns.map((t) => h("tr", {}, h("td", {}, `步 ${t.step}`),
       h("td", { style: "width:55%" }, h("div", { class: "bar" + ((t.decide_s || 0) > 15 ? " over" : ""), style: `width:${Math.max(1, 100 * (t.decide_s || 0) / maxDecide)}%` })),
