@@ -129,7 +129,8 @@ def test_two_consecutive_refusals_trigger_a_replan(episode):
     assert events(rows, "proposed")[-1]["strategy"] == "replan"
 
 
-def test_a_stage_that_overruns_its_allowance_is_replanned(episode):
+def test_a_stage_that_overruns_its_allowance_is_replanned(episode, monkeypatch):
+    monkeypatch.setattr("safelab.planner.MIN_MISMATCH_ACTIONS", 1)
     short = {**TRANSFER, "max_actions": 1}
     summary, backend, rows = episode(spec([PICK, FINISH], [plan(short), plan(ALREADY_DONE)]))
     assert summary["outcome"] == "finished_by_agent"

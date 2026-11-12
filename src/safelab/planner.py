@@ -12,8 +12,9 @@ name, or several joined by ``|``).
 
 ``PlanTracker`` follows the plan. After each readback it marks the current
 stage done when all its expected predicates hold, and moves on. It reports a
-mismatch when a stage has used its action allowance and its expected
-observations still do not hold. The backend replans on a mismatch, on two
+mismatch when a stage has used its action allowance (never fewer than
+``MIN_MISMATCH_ACTIONS`` actions) and its expected observations still do not
+hold. The backend replans on a mismatch, on two
 consecutive refused actions, on the second refusal of the same kind, and
 (condition C) on the second critic rejection of the same step; the plan's
 ``replans`` allowance bounds this.
@@ -47,6 +48,11 @@ FIELDS = {
 }
 COMPONENT_PREFIX = "components_ul."
 DEFAULT_STAGE_ACTIONS = 8
+# A stage is not reported as a mismatch before this many actions, whatever the
+# planner's own "max_actions" says. Planners budget 1-5 actions for stages that
+# need a pick-up or a put-down first; in the runs of 2026-11-12 that used up the
+# replan allowance on stages that were still on course.
+MIN_MISMATCH_ACTIONS = 6
 
 PREDICATE_SCHEMA = {
     "type": "object",
@@ -394,14 +400,15 @@ class PlanTracker:
         stage = self.current
         if stage is None or not stage.expected or stage.allowance is None:
             return None
-        if stage.actions_taken < stage.allowance:
+        if stage.actions_taken < max(stage.allowance, MIN_MISMATCH_ACTIONS):
             return None
         missing = [describe(p, holds(p, snapshot)[1], show_observed=True)
                    for p in stage.expected if not holds(p, snapshot)[0]]
         if not missing:
             return None
-        return (f"stage {stage.name!r} has taken {stage.actions_taken} action(s), its "
-                f"allowance, and these expected observations do not hold: {'; '.join(missing)}")
+        return (f"stage {stage.name!r} has taken {stage.actions_taken} action(s), past its "
+                f"allowance of {stage.allowance}, and these expected observations do not hold: "
+                f"{'; '.join(missing)}")
 
     def unmet(self, snapshot):
         """Expected observations of stages not yet done that do not hold."""

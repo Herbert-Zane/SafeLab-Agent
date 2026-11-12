@@ -4,6 +4,7 @@ import pytest
 from fakes import FakeModel, check, pipette_observation, plan_text, stage
 from safelab.ledger import Ledger
 from safelab.planner import (
+    MIN_MISMATCH_ACTIONS,
     PLAN_SCHEMA,
     Planner,
     PlanTracker,
@@ -173,14 +174,26 @@ def test_a_stage_is_done_when_its_expected_observations_hold():
 def test_a_stage_that_uses_its_allowance_without_its_observations_is_a_mismatch():
     tracker = tracked(TRANSFER, MIX)
     _, ledger = ledger_after()
-    for _ in range(2):
+    # TRANSFER budgets 3 actions; a mismatch is not reported before MIN_MISMATCH_ACTIONS.
+    for _ in range(MIN_MISMATCH_ACTIONS-1):
         tracker.record_outcome("failed")
     assert tracker.mismatch(ledger.snapshot()) is None
     tracker.record_outcome("complete")
     mismatch = tracker.mismatch(ledger.snapshot())
     assert "transfer_sample" in mismatch and "(observed 0.0)" in mismatch
+    assert "allowance of 3" in mismatch
     tracker.record_outcome(None)                       # an invalid reply is not an action
-    assert tracker.current.actions_taken == 3
+    assert tracker.current.actions_taken == MIN_MISMATCH_ACTIONS
+
+
+def test_a_larger_allowance_than_the_floor_is_honoured():
+    tracker = tracked({**TRANSFER, "max_actions": MIN_MISMATCH_ACTIONS+2}, MIX)
+    _, ledger = ledger_after()
+    for _ in range(MIN_MISMATCH_ACTIONS+1):
+        tracker.record_outcome("complete")
+    assert tracker.mismatch(ledger.snapshot()) is None
+    tracker.record_outcome("complete")
+    assert tracker.mismatch(ledger.snapshot()) is not None
 
 
 def test_a_new_plan_supersedes_unfinished_stages_and_keeps_finished_ones():
