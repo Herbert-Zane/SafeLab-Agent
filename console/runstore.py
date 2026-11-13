@@ -31,14 +31,15 @@ from pathlib import Path
 
 RUN_FILES = ("agent_run.json", "agent_steps.jsonl", "agent_plan.json", "agent_conversation.json",
              "agent_system_prompt.txt", "trajectory_evaluation.json", "safelab_trace.jsonl",
-             "actions.jsonl")
+             "actions.jsonl", "run_meta.json")
 TRACE = "safelab_trace.jsonl"
 #: The simulator's own action log (start and end time of every step), when the run has one.
 ACTIONS = "actions.jsonl"
 STEPS = "agent_steps.jsonl"
 RUN = "agent_run.json"
 EVALUATION = "trajectory_evaluation.json"
-MAX_DEPTH = 3
+META = "run_meta.json"
+MAX_DEPTH = 5
 TEXT_LIMIT = 4000
 
 SOURCE_LABELS = {
@@ -48,6 +49,7 @@ SOURCE_LABELS = {
 }
 CONDITION_LABELS = {
     "A": "A 平台基线（无审查器）",
+    "A′": "A′ 平台基线 + 带安全提示的 brief（无审查器）",
     "B": "B 规划+账本+反思（无审查器）",
     "C": "C 完整版（含安全审查器）",
     "script": "脚本回放（无模型）",
@@ -66,6 +68,13 @@ STATUS_LABELS = {
     "achieved": ("目标已达成（按已提交状态）", "neutral"),
     "not_assessed": ("未评估", "warn"),
     "unknown": ("未知（按未评估处理）", "warn"),
+}
+ACTION_STATUS_LABELS = {
+    "complete": ("已执行", "ok"), "completed": ("已完成", "ok"),
+    "failed": ("执行失败", "bad"), "action_failed": ("执行失败", "bad"),
+    "invalid_reply": ("无效回复（平台未执行）", "warn"),
+    "finished": ("结束（finish）", "accent"), "stopped": ("审查器终止", "bad"),
+    "awaiting": ("等待执行", "neutral"), "no_action": ("无动作", "neutral"),
 }
 
 
@@ -116,7 +125,7 @@ def signature(run_dir):
 
 def is_run_dir(path):
     path = Path(path)
-    return path.is_dir() and any((path/name).is_file() for name in (RUN, TRACE))
+    return path.is_dir() and any((path/name).is_file() for name in (RUN, TRACE, META))
 
 
 def find_run_dirs(root, max_depth=MAX_DEPTH):
@@ -190,6 +199,20 @@ def action_label(action):
     return f"{name}({', '.join(args)})" if args else name
 
 
+def action_status(status):
+    text, tone = ACTION_STATUS_LABELS.get(status, (status or "—", "neutral"))
+    return {"status_text": text, "tone": tone}
+
+
+def seconds_text(value):
+    return "—" if _number(value) is None else f"{value:.2f} s"
+
+
+def recorded_sum(rows, key):
+    values = [row[key] for row in rows if _number(row.get(key)) is not None]
+    return sum(values) if values else None
+
+
 # --------------------------------------------------------------------------- source / condition
 
 def classify_source(agent_run, steps=None, has_evaluation=False):
@@ -221,7 +244,14 @@ def classify_source(agent_run, steps=None, has_evaluation=False):
             "has_evaluation": bool(has_evaluation)}
 
 
-def infer_condition(agent_run, trace_rows):
+def infer_condition(agent_run, trace_rows, meta=None):
+    if (meta or {}).get("condition") == "Ap":
+        return "A′"
+    brief = ((agent_run or {}).get("brief") or {}).get("source") or ""
+    if ".primed." in re.split(r"[/\\]", brief)[-1]:
+        return "A′"
+    if meta and meta.get("condition"):
+        return str(meta["condition"])
     for row in trace_rows or ():
         if row.get("event") == "run_start" and row.get("condition"):
             return str(row["condition"])
@@ -233,6 +263,32 @@ def infer_condition(agent_run, trace_rows):
     if backend:
         return "A"
     return "?"
+
+
+def metadata_view(meta):
+    meta = meta or {}
+    formal = meta.get("formal")
+    disposition = meta.get("disposition")
+    excluded = disposition == "excluded"
+    reason = meta.get("exclusion_reason")
+    replacement = meta.get("replacement")
+    return {
+        "formal": formal,
+        "formal_text": ("正式" if formal is True else "非正式（联调，不进结果表）"
+                        if formal is False else "未记录"),
+        "disposition": disposition, "excluded": excluded, "exclusion_reason": reason,
+        "disposition_text": (("排除" + (f"（{reason}）" if reason else "")) if excluded
+                             else "计入" if disposition == "counted" else disposition or "未记录"),
+        "killed_by_cap": meta.get("killed_by_cap"),
+        "cap_text": "是" if meta.get("killed_by_cap") is True else "否"
+                    if meta.get("killed_by_cap") is False else "未记录",
+        "block": meta.get("block"), "position": meta.get("position"),
+        "replacement": replacement,
+        "replacement_text": (f"是（第 {replacement} 次）" if _number(replacement) and replacement > 0
+                             else "否" if replacement == 0 else "未记录"),
+        "safelab_commit": (meta.get("safelab_commit") or "")[:7] or None,
+        "platform_commit": (meta.get("platform_commit") or "")[:7] or None,
+    }
 
 
 # --------------------------------------------------------------------------- ledger replay
@@ -369,6 +425,7 @@ def _review_view(row):
     llm = row.get("llm")
     if isinstance(llm, dict):
         llm = {k: v for k, v in llm.items() if k != "replies"}
+        llm["status_text"] = action_status(llm.get("status"))["status_text"]
     return {**_piece(row, "decision", "rule_ids", "card_ids", "evidence", "rewrite", "confidence",
                      "reason", "channel", "risk_category", "mode", "attempt", "usage",
                      "llm_triggered", "trigger", "disagreement", "rewrite_rejected"),
@@ -480,7 +537,9 @@ def _finish_turn(turn, previous):
     turn["severity"] = "block" if blocked else "rewrite" if rewritten else "ok"
     action = returned.get("action")
     executed = turn["executed"]
-    if source.startswith("safelab_"):
+    if (turn["platform"] or {}).get("status") == "invalid_reply":
+        status = "invalid_reply"
+    elif source.startswith("safelab_"):
         status = "stopped"
     elif isinstance(action, dict) and action.get("action") == "finish":
         status = "finished"
@@ -491,9 +550,14 @@ def _finish_turn(turn, previous):
     else:
         status = "no_action"
     turn["status"] = status
-    turn["cost_usd"] = round(sum(u.get("cost_usd") or 0 for u in turn["usage"]), 6)
-    turn["review_latency_s"] = round(sum(u["latency_s"] or 0 for u in turn["usage"]
-                                         if u.get("role") == "critic"), 3)
+    turn.update(action_status(status))
+    turn["title"] = f"步 {turn['step']}" + (" · 无效回复" if status == "invalid_reply" else "")
+    cost = recorded_sum(turn["usage"], "cost_usd")
+    turn["cost_usd"] = round(cost, 6) if cost is not None else None
+    turn["review_latency_s"] = recorded_sum(
+        [u for u in turn["usage"] if u.get("role") == "critic"], "latency_s")
+    if executed:
+        executed.update(action_status(executed.get("status")))
     stamps = [x["t"] for x in (turn["returned"], turn["executed"], turn["readback"])
               if x and x.get("t")]
     own = [c["proposed"]["t"] for c in turn["candidates"] if c["proposed"]] or stamps
@@ -509,11 +573,11 @@ def _finish_turn(turn, previous):
     turn["seq_decided"] = max(seqs) if seqs else None
 
 
-def attach_platform_rows(turns, steps):
-    """Merge ``agent_steps.jsonl`` into turns by observation step: latency, tokens, reply text."""
+def attach_platform_rows(turns, steps, by_call=False):
+    """Attach platform data by step, or by call for timelines with one turn per row."""
     by_step = {row.get("step_index"): row for row in steps}
     for turn in turns:
-        row = by_step.get(turn["step"])
+        row = (steps[turn["call"]-1] if by_call else by_step.get(turn["step"]))
         if row is None:
             continue
         reply = row.get("reply") or {}
@@ -524,11 +588,12 @@ def attach_platform_rows(turns, steps):
             "recorded_at": row.get("recorded_at"), "status": row.get("status"),
             "latency_s": reply.get("latency_s"), "usage": reply.get("usage"),
             "cumulative_tokens": row.get("cumulative_tokens"),
-            "result": execution.get("result"), "error": execution.get("error"),
+            "result": execution.get("result"), "error": row.get("error") or execution.get("error"),
             "simulation_time_s": execution.get("simulation_time_s"),
             "experimental_time_s": execution.get("experimental_time_s"),
             "reply_text": text, "reply_thinking": thinking,
             "reply_cut": cut_text or cut_thinking, "feedback_in": row.get("feedback_in"),
+            **action_status(row.get("status")),
         }
 
 
@@ -556,9 +621,9 @@ def turns_from_steps(steps):
         status = row.get("status")
         execution = row.get("execution") or {}
         is_finish = isinstance(action, dict) and action.get("action") == "finish"
-        if action is not None and not is_finish:
+        if action is not None and not is_finish and status != "invalid_reply":
             turn["executed"] = {"seq": base+2, "t": stamp, "action": action,
-                                "status": status, "error": execution.get("error")}
+                                "status": status, "error": row.get("error") or execution.get("error")}
         if index+1 < len(steps):
             turn["readback"] = {"seq": base+3, "t": steps[index+1].get("recorded_at"),
                                 "changes": diff_states(states[index], states[index+1]),
@@ -566,15 +631,21 @@ def turns_from_steps(steps):
                                 "unconfirmed": [], "call": index+2}
             turn["readback"]["change_count"] = len(turn["readback"]["changes"])
         turns.append(turn)
-    attach_platform_rows(turns, steps)
+    attach_platform_rows(turns, steps, by_call=True)
     for index, turn in enumerate(turns):
-        _finish_turn(turn, turns[index-1] if index else None)
         platform = turn["platform"] or {}
         usage = platform.get("usage") or {}
+        cumulative = _number(platform.get("cumulative_tokens"))
+        previous = _number(steps[index-1].get("cumulative_tokens")) if index else 0
+        if cumulative is not None and previous is not None:
+            usage = {**usage, "total_tokens": cumulative-previous}
         turn["usage"] = [{"seq": turn["returned"]["seq"], "t": turn["returned"]["t"],
                           "role": "actor", "attempt": 1, "model": None, "usage": usage,
                           "cost_usd": None, "latency_s": platform.get("latency_s"),
-                          "stop_reason": None}] if usage or platform.get("latency_s") else []
+                          "stop_reason": None}] if usage or platform.get("latency_s") is not None else []
+        _finish_turn(turn, turns[index-1] if index else None)
+        # Platform rows timestamp the reply, not the start of model deliberation.
+        turn["decide_s"] = platform.get("latency_s")
         turn["t_start"] = turn["t_start"] or turn["returned"]["t"]
     return turns
 
@@ -611,26 +682,35 @@ def plan_states(info):
 def usage_totals(turns, agent_run=None):
     """Tokens, cost and latency from per-sub-call usage rows; falls back to the platform total."""
     total = {"calls": 0, "input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
-             "cost_usd": 0.0, "latency_s": 0.0}
+             "total_tokens": 0, "cost_usd": None, "latency_s": None}
     by_role = {}
     for turn in turns:
         for row in turn["usage"]:
             usage = row.get("usage") or {}
             detail = by_role.setdefault(row.get("role") or "?", {
-                "calls": 0, "input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0,
-                "latency_s": 0.0, "cache_read_tokens": 0})
+                "calls": 0, "input_tokens": 0, "output_tokens": 0, "cost_usd": None,
+                "latency_s": None, "cache_read_tokens": 0, "total_tokens": 0})
             for bucket in (total, detail):
                 bucket["calls"] += 1
                 bucket["input_tokens"] += usage.get("input_tokens") or 0
                 bucket["output_tokens"] += usage.get("output_tokens") or 0
                 bucket["cache_read_tokens"] += usage.get("cache_read_tokens") or 0
-                bucket["cost_usd"] += row.get("cost_usd") or 0
-                bucket["latency_s"] += row.get("latency_s") or 0
+                bucket["total_tokens"] += usage.get("total_tokens") if usage.get("total_tokens") is not None else sum(
+                    usage.get(k) or 0 for k in ("input_tokens", "output_tokens", "cache_read_tokens"))
+                for key in ("cost_usd", "latency_s"):
+                    if _number(row.get(key)) is not None:
+                        bucket[key] = (bucket[key] or 0) + row[key]
     for bucket in [total, *by_role.values()]:
-        bucket["cost_usd"] = round(bucket["cost_usd"], 6)
-        bucket["latency_s"] = round(bucket["latency_s"], 3)
+        for key, digits in (("cost_usd", 6), ("latency_s", 3)):
+            if bucket[key] is not None:
+                bucket[key] = round(bucket[key], digits)
     platform = (agent_run or {}).get("usage") or {}
+    cost_source = "按角色记录（按列表价估算）" if total["cost_usd"] is not None else "未记录"
+    if total["cost_usd"] is None and _number(platform.get("cost_usd")) is not None:
+        total["cost_usd"] = platform["cost_usd"]
+        cost_source = "平台汇总（agent_run.json，整次运行）"
     return {"total": total, "by_role": by_role,
+            "cost_source": cost_source,
             "platform": {k: platform.get(k) for k in
                          ("model", "api_calls", "input_tokens", "output_tokens", "total_tokens",
                           "cache_read_tokens", "cost_usd", "cost_basis", "price_as_of")}}
@@ -697,16 +777,31 @@ def locate(time_s, windows):
 def _dimension(key, label, body, windows=None):
     status = (body or {}).get("status")
     text, tone = STATUS_LABELS.get(status, (f"未识别状态：{status}（按未评估处理）", "warn"))
+    if key == "task_completion" and status in ("achieved", "not_achieved"):
+        text = "终态液体目标已达成" if status == "achieved" else "终态液体目标未达成"
     consequences = []
     for item in (body or {}).get("consequences") or []:
         if isinstance(item, dict):
-            item = {**item, "where": locate(item.get("occurred_time_s"), windows)}
+            item = {**item, "where": locate(item.get("occurred_time_s"), windows),
+                    "occurred_time_text": seconds_text(item.get("occurred_time_s"))}
         consequences.append(item)
+    checks = []
+    for check in (body or {}).get("checks") or []:
+        check_status = check.get("status")
+        check_text, check_tone = STATUS_LABELS.get(check_status, ("未评估", "warn"))
+        if check_status in ("achieved", "not_achieved"):
+            check_text = "已达成" if check_status == "achieved" else "未达成"
+        elif check_status in ("failed", "action_failed"):
+            check_text, check_tone = "执行失败", "bad"
+        checks.append({**check, "status_text": check_text, "tone": check_tone,
+                       "highlight": check_tone == "bad"})
     return {"key": key, "label": label, "status": status, "status_text": text, "tone": tone,
+            "description": ("只核对终态液体量与成分、枪头状态和体积守恒，不核对流程是否做完。"
+                            if key == "task_completion" else None),
             "consequences": consequences,
             "coverage": (body or {}).get("coverage") or [],
             "limitations": (body or {}).get("limitations") or [],
-            "checks": (body or {}).get("checks") or []}
+            "checks": checks}
 
 
 TRACE_BASIS_LABELS = {
@@ -741,25 +836,29 @@ def evaluation_view(source, evaluation, windows=None, basis=None):
     if kind != "simulation":
         banner = ("此评测来自计划级推演或来源不明的运行：结论成立的前提是每个动作都按所写执行，"
                   "不是仿真结果。")
-    dims = [_dimension("task_completion", "任务完成", evaluation.get("task_completion"), windows),
+    dims = [_dimension("task_completion", "终态液体目标（task_completion）", evaluation.get("task_completion"), windows),
             _dimension("scientific_integrity", "科学完整性",
                        evaluation.get("scientific_integrity"), windows),
             _dimension("safety", "安全", evaluation.get("safety"), windows)]
     execution = evaluation.get("execution_status") or {}
+    execution = {**execution, **action_status(execution.get("status"))}
     return {"state": "present", "kind": kind, "tone": "neutral", "banner": banner,
             "headline": "评测器报告", "execution_status": execution,
             "trace_basis": basis, "trace_basis_text": TRACE_BASIS_LABELS.get(basis),
             "dimensions": dims, "limitations": evaluation.get("limitations") or [],
             "consequence_ids": evaluation.get("consequence_ids") or [],
             "simulation_time_s": evaluation.get("simulation_time_s"),
+            "simulation_time_text": seconds_text(evaluation.get("simulation_time_s")),
             "graph_revision": evaluation.get("graph_revision"),
             "task_id": evaluation.get("task_id")}
 
 
 # --------------------------------------------------------------------------- run summary / load
 
-def _state_of(rows, agent_run, mtime, now):
-    """finished / running / stalled for the list and the live badge."""
+def _state_of(rows, agent_run, mtime, now, meta=None):
+    """finished / running / stalled / capped for the list and the live badge."""
+    if (meta or {}).get("killed_by_cap") is True:
+        return "capped"
     if any(r.get("event") == "run_end" for r in rows) or (agent_run and agent_run.get("outcome")):
         return "finished"
     return "running" if now-mtime < 120 else "stalled"
@@ -771,6 +870,7 @@ def summarize_run(root, run_dir, now=None):
     now = now if now is not None else time.time()
     run_dir = Path(run_dir)
     agent_run = read_json(run_dir/RUN) or {}
+    meta = read_json(run_dir/META)
     rows = read_jsonl(run_dir/TRACE)
     steps_exist = (run_dir/STEPS).is_file()
     first = None
@@ -781,7 +881,7 @@ def summarize_run(root, run_dir, now=None):
     rewrites = sum(1 for r in rows
                    if r.get("event") == "reviewed" and r.get("decision") == "rewrite")
     backend = agent_run.get("backend") or {}
-    condition = infer_condition(agent_run, rows)
+    condition = infer_condition(agent_run, rows, meta)
     try:
         mtime = max(p.stat().st_mtime for p in run_dir.iterdir() if p.is_file())
     except (OSError, ValueError):
@@ -797,7 +897,8 @@ def summarize_run(root, run_dir, now=None):
         "task": agent_run.get("task_id") or _task_from_name(run_dir.name),
         "model": backend.get("model") or "?", "provider": backend.get("provider"),
         "source": source["kind"], "source_label": source["label"],
-        "outcome": agent_run.get("outcome"), "state": _state_of(rows, agent_run, mtime, now),
+        "outcome": agent_run.get("outcome"), "state": _state_of(rows, agent_run, mtime, now, meta),
+        "meta": metadata_view(meta),
         "actions": agent_run.get("actions_completed"), "model_calls": agent_run.get("model_calls"),
         "blocks": blocks, "rewrites": rewrites, "cost_usd": cost,
         "has_trace": bool(rows), "has_steps": steps_exist,
@@ -819,16 +920,17 @@ def load_run(root, rid, now=None):
     now = now if now is not None else time.time()
     run_dir = resolve_run(root, rid)
     agent_run = read_json(run_dir/RUN)
+    meta = read_json(run_dir/META)
     rows = read_jsonl(run_dir/TRACE)
     steps = read_jsonl(run_dir/STEPS)
     evaluation = read_json(run_dir/EVALUATION)
-    if not (agent_run or rows or steps):
+    if not (agent_run or rows or steps or meta):
         raise RunError(f"nothing readable in {rid}")
     notes = []
     for name, present in ((RUN, agent_run), (STEPS, steps), (EVALUATION, evaluation)):
         if not present and name != EVALUATION:
             notes.append(f"缺少或无法读取 {name}")
-    condition = infer_condition(agent_run, rows)
+    condition = infer_condition(agent_run, rows, meta)
     source = classify_source(agent_run, steps, evaluation is not None)
     has_trace = bool(rows)
     if has_trace:
@@ -843,15 +945,13 @@ def load_run(root, rid, now=None):
     else:
         turns, info = turns_from_steps(steps), None
         states, reviewer, initial, run_end, run_start = [], False, None, None, None
-        if condition not in ("A", "script"):
+        if condition not in ("A", "A′", "script"):
             notes.append(f"条件 {condition} 的运行没有 {TRACE}，已退化为平台日志视图")
     try:
         mtime = max(p.stat().st_mtime for p in run_dir.iterdir() if p.is_file())
     except (OSError, ValueError):
         mtime = 0
-    state = _state_of(rows, agent_run, mtime, now)
-    if not has_trace and not agent_run:
-        state = "running" if now-mtime < 120 else "stalled"
+    state = _state_of(rows, agent_run, mtime, now, meta)
     backend = (agent_run or {}).get("backend") or {}
     run_info = {
         "task": (agent_run or {}).get("task_id") or _task_from_name(run_dir.name),
@@ -862,6 +962,7 @@ def load_run(root, rid, now=None):
                   or (run_start or {}).get("brief")),
         "objective": ((agent_run or {}).get("brief") or {}).get("objective"),
         "outcome": (agent_run or {}).get("outcome"),
+        "outcome_text": action_status((agent_run or {}).get("outcome"))["status_text"],
         "outcome_detail": (agent_run or {}).get("outcome_detail"),
         "wall_clock_s": (agent_run or {}).get("wall_clock_s"),
         "model_calls": (agent_run or {}).get("model_calls"),
@@ -876,20 +977,45 @@ def load_run(root, rid, now=None):
     }
     t0 = (run_start or {}).get("t") or (turns[0]["t_start"] if turns else None)
     t1 = (run_end or {}).get("t") or (turns[-1]["t_end"] if turns else None)
+    assessment = evaluation_view(source, evaluation,
+                                 *step_windows(read_jsonl(run_dir/ACTIONS), steps))
+    notice = None
+    if (meta or {}).get("killed_by_cap") is True and evaluation is None:
+        notice = "被外层时间上限终止，没有评测输出"
+        assessment.update(headline="未评估", detail=notice)
     return {
         "id": rid, "name": run_dir.name, "sig": signature(run_dir),
         "condition": condition, "condition_label": CONDITION_LABELS.get(condition, condition),
         "reviewer": reviewer, "has_trace": has_trace, "source": source, "state": state,
+        "meta": metadata_view(meta), "notice": notice,
         "info": run_info, "initial": initial, "turns": turns,
         "plan": states, "usage": usage_totals(turns, agent_run),
-        "evaluation": evaluation_view(source, evaluation,
-                                      *step_windows(read_jsonl(run_dir/ACTIONS), steps)),
+        "evaluation": assessment,
         "t_start": t0, "t_end": t1, "duration_s": seconds_between(t0, t1),
         "reflection": (info or {}).get("reflection", []),
         "run_end": ({k: run_end.get(k) for k in ("calls", "unconfirmed", "assessments", "critic")}
                     if run_end else None),
         "notes": notes,
     }
+
+
+def robot_fields(robot):
+    """held_object is the ledger name for the observation's held_object_id."""
+    robot = robot or {}
+    fields = []
+    aliases = [key for key in ("held_object", "held_object_id") if key in robot]
+    values = {robot[key] for key in aliases if robot[key] is not None}
+    if len(values) > 1:
+        fields.extend({"keys": [key], "label": label, "value": robot[key]} for key, label in (
+            ("held_object", "账本手持物体"), ("held_object_id", "观测手持物体 ID")))
+    elif aliases:
+        fields.append({"keys": aliases, "label": "手持物体", "value": next(iter(values), None)})
+    labels = {"held_tool": "手持工具", "attached_tip": "已装枪头",
+              "pipette_type": "移液器规格", "tool_held": "手中有工具"}
+    for key, value in robot.items():
+        if key not in aliases:
+            fields.append({"keys": [key], "label": labels.get(key, key), "value": value})
+    return fields
 
 
 def load_ledger(root, rid, call):
@@ -905,9 +1031,12 @@ def load_ledger(root, rid, call):
     readback = next((r for r in rows if r.get("event") == "observed" and r.get("call") == call),
                     None)
     if snapshot is None:
-        return {"call": call, "ledger": load_observation_state(run_dir, call), "changes": [],
+        snapshot = load_observation_state(run_dir, call)
+        return {"call": call, "ledger": snapshot, "changes": [],
+                "robot_fields": robot_fields((snapshot or {}).get("robot")),
                 "kind": "observation" if (run_dir/STEPS).is_file() else "none"}
     return {"call": call, "ledger": snapshot, "kind": "ledger",
+            "robot_fields": robot_fields(snapshot.get("robot")),
             "changes": (readback or {}).get("changes") or [],
             "unconfirmed": snapshot.get("unconfirmed") or []}
 

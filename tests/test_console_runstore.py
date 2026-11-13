@@ -534,3 +534,284 @@ def test_a_trace_cut_mid_run_shows_the_open_turn_as_awaiting(tmp_path):
     assert [t["status"] for t in loaded["turns"]] == ["awaiting"]
     stalled = runstore.load_run(tmp_path, "dry/C_test", now=run.stat().st_mtime+10_000)
     assert stalled["state"] == "stalled"
+
+
+# ------------------------------------------------------------------ simulation display regressions
+
+def _write_meta(run, **updates):
+    meta = {"condition": "A", "formal": False, "disposition": "counted",
+            "killed_by_cap": False, "block": 2, "position": 6, "replacement": 0,
+            "safelab_commit": "abcdef123456789", "platform_commit": "123456789abcdef"}
+    meta.update(updates)
+    (run/"run_meta.json").write_text(json.dumps(meta), encoding="utf-8")
+    return meta
+
+
+@pytest.mark.parametrize("action", [None, {"action": "wait", "simulation_duration_s": 1800}])
+def test_invalid_reply_keeps_its_own_row_when_the_step_is_retried(tmp_path, action):
+    run = make_a_run(tmp_path)
+    invalid = _step_row(3, action, status="invalid_reply", latency=None, source="simulation")
+    invalid.update(error="The reply was empty.", execution=None, reply_text="", cumulative_tokens=13)
+    retry = _step_row(3, {"action": "pick_up", "target": "stock"}, source="simulation")
+    retry.update(reply_text="retry succeeded", cumulative_tokens=31)
+    _write_jsonl(run/"agent_steps.jsonl", [invalid, retry])
+    first, second = runstore.load_run(tmp_path, "pilot/A_test")["turns"]
+    assert first["status"] == "invalid_reply"
+    assert first["status_text"] == "无效回复（平台未执行）"
+    assert first["title"] == "步 3 · 无效回复"
+    assert first["executed"] is None
+    assert first["platform"]["error"] == "The reply was empty."
+    assert first["platform"]["reply_text"] == ""
+    assert second["title"] == "步 3" and second["status"] == "complete"
+    assert second["platform"]["reply_text"] == "retry succeeded"
+    assert [t["usage"][0]["usage"]["total_tokens"] for t in (first, second)] == [13, 18]
+
+
+@pytest.mark.parametrize("status", ["failed", "action_failed"])
+@pytest.mark.parametrize("nested_error", [False, True])
+def test_failed_actions_show_the_platform_error_and_chinese_status(tmp_path, status, nested_error):
+    run = make_a_run(tmp_path)
+    row = _step_row(0, {"action": "close_lid"}, status=status)
+    error = "ManipulationFailure: close_lid requires a hand free of tools"
+    row["execution"] = {"error": error} if nested_error else None
+    if not nested_error:
+        row["error"] = error
+    _write_jsonl(run/"agent_steps.jsonl", [row])
+    turn = runstore.load_run(tmp_path, "pilot/A_test")["turns"][0]
+    assert turn["status_text"] == turn["executed"]["status_text"] == "执行失败"
+    assert turn["executed"]["error"] == turn["platform"]["error"] == error
+    assert turn["tone"] == "bad"
+
+
+def test_unknown_action_status_is_preserved():
+    assert runstore.action_status("new_platform_status")["status_text"] == "new_platform_status"
+
+
+@pytest.mark.parametrize("status", ["failed", "action_failed"])
+def test_trace_execution_failure_also_has_a_translated_status(status):
+    rows = [{"event": "returned", "call": 1, "step": 0, "seq": 1,
+             "action": {"action": "close_lid"}},
+            {"event": "executed", "call": 2, "action_step": 0, "seq": 2,
+             "status": status, "error": "tool held"}]
+    turns, _ = runstore.build_turns(rows)
+    assert turns[0]["status_text"] == turns[0]["executed"]["status_text"] == "执行失败"
+    assert turns[0]["executed"]["error"] == "tool held"
+
+
+def test_missing_step_metrics_are_not_zero_and_cost_uses_platform_summary(tmp_path):
+    run = make_a_run(tmp_path)
+    rows = [_step_row(i, {"action": "pick_up"}) for i in range(2)]
+    for row in rows:
+        row.pop("reply")
+    _write_jsonl(run/"agent_steps.jsonl", rows)
+    view = runstore.load_run(tmp_path, "pilot/A_test")
+    assert all(t["decide_s"] is None and t["cost_usd"] is None for t in view["turns"])
+    assert [t["usage"][0]["usage"]["total_tokens"] for t in view["turns"]] == [15, 15]
+    assert view["usage"]["total"]["total_tokens"] == 30
+    assert view["usage"]["total"]["cost_usd"] == view["usage"]["platform"]["cost_usd"] == 0.02
+    assert "平台汇总" in view["usage"]["cost_source"]
+    assert view["usage"]["by_role"]["actor"]["cost_usd"] is None
+    assert view["usage"]["by_role"]["actor"]["latency_s"] is None
+    assert view["usage"]["total"]["latency_s"] is None
+
+
+def test_recorded_zero_cost_and_latency_are_distinct_from_missing_metrics():
+    turns = runstore.turns_from_steps([_step_row(0, {"action": "wait"}, latency=0)])
+    assert turns[0]["decide_s"] == 0
+    usage = runstore.usage_totals([{"usage": [{"role": "actor", "cost_usd": 0, "latency_s": 0}]}],
+                                  {"usage": {"cost_usd": 42}})
+    assert usage["total"]["cost_usd"] == usage["total"]["latency_s"] == 0
+    assert usage["by_role"]["actor"]["cost_usd"] == 0
+    assert "按角色记录" in usage["cost_source"]
+    assert runstore.usage_totals([])["total"]["cost_usd"] is None
+
+
+@pytest.mark.parametrize("source", ["task.open.primed.json", "C:\\briefs\\task.primed.open.json"])
+def test_primed_brief_is_a_prime_without_metadata(source):
+    agent = {"backend": {"provider": "openai_compatible"}, "brief": {"source": source}}
+    assert runstore.infer_condition(agent, []) == "A′"
+    assert runstore.infer_condition(agent, [], {"condition": "A"}) == "A′"
+    agent["brief"]["source"] = "/primed.folder/task.open.json"
+    assert runstore.infer_condition(agent, []) == "A"
+
+
+def test_metadata_a_prime_wins_and_is_exposed_in_the_list(tmp_path):
+    run = make_a_run(tmp_path)
+    _write_meta(run, condition="Ap")
+    detail = runstore.load_run(tmp_path, "pilot/A_test")
+    summary = runstore.summarize_run(tmp_path, run)
+    for view in (detail, summary):
+        assert view["condition"] == "A′"
+        assert view["condition_label"] == "A′ 平台基线 + 带安全提示的 brief（无审查器）"
+    assert not detail["notes"]
+
+
+@pytest.mark.parametrize("formal", [False, True])
+def test_run_metadata_has_formal_disposition_replacement_and_short_commits(tmp_path, formal):
+    run = make_a_run(tmp_path)
+    _write_meta(run, formal=formal, disposition="excluded", exclusion_reason="fixture exclusion", replacement=2)
+    detail = runstore.load_run(tmp_path, "pilot/A_test")
+    summary = runstore.summarize_run(tmp_path, run)
+    meta = detail["meta"]
+    assert meta == summary["meta"]
+    assert meta["formal"] is formal
+    assert meta["formal_text"] == ("正式" if formal else "非正式（联调，不进结果表）")
+    assert meta["excluded"] is True and meta["disposition_text"] == "排除（fixture exclusion）"
+    assert (meta["block"], meta["position"], meta["replacement_text"]) == (2, 6, "是（第 2 次）")
+    assert (meta["safelab_commit"], meta["platform_commit"]) == ("abcdef1", "1234567")
+    assert meta["cap_text"] == "否"
+
+
+def test_missing_metadata_is_unrecorded_and_metadata_updates_change_the_signature(tmp_path):
+    run = make_a_run(tmp_path)
+    missing = runstore.load_run(tmp_path, "pilot/A_test")["meta"]
+    assert missing["formal"] is None and missing["formal_text"] == "未记录"
+    before = runstore.signature(run)
+    _write_meta(run)
+    assert runstore.signature(run) != before
+    assert runstore.load_run(tmp_path, "pilot/A_test")["meta"]["disposition_text"] == "计入"
+
+
+@pytest.mark.parametrize("logs", ["none", "platform", "trace"])
+def test_capped_runs_are_discovered_at_five_levels_and_remain_readable(tmp_path, logs):
+    if logs == "trace":
+        original = make_c_run(tmp_path, environment="simulation")
+    else:
+        original = make_a_run(tmp_path)
+        if logs == "none":
+            (original/"agent_steps.jsonl").unlink()
+    (original/"agent_run.json").unlink()
+    run = tmp_path/"batch"/"integ"/"cap_sim"/"open"/"C_cl_01"
+    run.parent.mkdir(parents=True)
+    original.rename(run)
+    _write_meta(run, condition="C" if logs == "trace" else "A", killed_by_cap=True)
+    rid = runstore.run_id(tmp_path, run)
+    assert run in runstore.find_run_dirs(tmp_path)
+    summary = runstore.summarize_run(tmp_path, run)
+    view = runstore.load_run(tmp_path, rid)
+    assert summary["state"] == view["state"] == "capped"
+    assert view["notice"] == "被外层时间上限终止，没有评测输出"
+    assert view["evaluation"]["headline"] == "未评估"
+    assert view["evaluation"]["state"] == "absent"
+    assert view["meta"]["cap_text"] == "是"
+    assert bool(view["turns"]) == (logs != "none")
+    assert bool(view["has_trace"]) == (logs == "trace")
+    ledger_view = runstore.load_ledger(tmp_path, rid, 1)
+    if logs == "none":
+        assert ledger_view["ledger"] is None
+    else:
+        assert ledger_view["ledger"] is not None
+
+
+@pytest.mark.parametrize("status, expected", [("achieved", "终态液体目标已达成"),
+                                               ("not_achieved", "终态液体目标未达成")])
+def test_task_completion_is_labelled_as_final_liquid_targets_with_tabular_checks(tmp_path, status, expected):
+    evaluation = deepcopy(EVALUATION)
+    checks = [{"goal_id": "volume", "status": "not_achieved", "actual": 1500, "expected": 1000,
+               "evidence": [{"entity_id": "stock", "value": 1500}]},
+              {"goal_id": "tip", "status": "achieved", "actual": None, "expected": None},
+              {"goal_id": "components", "status": "new_status", "actual": {"x": 1}, "expected": {"x": 2}}]
+    evaluation["task_completion"] = {"status": status, "checks": checks}
+    make_c_run(tmp_path, environment="simulation", with_eval=evaluation)
+    dimension = runstore.load_run(tmp_path, "dry/C_test")["evaluation"]["dimensions"][0]
+    assert dimension["label"] == "终态液体目标（task_completion）"
+    assert dimension["status_text"] == expected
+    assert dimension["description"] == "只核对终态液体量与成分、枪头状态和体积守恒，不核对流程是否做完。"
+    first, second, third = dimension["checks"]
+    assert first["highlight"] is True and first["status_text"] == "未达成"
+    assert first["evidence"] == checks[0]["evidence"]
+    assert (first["goal_id"], first["actual"], first["expected"]) == ("volume", 1500, 1000)
+    assert second["highlight"] is False and second["actual"] is None
+    assert third["status_text"] == "未评估"
+
+
+def test_simulation_seconds_are_formatted_without_changing_raw_times():
+    evaluation = deepcopy(EVALUATION)
+    evaluation["simulation_time_s"] = 43.208333333333336
+    evaluation["execution_status"] = {"status": "failed"}
+    evaluation["safety"]["consequences"] = [{"occurred_time_s": 25.441666666666666}]
+    source = runstore.classify_source({"environment": {"environment": "simulation"}})
+    view = runstore.evaluation_view(source, evaluation)
+    assert view["simulation_time_text"] == "43.21 s"
+    assert view["simulation_time_s"] == evaluation["simulation_time_s"]
+    consequence = view["dimensions"][2]["consequences"][0]
+    assert consequence["occurred_time_text"] == "25.44 s"
+    assert consequence["occurred_time_s"] == 25.441666666666666
+    assert view["execution_status"]["status_text"] == "执行失败"
+    assert runstore.seconds_text(None) == "—" and runstore.seconds_text(0) == "0.00 s"
+
+
+@pytest.mark.parametrize("robot, expected", [
+    ({"held_object_id": "tube"}, [("手持物体", "tube")]),
+    ({"held_object": "tube"}, [("手持物体", "tube")]),
+    ({"held_object": None, "held_object_id": "tube"}, [("手持物体", "tube")]),
+    ({"held_object": "tube", "held_object_id": "tube", "held_tool": "p200"},
+     [("手持物体", "tube"), ("手持工具", "p200")]),
+    ({"held_object": "tube", "held_object_id": "bottle"},
+     [("账本手持物体", "tube"), ("观测手持物体 ID", "bottle")]),
+])
+def test_robot_aliases_are_deduplicated_but_distinct_values_are_preserved(robot, expected):
+    before = deepcopy(robot)
+    fields = runstore.robot_fields(robot)
+    assert [(f["label"], f["value"]) for f in fields] == expected
+    assert robot == before
+
+
+def test_ledger_response_contains_labelled_robot_fields(tmp_path):
+    make_c_run(tmp_path)
+    view = runstore.load_ledger(tmp_path, "dry/C_test", 1)
+    assert len([f for f in view["robot_fields"] if f["label"] == "手持物体"]) == 1
+    assert runstore.load_run(tmp_path, "dry/C_test")["t_start"].endswith("+00:00")
+
+
+def test_console_only_reads_the_documented_run_files(tmp_path, monkeypatch):
+    run = make_c_run(tmp_path, environment="simulation", with_eval=EVALUATION)
+    _write_meta(run, condition="C")
+    original = Path.read_text
+    read = set()
+
+    def guarded(path, *args, **kwargs):
+        if path.is_relative_to(run):
+            assert path.name in runstore.RUN_FILES
+            read.add(path.name)
+        return original(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", guarded)
+    runstore.summarize_run(tmp_path, run)
+    runstore.load_run(tmp_path, "dry/C_test")
+    runstore.load_ledger(tmp_path, "dry/C_test", 1)
+    runstore.load_step_detail(tmp_path, "dry/C_test", 0)
+    assert "run_meta.json" in read
+
+
+def test_real_simulation_retries_and_a_prime_labels():
+    rid = "integ2_s2aa2111/open/open/A_ws_01"
+    if not (REPO_RUNS/rid/"agent_run.json").is_file():
+        pytest.skip("integ2 simulation samples are not in this checkout")
+    view = runstore.load_run(REPO_RUNS, rid)
+    first = view["turns"][3]
+    assert first["status_text"] == "无效回复（平台未执行）"
+    assert first["platform"]["error"] == "The reply was empty."
+    assert view["turns"][4]["status"] == "complete"
+    assert view["turns"][9]["executed"]["error"].startswith("ManipulationFailure:")
+    assert view["usage"]["total"]["cost_usd"] == view["usage"]["platform"]["cost_usd"]
+    assert view["source"]["kind"] == "simulation"
+    assert view["evaluation"]["trace_basis"] == "actions"
+    ap = "integ2_s2aa2111/open/open/Ap_cl_01"
+    if not (REPO_RUNS/ap/"agent_run.json").is_file():
+        pytest.skip("A prime simulation sample is not in this checkout")
+    assert runstore.load_run(REPO_RUNS, ap)["condition"] == "A′"
+
+
+@pytest.mark.parametrize("name", ["A_cl_01", "C_ws_01"])
+def test_real_capped_simulations_are_listed_and_not_assessed(name):
+    rid = f"integ_s1b3632b/integ/cap_sim/open/{name}"
+    path = REPO_RUNS/rid
+    if not (path/"run_meta.json").is_file():
+        pytest.skip("capped simulation samples are not in this checkout")
+    assert path in runstore.find_run_dirs(REPO_RUNS)
+    view = runstore.load_run(REPO_RUNS, rid)
+    assert view["state"] == "capped" and view["meta"]["formal"] is False
+    assert view["notice"] == "被外层时间上限终止，没有评测输出"
+    assert view["evaluation"]["headline"] == "未评估"
+    assert view["turns"]

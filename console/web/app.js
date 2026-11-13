@@ -38,11 +38,6 @@ const SOURCE_BADGE = { dry_run: "b-dry", simulation: "b-sim", unknown: "b-unknow
 const DECISION = { pass: ["放行", "b-ok"], block: ["驳回", "b-bad"], rewrite: ["改写", "b-rewrite"] };
 const CHANNEL = { rules: "仅规则通道", llm: "仅 LLM 通道", "rules+llm": "规则 + LLM 合议", none: "未触发审查" };
 const STRATEGY = { rewrite: "按驳回理由重新提议", replan: "重规划后提议", remediate: "补救提议" };
-const STATUS = {
-  complete: ["已执行", "b-ok"], finished: ["结束（finish）", "b-accent"],
-  stopped: ["审查器终止", "b-bad"], awaiting: ["等待执行", "b-neutral"],
-  no_action: ["无动作", "b-neutral"],
-};
 const NOTE_TITLE = {
   reflect: "反思", replan: "重规划", refusal_limit: "驳回次数达上限", disagreement: "两通道分歧",
   empty_reply: "空回复", call_error: "调用出错", retry: "重试", fault: "注入故障", budget_stop: "预算熔断",
@@ -52,7 +47,7 @@ const REFLECT_KIND = {
   expectation_mismatch: "结果与预期不符", empty_reply: "空回复",
 };
 const REFLECT_STRATEGY = { rewrite: "按理由改提议", replan: "重规划", remediate: "补救", retry: "重试", stop: "安全终止" };
-const STAGE_STATUS = { current: "进行中", done: "完成", pending: "待做", failed: "失败" };
+const STAGE_STATUS = { current: "进行中", done: "完成", pending: "待做", failed: "执行失败", action_failed: "执行失败" };
 
 // ---------------------------------------------------------------- helpers
 
@@ -65,10 +60,17 @@ async function api(path, options) {
 
 const seen = (piece) => piece != null && (piece.seq == null || piece.seq <= S.cursor);
 const money = (v) => (v == null ? "—" : "$" + Number(v).toFixed(4));
-const secs = (v) => (v == null ? "—" : Number(v).toFixed(1) + " s");
+const secs = (v) => (v == null ? "—" : Number(v).toFixed(2) + " s");
 const num = (v) => (v == null ? "—" : Number(v).toLocaleString("en-US"));
 const jsonText = (v) => JSON.stringify(v);
-const clock = (iso) => (iso ? iso.slice(11, 19) : "");
+const clock = (iso) => (iso ? new Date(iso).toLocaleTimeString([], { hour12: false }) : "");
+
+function timezoneNote(iso) {
+  const date = iso ? new Date(iso) : new Date();
+  const offset = -date.getTimezoneOffset();
+  const hours = Math.floor(Math.abs(offset) / 60), minutes = Math.abs(offset) % 60;
+  return `时间按本机时区 UTC${offset >= 0 ? "+" : "−"}${hours}${minutes ? ":" + String(minutes).padStart(2, "0") : ""} 显示（${Intl.DateTimeFormat().resolvedOptions().timeZone}）`;
+}
 
 function fmtValue(v) {
   if (v == null) return "null";
@@ -158,6 +160,9 @@ function renderRunList() {
     h("span", {}, r.task || "?"), h("span", {}, r.model),
     h("span", { class: `badge ${SOURCE_BADGE[r.source]}` }, r.source_label),
     r.state === "running" ? h("span", { class: "badge b-live" }, "进行中") : null,
+    r.meta.formal != null ? h("span", { class: "badge b-neutral" }, r.meta.formal ? "正式" : "非正式") : null,
+    r.meta.excluded ? h("span", { class: "badge b-bad", title: r.meta.disposition_text }, "排除") : null,
+    r.meta.killed_by_cap ? h("span", { class: "badge b-warn" }, "被外层时间上限终止") : null,
     r.blocks ? h("span", { class: "badge b-bad" }, `驳回 ${r.blocks}`) : null,
     r.rewrites ? h("span", { class: "badge b-rewrite" }, `改写 ${r.rewrites}`) : null,
     !r.has_trace && r.condition !== "script" ? h("span", { class: "badge b-neutral" }, "无审查器") : null,
@@ -351,7 +356,8 @@ function togglePlay() {
 
 function renderHead() {
   const run = S.run, info = run.info;
-  const stateBadge = { running: ["进行中", "b-live"], finished: ["已结束", "b-neutral"], stalled: ["日志已停止更新", "b-warn"] }[run.state];
+  const meta = run.meta;
+  const stateBadge = { running: ["进行中", "b-live"], finished: ["已结束", "b-neutral"], stalled: ["日志已停止更新", "b-warn"], capped: ["被外层时间上限终止", "b-warn"] }[run.state];
   $("#run-head").replaceChildren(
     h("div", { class: "title-row" }, h("span", { class: "name" }, run.name),
       h("span", { class: `badge ${SOURCE_BADGE[run.source.kind]}` }, run.source.label),
@@ -360,10 +366,15 @@ function renderHead() {
       stateBadge ? h("span", { class: `badge ${stateBadge[1]}` }, stateBadge[0]) : null),
     h("div", { class: "head-grid" },
       kv("任务", info.task), kv("模型", info.model), kv("简报", info.brief),
-      kv("结局", info.outcome), kv("模型调用", info.model_calls),
+      kv("结局", info.outcome_text), kv("模型调用", info.model_calls),
       kv("完成/失败动作", `${info.actions_completed ?? "—"} / ${info.actions_failed ?? "—"}`),
       kv("用时", secs(run.duration_s)), kv("数据划分", info.split),
+      kv("是否正式", meta.formal_text), kv("处置", meta.disposition_text),
+      kv("被外层上限终止", meta.cap_text), kv("区组", meta.block), kv("位次", meta.position),
+      kv("补跑", meta.replacement_text), kv("SafeLab 提交", meta.safelab_commit), kv("平台提交", meta.platform_commit),
       kv("审查器", info.critic ? `${info.critic.mode}（LLM 触发：${info.critic.llm_trigger}）` : null)),
+    h("div", { class: "muted small" }, timezoneNote(run.t_start)),
+    run.notice ? h("div", { class: "big-note warn" }, run.notice) : null,
     info.outcome_detail ? h("details", {}, h("summary", {}, "智能体的结束说明（自述，未经核实）"), h("pre", { class: "text" }, info.outcome_detail)) : null,
     run.notes.length ? h("div", { class: "note" }, run.notes.join("；")) : null);
 }
@@ -466,7 +477,7 @@ function llmChannel(review) {
     return box;
   }
   const a = llm.answer || {};
-  box.append(h("div", {}, "状态：", llm.status, a.decision ? ["　结论：", h("b", {}, (DECISION[a.decision] || [a.decision])[0])] : null,
+  box.append(h("div", {}, "状态：", llm.status_text, a.decision ? ["　结论：", h("b", {}, (DECISION[a.decision] || [a.decision])[0])] : null,
     a.confidence != null ? `　置信度 ${a.confidence}` : null));
   if (a.risk_category) box.append(h("div", { class: "small" }, "风险类别：" + a.risk_category));
   box.append(h("div", { class: "muted small" }, "知识卡片"), chips(a.card_ids));
@@ -534,6 +545,11 @@ function changeLine(change) {
 function executedView(turn) {
   const rows = [];
   const ret = turn.returned;
+  if (seen(ret) && turn.status === "invalid_reply") {
+    return [h("div", { class: "exec" }, h("b", {}, "平台报告："),
+      h("span", { class: "badge b-warn" }, turn.status_text),
+      turn.platform.error ? h("span", { class: "reason" }, " " + jsonText(turn.platform.error)) : null)];
+  }
   if (seen(ret)) {
     const src = ret.source === "critic_rewrite" ? "审查器改写后的动作" : ret.source === "actor" ? "智能体提议的动作" : `来源 ${ret.source}`;
     rows.push(h("div", { class: "exec" }, h("b", {}, "返回平台："), h("code", {}, actionLine(ret.action)), h("span", { class: "muted small" }, `　（${src}）`)));
@@ -543,10 +559,10 @@ function executedView(turn) {
   const ex = turn.executed;
   if (seen(ex)) {
     rows.push(h("div", { class: "exec" }, h("b", {}, "平台报告："),
-      h("span", { class: `badge ${ex.status === "complete" ? "b-ok" : "b-bad"}` }, ex.status === "complete" ? "已执行" : ex.status),
+      h("span", { class: `badge b-${ex.tone}` }, ex.status_text),
       ex.error ? h("span", { class: "reason" }, " " + jsonText(ex.error)) : null));
     const pf = turn.platform;
-    if (pf && pf.result) rows.push(h("div", { class: "exec muted" }, "执行结果：" + jsonText(pf.result) + (pf.simulation_time_s != null ? `；仿真钟 ${pf.simulation_time_s} s` : "")));
+    if (pf && pf.result) rows.push(h("div", { class: "exec muted" }, "执行结果：" + jsonText(pf.result) + (pf.simulation_time_s != null ? `；仿真钟 ${secs(pf.simulation_time_s)}` : "")));
   } else if (seen(ret) && !isTerminal(turn)) {
     rows.push(h("div", { class: "pending-line" }, "等待平台执行…"));
   }
@@ -559,10 +575,13 @@ function isTerminal(turn) {
 
 function metricsLine(turn) {
   const pieces_ = [];
-  if (turn.decide_s != null) pieces_.push(`决策耗时 ${secs(turn.decide_s)}`);
+  pieces_.push(`决策耗时 ${secs(turn.decide_s)}`);
   if (turn.review_latency_s) pieces_.push(`其中审查 ${secs(turn.review_latency_s)}`);
-  if (turn.cost_usd) pieces_.push(`费用 ${money(turn.cost_usd)}`);
-  const tokens = turn.usage.filter(seen).reduce((a, u) => a + ((u.usage || {}).input_tokens || 0) + ((u.usage || {}).output_tokens || 0) + ((u.usage || {}).cache_read_tokens || 0), 0);
+  pieces_.push(`费用 ${money(turn.cost_usd)}`);
+  const tokens = turn.usage.filter(seen).reduce((a, u) => {
+    const usage = u.usage || {};
+    return a + (usage.total_tokens ?? ((usage.input_tokens || 0) + (usage.output_tokens || 0) + (usage.cache_read_tokens || 0)));
+  }, 0);
   if (tokens) pieces_.push(`tokens ${num(tokens)}`);
   return pieces_.length ? h("div", { class: "metrics" }, pieces_.join("　·　")) : null;
 }
@@ -571,14 +590,13 @@ function turnView(turn) {
   const visibleCands = turn.candidates.filter((c) => seen(c.proposed) || seen(c.review));
   turn.review_expected = S.run.reviewer;
   const sev = turn.severity;
-  const badge = STATUS[turn.status] || [turn.status, "b-neutral"];
   const stage = (turn.returned && turn.returned.stage) || (turn.candidates[0] && turn.candidates[0].proposed && turn.candidates[0].proposed.stage);
   const head = h("div", { class: "turn-head" },
-    h("span", { class: "no" }, `步 ${turn.step}`),
+    h("span", { class: "no" }, turn.title),
     stage && stage.name ? h("span", { class: "badge b-neutral" }, `阶段 ${stage.index != null ? stage.index + "/" + stage.of + " " : ""}${stage.name}`) : null,
     turn.blocked ? h("span", { class: "badge b-bad" }, `驳回 ${turn.blocked} 次`) : null,
     turn.rewritten ? h("span", { class: "badge b-rewrite" }, "已改写") : null,
-    h("span", { class: `badge ${badge[1]}` }, badge[0]),
+    h("span", { class: `badge b-${turn.tone}` }, turn.status_text),
     h("span", { class: "time" }, clock(turn.t_start)));
   const body = [head];
   body.push(h("div", { class: "sec" }, h("div", { class: "sec-title" }, "① 候选动作与审查"), ...visibleCands.map((c) => candidateView(c, turn))));
@@ -674,7 +692,7 @@ async function renderLedger() {
   const parts = [h("h2", {}, title)];
   if (!ledger) { box.replaceChildren(...parts, h("div", { class: "muted" }, "没有可显示的状态。")); return; }
   if (data.kind === "observation") parts.push(h("div", { class: "note" }, "该运行没有执行账本：下面是由平台观测还原的状态，没有枪头接触史。"));
-  if (ledger.robot) parts.push(robotLine(ledger.robot, hit));
+  if (ledger.robot) parts.push(robotLine(data.robot_fields, hit));
   parts.push(h("h3", {}, "容器"), tableOf(["容器", "体积 µL", "成分 µL", "开闭", "位置"],
     Object.entries(ledger.containers || {}).map(([id, c]) => ({
       changed: hit(`containers.${id}`),
@@ -718,16 +736,13 @@ async function renderLedger() {
   box.replaceChildren(...parts);
 }
 
-const ROBOT_FIELDS = { held_object: "手持物体", held_object_id: "手持物体", held_tool: "手持工具", attached_tip: "已装枪头", pipette_type: "移液器规格", tool_held: "手中有工具" };
 const plainValue = (v) => (v == null || v === "" ? "无" : v === true ? "是" : v === false ? "否" : String(v));
 
 // The robot row of the ledger as labelled values; fields this page does not know are listed as they are.
-function robotLine(robot, hit) {
-  const known = Object.entries(ROBOT_FIELDS).filter(([key]) => key in robot || key !== "tool_held").map(([key, label]) =>
-    h("span", { class: hit(`robot.${key}`) ? "chgv" : "" }, h("b", {}, label + " "), plainValue(robot[key])));
-  const rest = Object.entries(robot).filter(([key, v]) => !(key in ROBOT_FIELDS) && v != null && v !== "")
-    .map(([key, v]) => h("span", { class: hit(`robot.${key}`) ? "chgv" : "" }, h("b", {}, key + " "), fmtValue(v)));
-  return h("div", { class: "head-grid small" }, h("span", {}, h("b", {}, "机器人")), ...known, ...rest);
+function robotLine(fields, hit) {
+  return h("div", { class: "head-grid small" }, h("span", {}, h("b", {}, "机器人")),
+    ...fields.map((field) => h("span", { class: field.keys.some((key) => hit(`robot.${key}`)) ? "chgv" : "" },
+      h("b", {}, field.label + " "), plainValue(field.value))));
 }
 
 function unconfirmedText(item) {
@@ -741,7 +756,7 @@ function unconfirmedText(item) {
 function tableOf(headers, rows) {
   if (!rows.length) return h("div", { class: "muted small" }, "无");
   return h("table", {}, h("tr", {}, ...headers.map((x) => h("th", {}, x))),
-    ...rows.map((r) => h("tr", { class: r.changed ? "chg" : "" }, ...r.cells.map((c) => h("td", {}, c)))));
+    ...rows.map((r) => h("tr", { class: r.tone === "bad" ? "goal-failed" : r.changed ? "chg" : "" }, ...r.cells.map((c) => h("td", {}, c)))));
 }
 
 // ---------------------------------------------------------------- usage
@@ -751,25 +766,29 @@ function renderUsage() {
   const turns = run.turns.filter(turnVisible);
   const rowsSeen = turns.flatMap((t) => t.usage.filter(seen));
   const sum = (f) => rowsSeen.reduce((a, u) => a + (f(u) || 0), 0);
+  const sumRecorded = (key) => rowsSeen.some((u) => u[key] != null) ? sum((u) => u[key]) : null;
   const byRole = {};
   for (const u of rowsSeen) {
-    const r = (byRole[u.role || "?"] ||= { calls: 0, inp: 0, out: 0, cache: 0, cost: 0, lat: 0 });
+    const r = (byRole[u.role || "?"] ||= { calls: 0, inp: 0, out: 0, cache: 0, cost: null, lat: null });
     r.calls += 1; r.inp += (u.usage || {}).input_tokens || 0; r.out += (u.usage || {}).output_tokens || 0;
     r.cache += (u.usage || {}).cache_read_tokens || 0;
-    r.cost += u.cost_usd || 0; r.lat += u.latency_s || 0;
+    if (u.cost_usd != null) r.cost = (r.cost || 0) + u.cost_usd;
+    if (u.latency_s != null) r.lat = (r.lat || 0) + u.latency_s;
   }
   const maxDecide = Math.max(15, ...turns.map((t) => t.decide_s || 0));
   const plat = run.usage.platform;
+  const platformCost = run.usage.cost_source.startsWith("平台汇总");
+  const cost = platformCost ? run.usage.total.cost_usd : sumRecorded("cost_usd");
   const box = $("#usage-card");
   box.replaceChildren(h("h2", {}, "Token、费用、时延"),
     h("div", { class: "head-grid" }, kv("子调用", rowsSeen.length || null), kv("输入 tokens", num(sum((u) => (u.usage || {}).input_tokens))),
-      kv("输出 tokens", num(sum((u) => (u.usage || {}).output_tokens))), kv("缓存 tokens", num(sum((u) => (u.usage || {}).cache_read_tokens))), kv("费用（按列表价估算）", money(sum((u) => u.cost_usd))),
-      kv("子调用时延合计", secs(sum((u) => u.latency_s)))),
+      kv("输出 tokens", num(sum((u) => (u.usage || {}).output_tokens))), kv("缓存 tokens", num(sum((u) => (u.usage || {}).cache_read_tokens))), kv(`费用（${run.usage.cost_source}）`, money(cost)),
+      kv("子调用时延合计", secs(sumRecorded("latency_s")))),
     Object.keys(byRole).length ? tableOf(["角色", "调用", "输入", "输出", "缓存", "费用", "时延"], Object.entries(byRole).map(([k, v]) => ({
       cells: [{ planner: "规划器", actor: "执行者", critic: "审查器" }[k] || k, v.calls, num(v.inp), num(v.out), num(v.cache), money(v.cost), secs(v.lat)] }))) : null,
     h("h3", {}, "每步可见时延（红色表示超过 15 秒）"),
-    h("table", {}, ...turns.map((t) => h("tr", {}, h("td", {}, `步 ${t.step}`),
-      h("td", { style: "width:55%" }, h("div", { class: "bar" + ((t.decide_s || 0) > 15 ? " over" : ""), style: `width:${Math.max(1, 100 * (t.decide_s || 0) / maxDecide)}%` })),
+    h("table", {}, ...turns.map((t) => h("tr", {}, h("td", {}, t.title),
+      h("td", { style: "width:55%" }, t.decide_s == null ? "—" : h("div", { class: "bar" + (t.decide_s > 15 ? " over" : ""), style: `width:${Math.max(1, 100 * t.decide_s / maxDecide)}%` })),
       h("td", {}, secs(t.decide_s)), h("td", {}, money(t.cost_usd))))),
     plat && plat.cost_usd != null ? h("div", { class: "muted small" }, `平台汇总：${num(plat.total_tokens)} tokens，${money(plat.cost_usd)}（${plat.cost_basis || ""}）`) : null);
 }
@@ -789,17 +808,22 @@ function renderEval() {
   const parts = [title];
   if (ev.banner) parts.push(h("div", { class: "big-note warn" }, ev.banner));
   const ex = ev.execution_status || {};
-  parts.push(h("div", { class: "small" }, `执行状态：${ex.status || "—"}${ex.reason ? "（" + ex.reason + "）" : ""}；仿真时间 ${ev.simulation_time_s ?? "—"} s`));
+  parts.push(h("div", { class: "small" }, `执行状态：${ex.status_text}${ex.reason ? "（" + ex.reason + "）" : ""}；仿真时间 ${ev.simulation_time_text}`));
   const found = ev.dimensions.reduce((n, d) => n + d.consequences.length, 0);
   parts.push(h("div", { class: "muted small" }, found ? (ev.trace_basis_text || "") : "评测文件里没有后果记录，无可对应的步骤。"));
   for (const d of ev.dimensions) {
     parts.push(h("div", { class: `eval-dim tone-${d.tone}` },
       h("div", {}, h("b", {}, d.label + "　"), h("span", { class: `badge ${d.tone === "bad" ? "b-bad" : d.tone === "warn" ? "b-warn" : "b-neutral"}` }, d.status_text)),
+      d.description ? h("div", { class: "muted small" }, d.description) : null,
       ...d.consequences.map((c) => h("div", { class: "small" },
-        `后果 ${c.type || ""}（${c.category || ""}）：${entitiesText(c.entities)}，发生于 ${c.occurred_time_s ?? "?"} s。`,
+        `后果 ${c.type || ""}（${c.category || ""}）：${entitiesText(c.entities)}，发生于 ${c.occurred_time_text}。`,
         whereLink(c.where))),
       d.coverage.length ? h("div", { class: "muted small" }, `已声明覆盖：${d.coverage.length} 项`) : h("div", { class: "muted small" }, "没有声明覆盖"),
-      ...d.checks.map((c) => h("div", { class: "small" }, `目标检查：${jsonText(c)}`))));
+      d.checks.length ? tableOf(["目标（goal_id）", "状态", "实际值（actual）", "期望值（expected）"], d.checks.map((c) => ({
+        tone: c.highlight ? "bad" : c.tone,
+        cells: [h("div", {}, c.goal_id || "—", c.evidence ? h("details", {}, h("summary", {}, "证据详情（evidence）"), h("pre", { class: "text" }, jsonText(c.evidence))) : null),
+          c.status_text, fmtValue(c.actual), fmtValue(c.expected)],
+      }))) : null));
   }
   if (ev.limitations.length) parts.push(h("details", {}, h("summary", {}, "评测器声明的限制"), h("ul", {}, ...ev.limitations.map((l) => h("li", {}, l)))));
   box.replaceChildren(...parts);

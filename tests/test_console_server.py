@@ -1,5 +1,8 @@
 """The console's HTTP layer, in-process on a free port (no platform needed unless noted)."""
 import json
+import os
+import shutil
+import subprocess
 import sys
 import threading
 import time
@@ -9,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from test_console_runstore import make_a_run, make_c_run
+from test_console_runstore import EVALUATION, _step_row, _write_jsonl, _write_meta, make_a_run, make_c_run
 
 CONSOLE = Path(__file__).resolve().parents[1]/"console"
 sys.path.insert(0, str(CONSOLE))
@@ -137,3 +140,135 @@ def test_an_offline_run_can_be_started_and_read(bench, tmp_path, monkeypatch):
         assert run["evaluation"]["state"] == "absent"
     finally:
         jobs.stop_all()
+
+
+def test_capped_metadata_only_run_is_listed_opened_and_refreshed(live, tmp_path):
+    call, _ = live
+    run = tmp_path/"batch"/"integ"/"cap_sim"/"open"/"Ap_cl_01"
+    run.mkdir(parents=True)
+    _write_meta(run, condition="Ap", killed_by_cap=True, disposition="excluded", exclusion_reason="time cap")
+    rid = "batch/integ/cap_sim/open/Ap_cl_01"
+    rows = json.loads(call("/api/runs")[1])["runs"]
+    summary = next(r for r in rows if r["id"] == rid)
+    assert summary["condition"] == "A′" and summary["state"] == "capped"
+    assert summary["meta"]["formal"] is False and summary["meta"]["excluded"] is True
+    status, body = call(f"/api/run?id={rid}")
+    view = json.loads(body)
+    assert status == 200 and view["evaluation"]["headline"] == "未评估"
+    assert view["notice"] == "被外层时间上限终止，没有评测输出"
+    assert view["turns"] == []
+    assert json.loads(call(f"/api/ledger?id={rid}&call=1")[1])["ledger"] is None
+    _write_meta(run, condition="Ap", formal=True, killed_by_cap=True)
+    status, body = call(f"/api/run?id={rid}&sig={view['sig']}")
+    updated = json.loads(body)
+    assert status == 200 and "unchanged" not in updated and updated["meta"]["formal"] is True
+    rows = json.loads(call("/api/runs")[1])["runs"]
+    assert next(r for r in rows if r["id"] == rid)["meta"]["excluded"] is False
+
+
+@pytest.mark.parametrize("timezone, local_clock, offset", [
+    ("Asia/Shanghai", "18:00:03", "UTC+8"),
+    ("America/New_York", "05:00:03", "UTC−5"),
+    ("Asia/Kolkata", "15:30:03", "UTC+5:30"),
+])
+def test_frontend_renders_simulation_fields_and_local_time_without_changing_replay(tmp_path, timezone, local_clock, offset):
+    """Native JS smoke test with a tiny DOM stand-in; no browser dependency."""
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("Node is not available for the optional native JS rendering check")
+    run = make_a_run(tmp_path)
+    _write_meta(run, condition="Ap", disposition="excluded", exclusion_reason="fixture exclusion", replacement=1)
+    invalid = _step_row(3, None, status="invalid_reply", source="simulation")
+    invalid.update(error="The reply was empty.", execution=None)
+    retry = _step_row(3, {"action": "pick_up"}, source="simulation")
+    failed = _step_row(4, {"action": "close_lid"}, status="action_failed", source="simulation")
+    failed.update(error="ManipulationFailure: tool held", execution=None)
+    for row in (invalid, retry, failed):
+        row.pop("reply")
+    _write_jsonl(run/"agent_steps.jsonl", [invalid, retry, failed])
+    agent = json.loads((run/"agent_run.json").read_text(encoding="utf-8"))
+    agent["environment"]["environment"] = "simulation"
+    (run/"agent_run.json").write_text(json.dumps(agent), encoding="utf-8")
+    evaluation = {**EVALUATION, "simulation_time_s": 43.208333333333336,
+                  "execution_status": {"status": "failed"},
+                  "task_completion": {"status": "not_achieved", "checks": [
+                      {"goal_id": "volume", "status": "not_achieved", "actual": 1500, "expected": 1000,
+                       "evidence": [{"value": 1500}]}]},
+                  "safety": {"status": "unsafe", "consequences": [{"occurred_time_s": 25.441666666666666}]}}
+    (run/"trajectory_evaluation.json").write_text(json.dumps(evaluation), encoding="utf-8")
+    from runstore import load_ledger, load_run, summarize_run
+    make_c_run(tmp_path, environment="simulation")
+    data = {"run": load_run(tmp_path, "pilot/A_test"), "summary": summarize_run(tmp_path, run),
+            "trace": load_run(tmp_path, "dry/C_test"),
+            "robot_fields": load_ledger(tmp_path, "dry/C_test", 1)["robot_fields"],
+            "clock": local_clock, "offset": offset}
+    harness = r'''
+const fs = require("node:fs"), vm = require("node:vm"), assert = require("node:assert/strict");
+const data = JSON.parse(fs.readFileSync(0, "utf8"));
+class Element {
+  constructor(tag) { this.tag = tag; this.nodeType = 1; this.children = []; this.attrs = {}; }
+  append(...kids) { this.children.push(...kids); }
+  replaceChildren(...kids) { this.children = kids; }
+  setAttribute(key, value) { this.attrs[key] = value; }
+  addEventListener() {}
+  get textContent() { return this.children.map(c => c && c.nodeType ? c.textContent : String(c)).join(""); }
+  set textContent(value) { this.children = [value]; }
+}
+const roots = {};
+const document = { createElement: t => new Element(t), createTextNode: s => s,
+                   querySelector: s => roots[s] ||= new Element("div") };
+const context = vm.createContext({ document, Element, data, assert });
+const source = fs.readFileSync(process.argv[1], "utf8").replace(/\binit\(\);\s*$/, "");
+vm.runInContext(source, context);
+vm.runInContext(`
+  S.run = data.run; S.runs = [data.summary, {...data.summary, condition: "A"}];
+  S.sel = 1;
+  const rawTime = S.run.turns[0].t_start;
+  assert.equal(clock(rawTime), data.clock);
+  assert.ok(timezoneNote(rawTime).includes(data.offset));
+  assert.equal(secs(43.208333333333336), "43.21 s");
+  renderHead();
+  const header = $("#run-head").textContent;
+  for (const text of ["A′ 平台基线", "非正式（联调，不进结果表）", "排除（fixture exclusion）", "abcdef1", "1234567", data.offset, "第 1 次"]) assert.ok(header.includes(text), text);
+  const first = turnView(S.run.turns[0]).textContent;
+  assert.ok(first.includes("步 3 · 无效回复") && first.includes("The reply was empty."));
+  assert.ok(!first.includes("等待平台执行") && !first.includes("等待执行"));
+  const failed = turnView(S.run.turns[2]).textContent;
+  assert.ok(failed.includes("执行失败") && failed.includes("ManipulationFailure: tool held"));
+  assert.ok(!failed.includes("action_failed"));
+  renderUsage();
+  const usage = $("#usage-card").textContent;
+  assert.ok(usage.includes("平台汇总") && usage.includes("$0.0200"));
+  assert.ok(!usage.includes("$0.0000") && !usage.includes("0.00 s"));
+  renderEval();
+  const panel = $("#eval-card"), text = panel.textContent;
+  for (const expected of ["终态液体目标（task_completion）", "不核对流程是否做完", "终态液体目标未达成", "目标（goal_id）", "实际值（actual）", "期望值（expected）", "43.21 s", "25.44 s", "执行失败"]) assert.ok(text.includes(expected), expected);
+  const all = node => [node, ...node.children.filter(c => c && c.nodeType).flatMap(all)];
+  const nodes = all(panel);
+  assert.ok(nodes.some(n => n.tag === "tr" && n.className === "goal-failed"));
+  const details = nodes.find(n => n.tag === "details" && n.textContent.includes("证据详情（evidence）"));
+  assert.ok(details && !("open" in details.attrs));
+  renderFilters(); renderRunList();
+  assert.ok($("#f-condition").textContent.includes("A′"));
+  assert.ok($("#run-list").textContent.includes("非正式") && $("#run-list").textContent.includes("排除"));
+  S.filters.condition = "A′"; renderRunList();
+  assert.equal($("#run-list").children.length, 1);
+  buildReplay();
+  assert.equal(S.run.turns[0].t_start, rawTime);
+  assert.equal(S.replay.events[0].ms, Date.parse(rawTime));
+  const robot = robotLine(data.robot_fields, () => false).textContent;
+  assert.equal((robot.match(/手持物体/g) || []).length, 1);
+  S.run = {...data.run, state: "capped", notice: "被外层时间上限终止，没有评测输出",
+           meta: {...data.run.meta, killed_by_cap: true, cap_text: "是"},
+           evaluation: {state: "absent", headline: "未评估", detail: "被外层时间上限终止，没有评测输出"}};
+  renderHead(); renderEval();
+  assert.ok($("#run-head").textContent.includes("被外层时间上限终止，没有评测输出"));
+  assert.ok($("#eval-card").textContent.includes("未评估"));
+  S.run = data.trace;
+  assert.ok(turnView(S.run.turns[0]).textContent.includes("dirty tip"));
+`, context);
+'''
+    result = subprocess.run([node, "-e", harness, str(CONSOLE/"web"/"app.js")],
+                            input=json.dumps(data), text=True, encoding="utf-8", capture_output=True,
+                            env={**os.environ, "TZ": timezone}, timeout=20)
+    assert result.returncode == 0, result.stdout + result.stderr
