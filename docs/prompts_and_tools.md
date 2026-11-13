@@ -5,7 +5,7 @@
 ```powershell
 .venv\Scripts\python.exe tools/export_prompts.py
 ```
-SafeLab 提交：`5e2637d9c9481112bccbcace359ac393d94f4e7d`；平台提交：`36914f595622909d1cf9d02095b852cb7203a9b4`。
+SafeLab 提交：`98852c70b3aeeba30c377febd33f4cdc04cf9e05`；平台提交：`36914f595622909d1cf9d02095b852cb7203a9b4`。
 提交号表示 HEAD；实际导出读取当前工作树，未提交改动不会另获提交号。无生成时间戳。
 哈希统一按 UTF-8、LF 换行计算，保留原文的首尾空白；代码块分隔符前的额外换行不计入。
 
