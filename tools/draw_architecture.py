@@ -83,7 +83,8 @@ def build() -> str:
         )
         out.append(
             f'<marker id="s-{name}" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="8" '
-            f'markerHeight="8" orient="auto"><path d="M10 0 L0 5 L10 10 z" fill="{color}"/></marker>'
+            f'markerHeight="8" orient="auto"><path d="M10 0 L0 5 L10 10 z" fill="{color}"/>'
+            "</marker>"
         )
     out.append("</defs>")
     out.append(f'<rect width="{W}" height="{H}" fill="#ffffff"/>')
