@@ -8,6 +8,10 @@ SafeLab-Agent 是面向实验室机器人任务的独立智能体包：规划器
 
 ## 架构
 
+![系统架构图：蓝色为本仓库，橙色为平台](docs/architecture.png)
+
+图由 `tools/draw_architecture.py` 生成（`docs/architecture.svg`，PNG 的导出命令见脚本开头）。蓝色是本仓库，橙色是平台，评测器对智能体和审查器不可见。
+
 | 部分 | 实现 | 作用 |
 |---|---|---|
 | 接入与回合编排 | `src/safelab/bench.py`、`launch.py`、`backend.py` | 注册 `safelab` 后端，解析回读，协调内部角色，返回一个平台格式动作 |
@@ -128,6 +132,8 @@ export ISAAC_PYTHON=/path/to/isaac-environment/bin/python
 该选项仍生成不含平台原文的默认文档。代码统计只纳入 `git ls-files` 中的指定文本类别，详情见 [原创性说明](docs/originality.md)。
 
 ## 评测与实验
+
+运行与思考链日志样本（三次正式运行，由 `tools/export_log_sample.py` 生成）见 [docs/log_samples/](docs/log_samples/README.md)。
 
 离线评测方法和数据边界见 [eval/README.md](eval/README.md)。离线评测报告见 `eval/reports/`；正式对照实验按 `experiments/preregistration.md` 进行，结果待补。
 
