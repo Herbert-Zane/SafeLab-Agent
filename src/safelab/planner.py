@@ -105,7 +105,8 @@ their exact ids.
 - "preconditions": checks on the observed state that should hold when the stage starts.
 - "expected": checks on the observed state that will hold once the stage is done. \
 They are evaluated after every action; when all of them hold, the stage is complete \
-and the next stage begins.
+and the next stage begins at once, from whatever state the bench and the robot's hand \
+are in at that moment.
 - "max_actions" (optional): the most actions the stage should take.
 
 A check is {"entity": ..., "field": ..., "op": ..., "value": ...}:
@@ -120,7 +121,10 @@ components_ul.<component>
 - pipette fields: type, capacity_ul, location, support, attached_tip
 - robot fields: held_object, attached_tip, tool_held, held_tool, pipette_type
 - actions fields: an action name, or several joined by "|"; the value is how many \
-of them have been carried out
+of them have been carried out. In "expected" the count covers only the actions carried \
+out since that stage began, so {"entity": "actions", "field": "vortex", "op": "gte", \
+"value": 1} asks for one vortex within the stage however many came before it. In \
+"preconditions" the count covers the whole run so far.
 - op: eq, ne, gt, gte, lt, lte, contains, excludes (contains and excludes test \
 membership of a list such as loaded_entities)
 Volumes are in microlitres and compared with a small tolerance. An absent component \
@@ -232,11 +236,14 @@ def check_predicate(predicate, snapshot, action_names=None):
     return None
 
 
-def observed_value(predicate, snapshot):
+def observed_value(predicate, snapshot, *, since=0):
+    """The value a predicate is compared with. ``since`` is how many rows of the
+    action history to skip for an ``actions`` count (a stage's expected checks
+    count from the moment the stage began, not from the start of the run)."""
     entity, name = predicate["entity"], predicate["field"]
     if entity == "actions":
         names = set(name.split("|"))
-        return sum(1 for row in snapshot.get("actions") or []
+        return sum(1 for row in (snapshot.get("actions") or [])[since:]
                    if row.get("status") == "complete"
                    and (row.get("action") or {}).get("action") in names)
     if entity == "robot":
@@ -254,9 +261,9 @@ def _numeric(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
-def holds(predicate, snapshot, *, tolerance_ul=0.5, tolerance_rel=0.02):
+def holds(predicate, snapshot, *, tolerance_ul=0.5, tolerance_rel=0.02, since=0):
     """Whether a predicate holds, and the value it was compared with."""
-    observed = observed_value(predicate, snapshot)
+    observed = observed_value(predicate, snapshot, since=since)
     op, wanted = predicate["op"], predicate.get("value")
     if op in ("contains", "excludes"):
         members = observed if isinstance(observed, list) else []
@@ -300,6 +307,9 @@ class Stage:
     status: str = "pending"          # pending, current, done, superseded
     actions_taken: int = 0
     plan_version: int = 1
+    #: Length of the action history when the stage became current; its expected
+    #: ``actions`` checks count from there. None until the stage has begun.
+    actions_base: int | None = None
 
     @classmethod
     def from_dict(cls, data, version):
@@ -340,6 +350,7 @@ class PlanTracker:
             stage.plan_version = self.version
             stage.status = "pending"
             stage.actions_taken = 0
+            stage.actions_base = None
         self.stages += stages
         self.source = source
         if source == "fallback":
@@ -380,19 +391,37 @@ class PlanTracker:
         if stage is not None and status in ("complete", "failed"):
             stage.actions_taken += 1
 
+    def _since(self, stage, snapshot):
+        """Where a stage's expected ``actions`` counts start in the action history.
+
+        A stage that has not begun has carried out nothing, so its counts are 0."""
+        if stage.actions_base is not None:
+            return stage.actions_base
+        return len(snapshot.get("actions") or [])
+
+    def expected_holds(self, stage, predicate, snapshot):
+        return holds(predicate, snapshot, since=self._since(stage, snapshot))
+
+    def _begin(self, snapshot):
+        stage = self.current
+        if stage is not None and stage.actions_base is None:
+            stage.actions_base = len(snapshot.get("actions") or [])
+
     def stage_done(self, stage, snapshot):
         if stage.expected:
-            return all(holds(p, snapshot)[0] for p in stage.expected)
+            return all(self.expected_holds(stage, p, snapshot)[0] for p in stage.expected)
         allowance = stage.allowance
         return allowance is not None and stage.actions_taken >= allowance
 
     def advance(self, snapshot):
         """Mark finished stages done, in order; return the names completed."""
         finished = []
+        self._begin(snapshot)
         while (stage := self.current) is not None and self.stage_done(stage, snapshot):
             stage.status = "done"
             finished.append(stage.name)
             self._activate()
+            self._begin(snapshot)
         return finished
 
     def mismatch(self, snapshot):
@@ -402,8 +431,9 @@ class PlanTracker:
             return None
         if stage.actions_taken < max(stage.allowance, MIN_MISMATCH_ACTIONS):
             return None
-        missing = [describe(p, holds(p, snapshot)[1], show_observed=True)
-                   for p in stage.expected if not holds(p, snapshot)[0]]
+        missing = [describe(p, self.expected_holds(stage, p, snapshot)[1], show_observed=True)
+                   for p in stage.expected
+                   if not self.expected_holds(stage, p, snapshot)[0]]
         if not missing:
             return None
         return (f"stage {stage.name!r} has taken {stage.actions_taken} action(s), past its "
@@ -415,7 +445,7 @@ class PlanTracker:
         out = []
         for stage in self.live():
             for p in stage.expected:
-                ok, value = holds(p, snapshot)
+                ok, value = self.expected_holds(stage, p, snapshot)
                 if not ok:
                     out.append(f"{stage.name}: {describe(p, value, show_observed=True)}")
         return out
@@ -447,13 +477,16 @@ class PlanTracker:
         lines += ["", f"Current stage: {stage.name} ({number} of {len(stages)}); "
                       f"actions taken in this stage: {taken}",
                   f"Subgoal: {stage.subgoal}"]
-        for title, predicates in (("Preconditions", stage.preconditions),
-                                  ("Expected when the stage is done", stage.expected)):
+        for title, predicates in (
+                ("Preconditions", stage.preconditions),
+                ("Expected when the stage is done (action counts are of this stage only)",
+                 stage.expected)):
             if not predicates:
                 continue
             lines.append(f"{title}:")
             for p in predicates:
-                ok, value = holds(p, snapshot)
+                ok, value = (self.expected_holds(stage, p, snapshot)
+                             if predicates is stage.expected else holds(p, snapshot))
                 lines.append(f"  - {describe(p)}: {'holds' if ok else 'does not hold'} "
                              f"(observed {json.dumps(value, ensure_ascii=False)})")
         return "\n".join(lines)

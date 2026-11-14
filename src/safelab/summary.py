@@ -101,6 +101,8 @@ def device_line(entity_id, row, presses=None):
 def robot_line(snapshot):
     robot = snapshot.get("robot") or {}
     held = robot.get("held_object") or "nothing"
+    if robot.get("held_object") and robot.get("held_from"):
+        held += f" (picked up from {robot['held_from']})"
     tip = robot.get("attached_tip") or "none"
     pipette = f"; pipette {robot['pipette_type']}" if robot.get("pipette_type") else ""
     tool = robot.get("held_tool") or "none"
@@ -115,6 +117,7 @@ def pipette_line(entity_id, row):
 def _other_rows(observation, skip):
     """Observed rows the ledger does not model (lids, supports), if they say anything."""
     lines = []
+    bare = []
     for row in (observation or {}).get("entities", []):
         entity_id = row.get("entity_id")
         if entity_id in skip or row.get("kind") in ("container", "well", "tip", "device",
@@ -124,6 +127,10 @@ def _other_rows(observation, skip):
                   if row.get(k) not in (None, "")]
         if detail:
             lines.append(f"{entity_id} ({row.get('kind')}): {', '.join(detail)}")
+        else:
+            bare.append(f"{entity_id} ({row.get('kind')})")
+    if bare:
+        lines.append("entities with no state of their own: " + ", ".join(sorted(bare)))
     return lines
 
 

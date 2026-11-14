@@ -199,3 +199,43 @@ def test_platform_refusals_outlive_the_recent_window():
                         refused_memory=False)
     assert REFUSED_HEADING in on and REFUSED_HEADING not in off
     assert on.index("Recent steps") < on.index(REFUSED_HEADING) < on.index(actor_module.CLOSING)
+
+
+# -- where things can be put down (formal run: put_down on "table", incubate in hand) --
+
+
+def _rack_scene(step, *, held=None, last_action=None):
+    from scene import container, observation
+    tube = container("lysis_tube", 700., {"AVL": 560., "sample": 140.}, closure="closed",
+                     capacity=2000., location="g2" if held else "tube_rack")
+    if held:
+        tube["support"] = None
+    rows = [tube, {"entity_id": "tube_rack", "kind": "support"},
+            {"entity_id": "lid_rest", "kind": "support"},
+            {"entity_id": "waste", "kind": "region"},
+            {"entity_id": "lysis_lid", "kind": "lid", "location": "lysis_tube"}]
+    obs = observation(step, rows, held=held, last_action=last_action)
+    obs["robot"]["tool_held"] = False
+    return obs
+
+
+def test_the_ledger_lists_supports_and_where_the_held_object_was_picked_up():
+    from scene import done
+    ledger = Ledger()
+    ledger.update(_rack_scene(0))
+    assert ledger.snapshot()["robot"]["held_from"] is None
+    pick = {"action": "pick_up", "target": "lysis_tube"}
+    ledger.expect(pick)
+    held = _rack_scene(1, held="lysis_tube", last_action=done(pick))
+    ledger.update(held)
+    assert ledger.snapshot()["robot"]["held_from"] == "tube_rack"
+    text = render_ledger(ledger.snapshot(), held, focus={"lysis_tube"})
+    assert "robot: holding lysis_tube (picked up from tube_rack)" in text
+    assert ("entities with no state of their own: lid_rest (support), tube_rack (support), "
+            "waste (region)") in text
+    assert "lysis_lid (lid): location lysis_tube" in text
+    put = {"action": "put_down", "target": "lysis_tube", "support": "tube_rack"}
+    ledger.expect(put)
+    ledger.update(_rack_scene(2, last_action=done(put)))
+    assert ledger.snapshot()["robot"]["held_from"] is None
+    assert "picked up from" not in render_ledger(ledger.snapshot(), _rack_scene(2))

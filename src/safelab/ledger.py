@@ -122,6 +122,9 @@ class Ledger:
         self.step_index = None
         self.source = None
         self.held_object = None
+        #: The support the held object stood on before it was picked up (readback
+        #: of the observation before the pick-up), or None when that is unknown.
+        self.held_from = None
         self.tool_held = None
         self.held_tool = None
         self.attached_tip = None
@@ -157,6 +160,7 @@ class Ledger:
         prior_containers = deepcopy(self.containers)
         prior_pipettes = deepcopy(self.pipettes)
         prior_tool = self.held_tool
+        prior_held = self.held_object
         prior_tip = self.attached_tip
         prior_tip_held = self.tips[prior_tip].held_volume_ul if prior_tip in self.tips else None
 
@@ -164,6 +168,9 @@ class Ledger:
         self._check_sequence(step, reported, first)
         confirmed, action_step = self._confirm(reported, step)
         self._read(observation, step, first)
+        if self.held_object != prior_held:
+            before_pickup = prior_containers.get(self.held_object)
+            self.held_from = before_pickup.support if before_pickup is not None else None
         if confirmed is not None:
             self._record_contact(confirmed, action_step, prior_tip, prior_containers, step)
             self._check_effects(confirmed, action_step, prior_containers, prior_tip,
@@ -202,7 +209,8 @@ class Ledger:
             "step_index": self.step_index,
             "source": self.source,
             "stage": deepcopy(self.stage),
-            "robot": {"held_object": self.held_object, "tool_held": self.tool_held,
+            "robot": {"held_object": self.held_object, "held_from": self.held_from,
+                      "tool_held": self.tool_held,
                       "held_tool": self.held_tool,
                       "attached_tip": self.attached_tip, "pipette_type": self.pipette_type},
             "containers": {cid: asdict(c) for cid, c in sorted(self.containers.items())},

@@ -359,3 +359,63 @@ def test_parse_json_object_rejects(text):
 
 def test_without_the_marker_the_whole_system_prompt_is_kept():
     assert planner_system("only text").endswith("only text")
+
+
+# -- expected action counts are per stage (formal run: B_cl_01, B_cl_10, C_cl_04) --
+
+
+def history(*names):
+    return {"actions": [{"step": i, "status": "complete", "action": {"action": name}}
+                        for i, name in enumerate(names)]}
+
+
+VORTEX_1 = stage("mix_1", [check("actions", "vortex", "gte", 1)])
+STAND_1 = stage("stand_1", [check("actions", "incubate", "gte", 1)])
+VORTEX_2 = stage("mix_2", [check("actions", "vortex", "gte", 1)])
+STAND_2 = stage("stand_2", [check("actions", "incubate", "gte", 1)],
+                preconditions=[check("actions", "vortex", "gte", 2)])
+
+
+def test_an_expected_action_count_starts_when_its_stage_begins():
+    tracker = tracked(VORTEX_1, STAND_1, VORTEX_2, STAND_2)
+    assert tracker.advance(history()) == []
+    assert tracker.advance(history("vortex")) == ["mix_1"]
+    # The first round's vortex and incubate do not complete the second round's stages.
+    assert tracker.advance(history("vortex", "incubate")) == ["stand_1"]
+    assert tracker.current.name == "mix_2"
+    assert tracker.advance(history("vortex", "incubate", "open_lid")) == []
+    assert tracker.advance(history("vortex", "incubate", "open_lid", "vortex")) == ["mix_2"]
+    assert tracker.current.name == "stand_2"
+    final = history("vortex", "incubate", "open_lid", "vortex", "incubate")
+    assert tracker.advance(final) == ["stand_2"]
+    assert tracker.current is None
+
+
+def test_a_replanned_stage_counts_from_its_adoption():
+    tracker = tracked(VORTEX_1)
+    so_far = history("vortex", "incubate")
+    tracker.advance(so_far)
+    tracker.adopt([Stage.from_dict(s, 2) for s in (VORTEX_2, STAND_2)], source="model")
+    assert tracker.advance(so_far) == []
+    assert tracker.current.name == "mix_2"
+
+
+def test_unmet_and_render_use_the_stage_s_own_count_and_preconditions_the_run_s():
+    tracker = tracked(VORTEX_1, STAND_1, VORTEX_2, STAND_2)
+    snapshot = history("vortex", "incubate")
+    for seen in (history(), history("vortex"), snapshot):
+        tracker.advance(seen)
+    assert tracker.unmet(snapshot) == ["mix_2: actions.vortex gte 1 (observed 0)",
+                                       "stand_2: actions.incubate gte 1 (observed 0)"]
+    assert "actions.vortex gte 1: does not hold (observed 0)" in tracker.render(snapshot)
+    snapshot = history("vortex", "incubate", "vortex")
+    tracker.advance(snapshot)
+    text = tracker.render(snapshot)
+    assert "actions.vortex gte 2: holds (observed 2)" in text          # precondition: whole run
+    assert "actions.incubate gte 1: does not hold (observed 0)" in text  # expected: this stage
+
+
+def test_the_planner_is_told_how_action_counts_and_stage_ends_work():
+    text = planner_system("Actions available to you:\n- vortex")
+    assert "since that stage began" in text
+    assert "whatever state the bench and the robot's hand" in text
