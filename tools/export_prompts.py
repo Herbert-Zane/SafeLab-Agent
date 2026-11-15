@@ -47,6 +47,37 @@ def git_head(root):
     ).strip()
 
 
+# The 110 formal runs used this commit. `src/` and `configs/` did not change between it
+# and FORMAL_DOCUMENT_COMMIT, where this document was last generated on that source.
+FORMAL_RUN_COMMIT = "52d09cf"
+FORMAL_DOCUMENT_COMMIT = "3f97f1e"
+
+
+def formal_run_note(root=REPO):
+    """Say which files under src/ and configs/ differ from the formal runs' commit."""
+    try:
+        changed = subprocess.check_output(
+            ["git", "-C", str(root), "diff", "--name-only", FORMAL_RUN_COMMIT, "--",
+             "src", "configs"],
+            text=True, encoding="utf-8", stderr=subprocess.DEVNULL,
+        ).split()
+    except (OSError, subprocess.CalledProcessError):
+        changed = None
+    if changed is None:
+        difference = "本检出里没有该提交，无法列出此后的改动。"
+    elif changed:
+        difference = ("此后 `src/`、`configs/` 中有改动的文件："
+                      + "、".join(f"`{name}`" for name in sorted(changed))
+                      + "；下文的提示词和行号是改动之后的。")
+    else:
+        difference = "此后 `src/`、`configs/` 没有改动，下文与正式运行所用的一致。"
+    return [
+        f"正式运行（110 次）用的是 SafeLab `{FORMAL_RUN_COMMIT}`。{difference}",
+        "与正式运行所用源码逐字对应的本文版本："
+        f"`git show {FORMAL_DOCUMENT_COMMIT}:docs/prompts_and_tools.md`。",
+    ]
+
+
 def source_ref(module, symbol):
     """Find definitions/assignments without embedding checkout-specific absolute paths."""
     path = Path(module.__file__)
@@ -394,6 +425,7 @@ def render_document(*, include_platform=False):
         "```",
         f"SafeLab 提交：`{git_head(REPO)}`；平台提交：`{git_head(root)}`。",
         "提交号表示 HEAD；实际导出读取当前工作树，未提交改动不会另获提交号。无生成时间戳。",
+        *formal_run_note(),
         "哈希统一按 UTF-8、LF 换行计算，保留原文的首尾空白；代码块分隔符前的额外换行不计入。",
         "",
         "## 角色及用户消息的组成",

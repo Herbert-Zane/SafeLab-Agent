@@ -48,6 +48,28 @@ def test_cli_runs_and_output_is_byte_stable(bench, tmp_path):
     assert b"\r" not in first.read_bytes()
 
 
+def test_formal_run_note_lists_changes_since_the_formal_commit(tmp_path, monkeypatch):
+    def git(*args):
+        subprocess.run(["git", "-C", str(tmp_path), *args], check=True, capture_output=True)
+
+    git("init", "-q")
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src/planner.py").write_text("PROMPT = 'one'\n", encoding="utf-8")
+    git("add", ".")
+    git("-c", "user.name=t", "-c", "user.email=t@example.invalid", "commit", "-q", "-m", "one")
+    monkeypatch.setattr(export, "FORMAL_RUN_COMMIT", "HEAD")
+    same = "\n".join(export.formal_run_note(tmp_path))
+    assert "没有改动" in same and "git show 3f97f1e:docs/prompts_and_tools.md" in same
+    # The export reads the working tree, so an uncommitted prompt change is listed too.
+    (tmp_path / "src/planner.py").write_text("PROMPT = 'two'\n", encoding="utf-8")
+    (tmp_path / "README.md").write_text("outside src\n", encoding="utf-8")
+    changed = "\n".join(export.formal_run_note(tmp_path))
+    assert "`src/planner.py`" in changed and "README" not in changed
+    assert "改动之后的" in changed
+    monkeypatch.setattr(export, "FORMAL_RUN_COMMIT", "0" * 40)
+    assert "无法列出" in "\n".join(export.formal_run_note(tmp_path))
+
+
 def test_every_prompt_hash_matches_the_exact_exported_text(bench):
     document = export.render_document()
     blocks = re.findall(
