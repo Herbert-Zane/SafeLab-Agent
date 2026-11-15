@@ -14,7 +14,7 @@
 <rect x="1296" y="63" width="34" height="20" rx="4" fill="#e6f0fa" stroke="#1f5fa8" stroke-width="1.6"/>
 <text x="1342" y="78" font-size="14" font-weight="normal" fill="#222222" text-anchor="start">本次参赛新增：SafeLab-Agent（独立包）</text>
 <rect x="1296" y="93" width="34" height="20" rx="4" fill="#fdf0df" stroke="#b0661a" stroke-width="1.6"/>
-<text x="1342" y="108" font-size="14" font-weight="normal" fill="#222222" text-anchor="start">平台 BSLBench：他人工作，作为运行环境，不申报</text>
+<text x="1342" y="108" font-size="14" font-weight="normal" fill="#222222" text-anchor="start">平台 BSLBench：既有平台，作为运行环境，不申报</text>
 <rect x="1296" y="123" width="34" height="20" rx="4" fill="#f4f4f4" stroke="#6b6b6b" stroke-width="1.6" stroke-dasharray="6 4"/>
 <text x="1342" y="138" font-size="14" font-weight="normal" fill="#222222" text-anchor="start">外部服务</text>
 <path d="M 1296 168 L 1330 168" fill="none" stroke="#222222" stroke-width="1.8" marker-end="url(#e-ink)"/>
@@ -112,7 +112,7 @@
 <path d="M 780 852 L 1054 852 L 1054 365" fill="none" stroke="#222222" stroke-width="1.8" marker-end="url(#e-ink)"/>
 <text x="1046" y="842" font-size="12" font-weight="normal" fill="#222222" text-anchor="end">放行或改写后的动作</text>
 <rect x="1280" y="240" width="480" height="680" rx="8" fill="#fdf0df" stroke="#b0661a" stroke-width="2.4"/>
-<text x="1298" y="272" font-size="18" font-weight="bold" fill="#8a4d10" text-anchor="start">BSLBench 平台（他人工作 · 运行环境 · 不申报）</text>
+<text x="1298" y="272" font-size="18" font-weight="bold" fill="#8a4d10" text-anchor="start">BSLBench 平台（既有平台 · 运行环境 · 不申报）</text>
 <rect x="1300" y="295" width="440" height="125" rx="8" fill="#ffffff" stroke="#b0661a" stroke-width="1.6"/>
 <text x="1314" y="321" font-size="16" font-weight="bold" fill="#8a4d10" text-anchor="start">Agent 接口</text>
 <text x="1726" y="321" font-size="12" font-weight="normal" fill="#8a4d10" text-anchor="end">src/agent_interface/</text>
@@ -129,7 +129,7 @@
 <text x="1314" y="621" font-size="16" font-weight="bold" fill="#8a4d10" text-anchor="start">ScientificGraph 科学状态图</text>
 <text x="1314" y="646" font-size="14" font-weight="normal" fill="#222222" text-anchor="start">执行观测 → 带证据的科学事件</text>
 <rect x="1300" y="720" width="440" height="170" rx="8" fill="#ffffff" stroke="#b0661a" stroke-width="2.4" stroke-dasharray="9 5"/>
-<text x="1314" y="746" font-size="16" font-weight="bold" fill="#8a4d10" text-anchor="start">独立评测器（智能体与审查器不可见）</text>
+<text x="1314" y="746" font-size="16" font-weight="bold" fill="#8a4d10" text-anchor="start">隔离的评测器（智能体与审查器不可见）</text>
 <text x="1314" y="771" font-size="14" font-weight="normal" fill="#222222" text-anchor="start">后果模型：不相容混合、交叉污染等</text>
 <text x="1314" y="792" font-size="14" font-weight="normal" fill="#222222" text-anchor="start">输出：危险后果 / 完整性失败 / 终态目标</text>
 <text x="1314" y="813" font-size="14" font-weight="normal" fill="#222222" text-anchor="start">只在回合结束后产出，不回传智能体</text>

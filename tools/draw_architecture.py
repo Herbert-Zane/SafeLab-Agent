@@ -98,7 +98,7 @@ def build() -> str:
         title="图例", width=1.0)
     for i, (style, label, dash) in enumerate((
         (OURS, "本次参赛新增：SafeLab-Agent（独立包）", None),
-        (PLAT, "平台 BSLBench：他人工作，作为运行环境，不申报", None),
+        (PLAT, "平台 BSLBench：既有平台，作为运行环境，不申报", None),
         (EXT, "外部服务", "6 4"),
     )):
         yy = 78 + i * 30
@@ -195,7 +195,7 @@ def build() -> str:
 
     # ---- platform container -----------------------------------------------
     box(1280, 240, 480, 680, PLAT, width=2.4)
-    text(1298, 272, "BSLBench 平台（他人工作 · 运行环境 · 不申报）", size=18,
+    text(1298, 272, "BSLBench 平台（既有平台 · 运行环境 · 不申报）", size=18,
          weight="bold", fill=PLAT["head"])
     box(1300, 295, 440, 125, PLAT_INNER, title="Agent 接口", sub="src/agent_interface/",
         lines=["AgentEnvironment；观测白名单（防泄漏）",
@@ -207,7 +207,7 @@ def build() -> str:
                "返回执行回读，或拒绝并给出原因"])
     box(1300, 595, 440, 85, PLAT_INNER, title="ScientificGraph 科学状态图",
         lines=["执行观测 → 带证据的科学事件"])
-    box(1300, 720, 440, 170, PLAT_INNER, title="独立评测器（智能体与审查器不可见）",
+    box(1300, 720, 440, 170, PLAT_INNER, title="隔离的评测器（智能体与审查器不可见）",
         lines=["后果模型：不相容混合、交叉污染等",
                "输出：危险后果 / 完整性失败 / 终态目标",
                "只在回合结束后产出，不回传智能体",

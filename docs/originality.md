@@ -2,7 +2,7 @@
 
 ## 平台与本作品的边界
 
-ScientificGraph、Engine、后果模型、评测器和平台 `src/agent_interface/` 是他人的工作，不作为本作品成果。本作品通过平台 `AgentEnvironment` 所在的接口层接入；实际实现是注册一个后端，让平台的 episode 循环调用 `generate(system=..., messages=...)`，不是在 SafeLab 内重新实现环境或评测器。
+ScientificGraph、Engine、后果模型、评测器和平台 `src/agent_interface/` 属于既有平台，不作为本作品成果。本作品通过平台 `AgentEnvironment` 所在的接口层接入；实际实现是注册一个后端，让平台的 episode 循环调用 `generate(system=..., messages=...)`，不是在 SafeLab 内重新实现环境或评测器。
 
 本仓库代码按参赛新增实现归档，不拷贝平台源码；运行时导入、继承平台接口不改变平台的归属。下表依据实际模块划分说明工程边界。行数与提交历史可以核查实现规模，不能单独证明独立创作过程或个人工时。
 

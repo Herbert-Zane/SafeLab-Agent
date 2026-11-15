@@ -4,7 +4,7 @@ SafeLab-Agent 是面向实验室机器人任务的独立智能体包：规划器
 
 ## 与平台的边界
 
-平台提供 ScientificGraph、Engine、后果模型、评测器及 `src/agent_interface/`，属于他人的工作。本仓库提供智能体、知识卡片、评测与实验脚本、控制台，不包含平台安装包或仿真资产。接口与代码归属见 [原创性说明](docs/originality.md)，提示词与动作来源见 [核心提示词与工具定义说明](docs/prompts_and_tools.md)。仓库保持私有。
+平台提供 ScientificGraph、Engine、后果模型、评测器及 `src/agent_interface/`，属于既有平台，不在本作品的成果范围内。本仓库提供智能体、知识卡片、评测与实验脚本、控制台，不包含平台安装包或仿真资产。接口与代码归属见 [原创性说明](docs/originality.md)，提示词与动作来源见 [核心提示词与工具定义说明](docs/prompts_and_tools.md)。仓库保持私有。
 
 ## 架构
 
