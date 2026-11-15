@@ -49,6 +49,35 @@ code, .mono { font-family: var(--mono); font-size: 13px; }
 .b-bad { color: var(--bad); background: var(--bad-bg); }
 .b-rewrite { color: var(--rewrite); background: var(--rewrite-bg); }
 .b-neutral { color: var(--muted); background: transparent; }
+.b-formal { color: var(--accent); background: var(--accent-bg); }
+.b-exploratory { color: var(--warn); background: var(--warn-bg); }
+.b-aside { color: var(--muted); background: transparent; border: 1px dashed var(--muted); text-decoration: line-through; }
+[hidden] { display: none !important; }
+
+/* Batch counts and independently scrolling replay frames. */
+.wide-view #layout, .embed #layout { display: block; }
+.wide-view #side, .embed #side, .embed #top, .embed #modebar { display: none; }
+.table-scroll { overflow-x: auto; }
+.result-table table { width: 100%; }
+.result-table th { white-space: nowrap; }
+.table-number { border: 0; background: transparent; color: var(--accent); cursor: pointer;
+  padding: 5px 3px; font: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.table-number:hover, .table-number:focus-visible { background: var(--accent-bg); }
+.unassessed-counts { white-space: nowrap; }
+.drill-panel { border-top: 2px solid var(--line); margin-top: 12px; padding-top: 10px; }
+.run-links { display: flex; flex-wrap: wrap; gap: 10px; }
+.compare-verdict { min-height: 24px; margin: 2px 0 6px; line-height: 1.9; }
+.compare-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.compare-side { min-width: 0; }
+.compare-title { display: flex; flex-wrap: wrap; align-items: center; gap: 7px;
+  background: var(--panel); border: 1px solid var(--line); padding: 10px; }
+.compare-side iframe { width: 100%; height: calc(100vh - 270px); min-height: 450px;
+  border: 1px solid var(--line); background: var(--bg); }
+.embed #layout { padding: 8px; }
+.embed #cols { display: block; }
+.embed #detail-col { display: none; }
+.embed .card { padding: 9px; }
+.embed .title-row { font-size: 13px; }
 
 /* ---- layout */
 #layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 12px; padding: 12px 16px; }
@@ -168,3 +197,4 @@ tr.goal-failed td { background: var(--bad-bg); }
 .eval-dim.tone-warn { border-color: var(--warn); background: var(--warn-bg); }
 .big-note { padding: 10px; border-radius: 6px; font-weight: 600; }
 .big-note.warn { background: var(--warn-bg); color: var(--warn); }
+a { color: var(--accent); }

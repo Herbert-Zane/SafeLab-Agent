@@ -27,7 +27,8 @@ function h(tag, attrs, ...kids) {
 }
 
 const S = {
-  runs: [], filters: { condition: "", task: "", model: "", source: "" },
+  runs: [], filters: { condition: "", task: "", model: "", source: "", cohort: "", batch: "" },
+  view: "run", embed: false, tables: null, tableSelection: null, tableBatch: null,
   rid: null, run: null, mode: "static", // static | live | replay
   cursor: Infinity, sel: null, follow: true, ledgers: {}, poll: null,
   replay: { events: [], i: 0, playing: false, speed: 10, compress: false, timer: null },
@@ -35,6 +36,15 @@ const S = {
 };
 
 const SOURCE_BADGE = { dry_run: "b-dry", simulation: "b-sim", unknown: "b-unknown" };
+const COHORT_LABELS = { formal: "正式运行", exploratory: "探索性（非正式）", aside: "已搁置（不是结果）", dry: "干跑" };
+const METRIC_LABELS = { safety: "危险后果", scientific_integrity: "完整性失败", task_completion: "终态液体目标达成" };
+function cohortBadge(cohort) {
+  return cohort ? h("span", { class: `badge b-${cohort}` }, COHORT_LABELS[cohort]) : null;
+}
+function formalCohort(meta) {
+  return meta?.aside ? "aside" : meta?.formal === true ? "formal" : meta?.formal === false ? "exploratory" : null;
+}
+function conditionText(condition) { return condition === "Ap" ? "A′" : condition; }
 const DECISION = { pass: ["放行", "b-ok"], block: ["驳回", "b-bad"], rewrite: ["改写", "b-rewrite"] };
 const CHANNEL = { rules: "仅规则通道", llm: "仅 LLM 通道", "rules+llm": "规则 + LLM 合议", none: "未触发审查" };
 const STRATEGY = { rewrite: "按驳回理由重新提议", replan: "重规划后提议", remediate: "补救提议" };
@@ -102,6 +112,13 @@ function sourceInfo() {
 function renderTop() {
   const box = $("#top-source");
   box.replaceChildren();
+  if (S.view === "tables" || S.view === "compare") {
+    box.append(h("span", { class: `badge big ${S.view === "compare" ? "b-replay" : "b-neutral"}` },
+      S.view === "compare" ? "数据来源：录像回放（并排）" : "批次结果表"));
+    $("#top-note").textContent = "";
+    $("#top-run").textContent = "";
+    return;
+  }
   const run = S.run;
   if (!run) {
     box.append(h("span", { class: "badge big b-unknown" }, "数据来源：未选择运行"));
@@ -119,6 +136,7 @@ function renderTop() {
       S.mode === "live" ? "实时跟踪" : "静态查看"));
   }
   box.append(h("span", { class: "badge b-neutral" }, run.condition_label));
+  box.append(cohortBadge(formalCohort(run.meta)));
   $("#top-run").textContent = run.id;
   const note = $("#top-note");
   note.className = "top-note";
@@ -144,12 +162,16 @@ function renderFilters() {
   fillSelect($("#f-task"), uniq(S.runs.map((r) => r.task)), S.filters.task, "全部");
   fillSelect($("#f-model"), uniq(S.runs.map((r) => r.model)), S.filters.model, "全部");
   fillSelect($("#f-source"), uniq(S.runs.map((r) => r.source_label)), S.filters.source, "全部");
+  fillSelect($("#f-cohort"), ["正式运行", "探索性", "已搁置", "未记录"], S.filters.cohort, "全部");
+  fillSelect($("#f-batch"), uniq(S.runs.map((r) => r.batch)), S.filters.batch, "全部");
 }
 
 function renderRunList() {
   const f = S.filters;
   const rows = S.runs.filter((r) => (!f.condition || r.condition === f.condition) && (!f.task || r.task === f.task)
-    && (!f.model || r.model === f.model) && (!f.source || r.source_label === f.source));
+    && (!f.model || r.model === f.model) && (!f.source || r.source_label === f.source)
+    && (!f.batch || r.batch === f.batch)
+    && (!f.cohort || ({ formal: "正式运行", exploratory: "探索性", aside: "已搁置" }[formalCohort(r.meta)] || "未记录") === f.cohort));
   $("#run-count").textContent = `共 ${rows.length} / ${S.runs.length} 个运行`;
   $("#run-list").replaceChildren(...rows.map((r) => h("div", {
     class: "run-item" + (r.id === S.rid ? " sel" : ""), onclick: () => selectRun(r.id),
@@ -160,7 +182,7 @@ function renderRunList() {
     h("span", {}, r.task || "?"), h("span", {}, r.model),
     h("span", { class: `badge ${SOURCE_BADGE[r.source]}` }, r.source_label),
     r.state === "running" ? h("span", { class: "badge b-live" }, "进行中") : null,
-    r.meta.formal != null ? h("span", { class: "badge b-neutral" }, r.meta.formal ? "正式" : "非正式") : null,
+    cohortBadge(formalCohort(r.meta)),
     r.meta.excluded ? h("span", { class: "badge b-bad", title: r.meta.disposition_text }, "排除") : null,
     r.meta.killed_by_cap ? h("span", { class: "badge b-warn" }, "被外层时间上限终止") : null,
     r.blocks ? h("span", { class: "badge b-bad" }, `驳回 ${r.blocks}`) : null,
@@ -223,19 +245,31 @@ async function pollJobs() {
 
 // ---------------------------------------------------------------- selecting and modes
 
-async function selectRun(rid) {
+async function selectRun(rid, updateURL = true) {
   stopReplay();
   clearInterval(S.poll);
+  S.view = "run";
+  $("#tables-view").hidden = true;
+  $("#compare-view").hidden = true;
+  if (updateURL && !S.embed) {
+    const query = new URLSearchParams(location.search);
+    query.delete("view"); query.delete("left"); query.delete("right");
+    query.set("run", rid);
+    history.pushState(null, "", "/?" + query);
+  }
   S.rid = rid; S.run = null; S.sel = null; S.ledgers = {}; S.follow = true; S.cursor = Infinity;
   renderRunList();
   const run = await api(`/api/run?id=${encodeURIComponent(rid)}`);
+  if (S.rid !== rid || S.view !== "run") return;
   S.run = run;
   S.mode = run.state === "running" ? "live" : "static";
+  if (S.embed) S.mode = "static";
   if (S.mode === "live") startPolling();
   $("#empty").hidden = true;
   $("#run-view").hidden = false;
   S.sel = lastTurnCall();
   renderAll();
+  if (S.embed) { setMode("replay"); window.SafeLabEmbed.ready = true; }
 }
 
 function lastTurnCall() {
@@ -357,10 +391,18 @@ function togglePlay() {
 function renderHead() {
   const run = S.run, info = run.info;
   const meta = run.meta;
+  if (S.embed) {
+    $("#run-head").replaceChildren(h("div", { class: "title-row" }, h("b", {}, run.name),
+      h("span", { class: "badge b-accent" }, run.condition),
+      h("span", { class: `badge ${SOURCE_BADGE[run.source.kind]}` }, run.source.label),
+      cohortBadge(formalCohort(meta)), h("span", {}, `结局：${info.outcome_text || "未记录"}`)));
+    return;
+  }
   const stateBadge = { running: ["进行中", "b-live"], finished: ["已结束", "b-neutral"], stalled: ["日志已停止更新", "b-warn"], capped: ["被外层时间上限终止", "b-warn"] }[run.state];
   $("#run-head").replaceChildren(
     h("div", { class: "title-row" }, h("span", { class: "name" }, run.name),
       h("span", { class: `badge ${SOURCE_BADGE[run.source.kind]}` }, run.source.label),
+      cohortBadge(formalCohort(meta)),
       h("span", { class: "badge b-accent" }, run.condition_label),
       run.reviewer ? null : h("span", { class: "badge b-warn" }, "无审查器"),
       stateBadge ? h("span", { class: `badge ${stateBadge[1]}` }, stateBadge[0]) : null),
@@ -376,7 +418,8 @@ function renderHead() {
     h("div", { class: "muted small" }, timezoneNote(run.t_start)),
     run.notice ? h("div", { class: "big-note warn" }, run.notice) : null,
     info.outcome_detail ? h("details", {}, h("summary", {}, "智能体的结束说明（自述，未经核实）"), h("pre", { class: "text" }, info.outcome_detail)) : null,
-    run.notes.length ? h("div", { class: "note" }, run.notes.join("；")) : null);
+    run.notes.length ? h("div", { class: "note" }, run.notes.join("；")) : null,
+    tableReturnLink(), comparePicker(run));
 }
 
 function kv(key, value) {
@@ -385,6 +428,7 @@ function kv(key, value) {
 }
 
 function renderModebar() {
+  if (S.embed) return;
   const R = S.replay;
   const box = $("#modebar");
   const modeBtn = (mode, label) => h("button", { class: "btn" + (S.mode === mode ? " on" : " alt"), onclick: () => setMode(mode) }, label);
@@ -800,12 +844,15 @@ function renderEval() {
   const box = $("#eval-card");
   const finished = S.cursor === Infinity || S.cursor >= lastSeq();
   const title = h("h2", {}, "评测器");
+  const aside = S.run.meta.aside ? h("div", { class: "big-note warn" },
+    `这次运行已搁置（${S.run.meta.aside}），不是结果。下面是运行目录里评测文件的原样内容，一律按未评估看待。`) : null;
   if (!finished) { box.replaceChildren(title, h("div", { class: "muted" }, "评测在回合结束后产出；回放尚未到结尾。")); return; }
   if (ev.state === "absent") {
-    box.replaceChildren(title, h("div", { class: "big-note warn" }, ev.headline), h("div", { class: "muted small" }, ev.detail));
+    box.replaceChildren(title, aside, h("div", { class: "big-note warn" }, ev.headline), h("div", { class: "muted small" }, ev.detail),
+      ev.declared_unassessed ? h("div", { class: "big-note warn" }, ev.declared_unassessed) : null);
     return;
   }
-  const parts = [title];
+  const parts = [title, aside];
   if (ev.banner) parts.push(h("div", { class: "big-note warn" }, ev.banner));
   const ex = ev.execution_status || {};
   parts.push(h("div", { class: "small" }, `执行状态：${ex.status_text}${ex.reason ? "（" + ex.reason + "）" : ""}；仿真时间 ${ev.simulation_time_text}`));
@@ -815,6 +862,7 @@ function renderEval() {
     parts.push(h("div", { class: `eval-dim tone-${d.tone}` },
       h("div", {}, h("b", {}, d.label + "　"), h("span", { class: `badge ${d.tone === "bad" ? "b-bad" : d.tone === "warn" ? "b-warn" : "b-neutral"}` }, d.status_text)),
       d.description ? h("div", { class: "muted small" }, d.description) : null,
+      d.declared_unassessed ? h("div", { class: "big-note warn" }, d.declared_unassessed) : null,
       ...d.consequences.map((c) => h("div", { class: "small" },
         `后果 ${c.type || ""}（${c.category || ""}）：${entitiesText(c.entities)}，发生于 ${c.occurred_time_text}。`,
         whereLink(c.where))),
@@ -867,24 +915,399 @@ function renderAll(keepModebar) {
 }
 
 function wireFilters() {
-  for (const [id, key] of [["#f-condition", "condition"], ["#f-task", "task"], ["#f-model", "model"], ["#f-source", "source"]]) {
+  for (const key of ["condition", "task", "model", "source", "cohort", "batch"]) {
+    const id = "#f-" + key;
     $(id).addEventListener("change", (e) => { S.filters[key] = e.target.value; renderRunList(); });
   }
   $("#s-go").addEventListener("click", startRun);
 }
 
-async function init() {
-  wireFilters();
+// ---------------------------------------------------------------- batch tables / navigation
+
+function tableURL(batch = S.tableBatch, selection = S.tableSelection) {
+  return "/?view=tables" + (batch != null ? "&batch=" + encodeURIComponent(batch) : "")
+    + (selection ? "&sel=" + encodeURIComponent(JSON.stringify(selection)) : "");
+}
+
+function returnQuery() {
+  return S.tableBatch == null ? "" : "&batch=" + encodeURIComponent(S.tableBatch)
+    + (S.tableSelection ? "&sel=" + encodeURIComponent(JSON.stringify(S.tableSelection)) : "");
+}
+
+function runURL(id) { return "/?run=" + encodeURIComponent(id) + returnQuery(); }
+const CONDITION_ORDER = ["A", "Ap", "B", "C"];
+// The baseline goes on the left whichever row the link was opened from.
+function orderedCompareURL(a, b) {
+  const rank = r => { const i = CONDITION_ORDER.indexOf(r.condition); return i < 0 ? 99 : i; };
+  return rank(b) < rank(a) ? compareURL(b.id, a.id) : compareURL(a.id, b.id);
+}
+function compareURL(left, right) {
+  return "/?left=" + encodeURIComponent(left) + "&right=" + encodeURIComponent(right) + returnQuery();
+}
+function tableReturnLink() {
+  return S.tableBatch == null ? null : h("a", { href: tableURL() }, "← 返回结果表");
+}
+
+function comparePicker(run) {
+  const peers = S.runs.filter(r => r.id !== run.id && r.batch === run.batch
+    && r.meta.group != null && r.meta.group === run.meta.group
+    && r.meta.task === run.meta.task && r.condition !== run.condition);
+  if (!peers.length) return null;
+  const rank = r => [Number(r.meta.index !== run.meta.index), CONDITION_ORDER.indexOf(r.condition), r.meta.index ?? 0];
+  peers.sort((a, b) => { const x = rank(a), y = rank(b); return x[0] - y[0] || x[2] - y[2] || x[1] - y[1]; });
+  const preferred = peers[0];
+  const select = h("select", {}, ...peers.map(r => h("option", {
+    value: r.id, selected: r.id === preferred.id,
+  }, `${r.name} · ${r.condition} · ${formalCohort(r.meta) ? COHORT_LABELS[formalCohort(r.meta)] : "未记录"}`)));
+  return h("div", { class: "mode-row" }, h("label", {}, "并排对照 ", select),
+    h("button", { class: "btn alt", onclick: () => { location.href = orderedCompareURL(run, peers.find(r => r.id === select.value)); } }, "并排回放"));
+}
+
+function tablePeers(table, row, run) {
+  if (run.index == null) return [];
+  return table.rows.filter(r => r.group === row.group && r.task === row.task && r.condition !== row.condition)
+    .flatMap(r => r.run_details.filter(other => other.index === run.index)
+      .map(other => ({ ...other, condition: r.condition })));
+}
+
+function shortStatus(run, metric, task, cohort) {
+  if (cohort === "aside" || cohort === "dry" || !run.evaluation_present || run[metric + "_unassessed"] || (task === "cl" && metric === "safety")) return "未评估";
+  const status = run[metric + "_status"];
+  if (metric === "task_completion") return status === "achieved" ? "目标已达成" : ["failed", "not_achieved"].includes(status) ? "目标未达成" : "未评估";
+  return status === "unsafe" ? "检出危险后果" : status === "failed" ? "完整性失败" : status === "no_detected_consequence" ? "未检出" : "未评估";
+}
+
+function selectTableCell(table, row, kind) {
+  S.tableBatch = table.batch;
+  S.tableSelection = { cohort: table.cohort, group: row.group, task: row.task, condition: row.condition, kind };
+  history.pushState(null, "", tableURL());
+  renderTables();
+}
+
+function tableNumber(table, row, kind, text) {
+  return h("button", { class: "table-number", onclick: () => selectTableCell(table, row, kind) }, text);
+}
+
+function tableMetric(table, row, metric) {
+  const value = row.metrics?.[metric];
+  if (!value) return tableNumber(table, row, "runs", table.cohort === "aside" ? "已搁置，不计数（未评估）" : "干跑不给评测结论（未评估）");
+  const text = !value.n ? "未评估（无评测）" : value.declared_unassessed ? "未评估" : `${value.events}/${value.n}`;
+  return h("div", {}, tableNumber(table, row, metric, text), value.declared_unassessed
+    ? h("small", { class: "muted" }, ` 检出 ${value.events}/${value.n}`) : null);
+}
+
+function drillPanel(table) {
+  const sel = S.tableSelection;
+  if (!sel || S.tableBatch !== table.batch || sel.cohort !== table.cohort) return null;
+  const row = table.rows.find(r => r.group === sel.group && r.task === sel.task && r.condition === sel.condition);
+  if (!row) return null;
+  let ids = [], highlighted = [], label = "";
+  const metric = row.metrics?.[sel.kind];
+  if (metric) { ids = row.n_ids; highlighted = metric.event_ids; label = `${METRIC_LABELS[sel.kind]}：${metric.events} / ${metric.n}`; }
+  else if (sel.kind.startsWith("unassessed:")) {
+    const key = sel.kind.split(":")[1];
+    ids = row.metrics?.[key]?.unassessed_ids || [];
+    label = `${METRIC_LABELS[key]}未评估：${ids.length}`;
+  } else {
+    ids = ({ n: row.n_ids, missing: row.missing_ids, excluded: row.excluded_ids, runs: row.run_ids })[sel.kind] || [];
+    label = `${({ n: "有评测", missing: "缺评测", excluded: "排除", runs: "全部运行" })[sel.kind] || "运行"}：${ids.length}`;
+  }
+  const runs = row.run_details.filter(r => ids.includes(r.id)).sort((a, b) => Number(highlighted.includes(b.id)) - Number(highlighted.includes(a.id)));
+  return h("section", { class: "drill-panel" },
+    h("h3", {}, `${COHORT_LABELS[table.cohort]} · ${conditionText(row.condition)} · ${row.task === "ws" ? "废液" : "裂解"} · ${row.group === "open" ? "开放式" : "程序式"} · ${label}`),
+    runs.length ? h("div", { class: "table-scroll" }, tableOf(["运行", "危险后果", "完整性", "目标", "结局", "驳回/改写", "查看"], runs.map(r => ({
+      tone: highlighted.includes(r.id) ? "bad" : "neutral",
+      cells: [r.name, ...Object.keys(METRIC_LABELS).map(m => shortStatus(r, m, row.task, table.cohort)), r.outcome || "未记录", `${r.blocks ?? "—"} / ${r.rewrites ?? "—"}`,
+        h("div", { class: "run-links" }, h("a", { href: runURL(r.id) }, "打开"),
+          ...tablePeers(table, row, r).map(other => h("a", { href: orderedCompareURL({ ...r, condition: row.condition }, other) }, `并排 ${conditionText(other.condition)} · ${other.name}`)))],
+    })))) : h("p", { class: "muted" }, "没有符合此选择的运行。"),
+    table.cohort === "aside" ? h("p", { class: "muted small" }, "已搁置的运行不给评测结论；下面各列一律按未评估显示。")
+      : h("p", { class: "muted small" }, "“未检出”指评测器在已声明覆盖范围内没有检出后果，不等于安全；“未评估”指评测器没有覆盖或没有评测输出。高亮的是计入该格分子的运行。"));
+}
+
+function renderTables() {
+  const data = S.tables;
+  if (!data) return;
+  $("#tables-view").replaceChildren(h("p", { class: "muted small" }, `元数据缺失或不合法而跳过：${data.skipped} 个运行。各表独立计数。`),
+    ...data.tables.map(table => {
+      const banner = table.cohort === "exploratory" ? "探索性运行：未预注册，不与正式运行合并报告；下表只是这一批自己的计数。"
+        : table.cohort === "formal" ? "计数由控制台按运行目录重数（规则同 experiments/analyze.py 主分析）；区间、检验和结论措辞以 experiments/results/ 下的 results.md 为准。未检出后果只表示评测器在已声明覆盖范围内没有检出，不等于安全。"
+        : table.cohort === "aside" ? `已搁置的运行，不是结果：批次目录里有标记文件（${table.aside || "未写明原因"}）。这里只列出运行供查看，不给任何计数结论，也不与正式运行合并。`
+        : "干跑不给评测结论（未评估）；离线推演不是仿真结果。";
+      const rows = table.rows.map(row => ({ cells: [
+        tableNumber(table, row, "runs", conditionText(row.condition)), row.task === "ws" ? "废液" : "裂解", row.group === "open" ? "开放式" : "程序式",
+        table.cohort === "aside" ? tableNumber(table, row, "runs", `不计数（共 ${row.runs} 次）`) : tableNumber(table, row, "n", String(row.n)), ...Object.keys(METRIC_LABELS).map(m => tableMetric(table, row, m)),
+        h("div", { class: "unassessed-counts" }, ...Object.keys(METRIC_LABELS).map((m, i) => [i ? " / " : "", tableNumber(table, row, "unassessed:" + m, String(row.metrics?.[m]?.unassessed_n || 0))])),
+        tableNumber(table, row, "missing", String(row.missing_evaluation)), tableNumber(table, row, "excluded", String(row.excluded)),
+      ] }));
+      const notes = uniq(table.rows.map(r => r.metrics?.safety?.declared_unassessed));
+      return h("section", { class: "card result-table" }, h("div", { class: "title-row" }, h("h2", {}, table.batch), cohortBadge(table.cohort)),
+        h("div", { class: `big-note ${table.cohort === "formal" ? "" : "warn"}` }, banner),
+        h("p", { class: "muted small table-meta" }, `${table.runs} 次运行 · SafeLab ${(table.safelab_commit || []).join("、") || "未记录"} · 平台 ${(table.platform_commit || []).join("、") || "未记录"} · ${table.started || "未记录"} — ${table.ended || "未记录"} · 结束方式 ${Object.entries(table.outcomes).map(([key, n]) => `${key}: ${n}`).join("；")}`),
+        ...table.warnings.map(w => h("div", { class: "big-note warn" }, w)),
+        h("div", { class: "table-scroll" }, tableOf(["条件", "任务", "组", "n（有评测）", "危险后果", "完整性失败", "终态液体目标达成", "评测器自报未评估（安全/完整性/目标）", "缺评测", "排除"], rows)),
+        ...notes.map(note => h("p", { class: "big-note warn small" }, note)), drillPanel(table));
+    }));
+}
+
+// ---------------------------------------------------------------- iframe replay: pure positioning helpers
+
+function replayOffsets(events, compress) {
+  let elapsed = 0;
+  return events.map((event, i) => {
+    if (i) {
+      const gap = Math.max(0, event.ms - events[i - 1].ms);
+      elapsed += compress ? Math.min(2000, gap) : gap;
+    }
+    return elapsed;
+  });
+}
+
+function eventIndexAt(offsets, t) {
+  let low = 0, high = offsets.length;
+  while (low < high) {
+    const middle = (low + high) >>> 1;
+    if (offsets[middle] <= t) low = middle + 1; else high = middle;
+  }
+  return low - 1;
+}
+
+function turnEndIndices(turns, events) {
+  return turns.map((turn, i) => {
+    if (i === turns.length - 1) return events.length - 1;
+    const seq = Math.max(-1, ...pieces(turn).map(p => p.seq));
+    return eventIndexAt(events.map(e => e.seq), seq);
+  });
+}
+
+function stepEventIndex(ends, k, eventCount) {
+  if (!ends.length || k >= ends.length) return eventCount - 1;
+  return k <= 0 ? -1 : ends[k - 1];
+}
+
+function mergedOffsets(offsetLists) { return [...new Set(offsetLists.flat())].sort((a, b) => a - b); }
+function adjacentOffset(offsets, t, direction) {
+  if (direction > 0) return offsets.find(value => value > t) ?? offsets[offsets.length - 1] ?? 0;
+  return [...offsets].reverse().find(value => value < t) ?? 0;
+}
+
+// What the parent may show beside a side once that side has reached its end.
+function embedVerdict(run) {
+  const ev = run.evaluation;
+  if (run.meta.aside) return [{ label: "评测", text: "未评估（已搁置的运行，不是结果）", tone: "warn" }];
+  if (run.source.kind !== "simulation") return [{ label: "评测", text: "未评估（不是仿真结果）", tone: "warn" }];
+  if (ev.state === "absent") return [{ label: "评测", text: "未评估（没有评测输出）", tone: "warn" }];
+  return ev.dimensions.map(d => ({
+    label: d.key === "task_completion" ? "终态液体目标" : d.label,
+    text: d.declared_unassessed ? "未评估" : d.status === "no_detected_consequence" ? "未检出后果"
+      : d.key === "safety" && d.status === "unsafe" ? "检出危险后果"
+      : d.key === "scientific_integrity" && d.status === "failed" ? "检出完整性失败"
+      : d.key === "task_completion" ? d.status_text.replace("终态液体目标", "") : d.status_text,
+    title: d.declared_unassessed || d.status_text,
+    tone: d.declared_unassessed ? "warn" : d.tone,
+  }));
+}
+
+function installEmbed() {
+  document.body.classList.add("embed");
+  const view = $("#run-view");
+  view.insertBefore($("#eval-card"), $("#plan"));
+  view.append(h("details", { class: "card" }, h("summary", {}, "账本和费用"), $("#ledger-card"), $("#usage-card")));
+  window.SafeLabEmbed = {
+    ready: false, error: null,
+    info: () => ({ id: S.run.id, name: S.run.name, condition: S.run.condition,
+      source: S.run.source, meta: S.run.meta, batch: S.run.batch, task: S.run.info.task, brief: S.run.info.brief }),
+    verdict: () => embedVerdict(S.run),
+    offsets: compress => replayOffsets(S.replay.events, compress),
+    turnEnds: () => turnEndIndices(S.run.turns, S.replay.events),
+    seekEvent: i => {
+      const count = S.replay.events.length;
+      S.replay.i = Math.max(-1, Math.min(count - 1, i));
+      S.cursor = !count ? Infinity : i < 0 ? -1 : S.replay.events[S.replay.i].seq;
+      S.follow = true; S.sel = latestVisibleCall(); renderAll();
+    },
+  };
+}
+
+// The parent owns only its shared clock. Each iframe keeps the existing run state.
+const C = { sides: [], timer: null, playing: false, speed: 10, compress: true, align: "step", position: 0, lastTick: 0, generation: 0 };
+
+function stopCompare() { clearTimeout(C.timer); C.playing = false; }
+function compareLength() {
+  return Math.max(0, ...C.sides.filter(s => s.api).map(s => C.align === "step" ? s.ends.length : s.offsets.at(-1) || 0));
+}
+
+function applyCompare() {
+  const total = compareLength();
+  C.position = Math.max(0, Math.min(total, C.position));
+  for (const side of C.sides) if (side.api) {
+    const i = C.align === "step" ? stepEventIndex(side.ends, C.position, side.offsets.length) : eventIndexAt(side.offsets, C.position);
+    if (side.index !== i) { side.api.seekEvent(i); side.index = i; }
+    const ended = !side.offsets.length || i >= side.offsets.length - 1;
+    side.ended.textContent = ended ? "已到结尾" : "";
+    const done = ended ? side.ends.length : side.ends.filter(end => end <= i).length;
+    side.verdict.replaceChildren(h("span", { class: "muted" }, `已完成 ${done} / ${side.ends.length} 步　`),
+      ...(ended ? side.api.verdict().flatMap(v => [h("span", {}, v.label + "："),
+        h("span", { class: `badge ${v.tone === "bad" ? "b-bad" : v.tone === "warn" ? "b-warn" : "b-neutral"}`, title: v.title || "" }, v.text), " "])
+        : [h("span", { class: "muted" }, "评测在这一侧回放到结尾后显示")]));
+  }
+  const progress = $("#compare-progress");
+  if (progress) { progress.max = total; progress.value = C.position; }
+  const pos = $("#compare-pos");
+  if (pos) pos.textContent = C.align === "step" ? `步 ${C.position} / ${total}` : `${mmss(C.position)} / ${mmss(total)}`;
+}
+
+function comparisonWarnings(infos) {
+  const warnings = [];
+  if (infos.some(info => info.source.kind === "dry_run" || info.meta.mode === "dry")) warnings.push("含干跑：离线推演不是仿真结果，安全、完整性和目标均未评估。");
+  if (infos.length === 2) {
+    const [a, b] = infos;
+    const task = info => info.meta.task || info.task;
+    const cohort = info => COHORT_LABELS[info.meta.mode === "dry" ? "dry" : formalCohort(info.meta)] || "未记录";
+    const fields = [["任务", task(a), task(b)], ["brief 组", a.meta.group, b.meta.group], ["批次", a.batch, b.batch], ["性质", cohort(a), cohort(b)]];
+    const differences = fields.filter(([, left, right]) => left == null || right == null || left !== right)
+      .map(([label, left, right]) => `${label}：${left ?? "未记录"} / ${right ?? "未记录"}`);
+    if (differences.length) warnings.push(differences.join("；") + "。只供查看，不能当作同批对照");
+  }
+  return warnings;
+}
+
+function refreshCompareWarnings() {
+  const infos = C.sides.filter(s => s.api).map(s => s.info);
+  $("#compare-warnings").replaceChildren(...comparisonWarnings(infos).map(w => h("div", { class: "big-note warn" }, w)));
+  $("#top-note").textContent = C.sides.map((side, i) => side.api
+    ? `${i ? "右" : "左"}侧原始来源：${side.info.source.label}` : "").filter(Boolean).join("；");
+}
+
+function compareControls() {
+  const speed = h("select", { onchange: e => { C.speed = Number(e.target.value); } },
+    ...[1, 2, 5, 10, 30, 100].map(value => h("option", { value, selected: value === C.speed }, `${value}×`)));
+  const jump = value => { stopCompare(); C.position = value; applyCompare(); compareControls(); };
+  const step = direction => {
+    const merged = mergedOffsets(C.sides.filter(s => s.api).map(s => s.offsets));
+    jump(C.align === "step" ? C.position + direction : adjacentOffset(merged, C.position, direction));
+  };
+  $("#compare-controls").replaceChildren(h("div", { class: "replay-row" },
+    h("button", { class: "btn", id: "compare-play", onclick: toggleCompare }, C.playing ? "暂停" : "播放"),
+    h("button", { class: "btn alt", onclick: () => step(1) }, "单步 ▸"),
+    h("button", { class: "btn alt", onclick: () => step(-1) }, "◂ 退一步"),
+    h("button", { class: "btn alt", onclick: () => jump(0) }, "回到开头"),
+    h("button", { class: "btn alt", onclick: () => jump(compareLength()) }, "跳到结尾"),
+    h("label", {}, "对齐 ", h("select", { onchange: e => { C.align = e.target.value; jump(0); } },
+      h("option", { value: "step", selected: C.align === "step" }, "按步号"), h("option", { value: "time", selected: C.align === "time" }, "按经过时间"))),
+    h("label", {}, "倍速 ", speed),
+    h("label", {}, h("input", { type: "checkbox", checked: C.compress, onchange: e => {
+      C.compress = e.target.checked;
+      for (const side of C.sides) if (side.api) side.offsets = side.api.offsets(C.compress);
+      jump(0);
+    } }), " 空档最多等 2 秒（仅按经过时间；压缩后两侧快慢不代表真实耗时）"),
+    h("input", { id: "compare-progress", type: "range", min: 0, max: compareLength(), value: C.position,
+      oninput: e => {
+        stopCompare(); C.position = Number(e.target.value); applyCompare();
+        $("#compare-play").textContent = "播放";
+      }, "aria-label": "并排回放进度" }),
+    h("span", { class: "mono", id: "compare-pos" })));
+  applyCompare();
+}
+
+function compareTick() {
+  if (!C.playing) return;
+  const now = performance.now();
+  if (C.align === "time") C.position += (now - C.lastTick) * C.speed;
+  else if (now - C.lastTick >= Math.max(150, 3000 / C.speed)) { C.position += 1; C.lastTick = now; }
+  if (C.align === "time") C.lastTick = now;
+  applyCompare();
+  if (C.position >= compareLength()) { stopCompare(); compareControls(); return; }
+  C.timer = setTimeout(compareTick, 50);
+}
+
+function toggleCompare() {
+  if (C.playing) stopCompare();
+  else {
+    if (C.position >= compareLength()) C.position = 0;
+    C.playing = true; C.lastTick = performance.now();
+    C.timer = setTimeout(compareTick, 50);
+  }
+  compareControls();
+}
+
+function showCompare(left, right) {
+  stopCompare(); C.position = 0; C.sides = []; C.generation += 1;
+  const generation = C.generation;
+  const grid = h("div", { class: "compare-grid" });
+  for (const [label, id] of [["左", left], ["右", right]]) {
+    const title = h("div", { class: "compare-title" }, `${label}侧：${id}`);
+    const error = h("div", { class: "big-note warn", hidden: true });
+    const iframe = h("iframe", { title: `${label}侧运行回放`, src: "/?run=" + encodeURIComponent(id || "") + "&embed=1" });
+    const side = { id, title, iframe, api: null, offsets: [], ends: [], index: null, ended: h("span", { class: "badge b-neutral" }),
+      verdict: h("div", { class: "compare-verdict small" }) };
+    C.sides.push(side);
+    const fail = message => { error.hidden = false; error.textContent = `读取失败：${message}`; iframe.hidden = true; };
+    iframe.addEventListener("error", () => fail("嵌入页加载失败"));
+    iframe.addEventListener("load", () => {
+      const wait = () => {
+        if (generation !== C.generation || S.view !== "compare") return;
+        const embed = iframe.contentWindow.SafeLabEmbed;
+        if (embed?.error) { fail(embed.error); return; }
+        if (!embed?.ready) { setTimeout(wait, 100); return; }
+        side.api = embed; side.info = embed.info(); side.offsets = embed.offsets(C.compress); side.ends = embed.turnEnds();
+        const info = side.info;
+        title.replaceChildren(h("b", {}, info.name), h("span", { class: "badge b-accent" }, info.condition),
+          h("span", { class: `badge ${SOURCE_BADGE[info.source.kind]}` }, info.source.label), cohortBadge(formalCohort(info.meta)),
+          side.ended, h("a", { href: runURL(id), target: "_blank", rel: "noopener" }, "单独打开"));
+        refreshCompareWarnings(); compareControls();
+      };
+      wait();
+    });
+    grid.append(h("section", { class: "compare-side" }, title, side.verdict, error, iframe));
+  }
+  $("#compare-view").replaceChildren(tableReturnLink(), h("div", { id: "compare-warnings" }),
+    h("section", { class: "card", id: "compare-controls" }),
+    h("p", { class: "muted small" }, "“未检出后果”只表示评测器在已声明覆盖范围内没有检出，不等于安全；评测器没有覆盖的情形显示“未评估”。两侧各自到结尾才显示评测。"), grid);
+  compareControls();
+}
+
+async function route() {
+  const query = new URLSearchParams(location.search);
+  stopReplay(); stopCompare(); clearInterval(S.poll);
+  C.generation += 1;
+  S.tableBatch = query.get("batch");
+  try { S.tableSelection = JSON.parse(query.get("sel")); } catch { S.tableSelection = null; }
+  if (!S.tableSelection || typeof S.tableSelection.kind !== "string") S.tableSelection = null;
+  S.view = query.has("left") || query.has("right") ? "compare" : query.get("view") === "tables" ? "tables" : "run";
+  document.body.classList.toggle("wide-view", S.view !== "run");
+  for (const view of ["run", "tables", "compare"]) $("#" + view + "-view").hidden = S.view !== view;
+  $("#empty").hidden = true;
   renderTop();
   try {
-    await loadRuns();
-    await loadOptions();
-    const wanted = new URLSearchParams(location.search).get("run");
-    if (wanted) selectRun(wanted);
+    if (S.view === "tables") { S.tables = await api("/api/tables"); if (S.view === "tables") renderTables(); }
+    else if (S.view === "compare") showCompare(query.get("left"), query.get("right"));
+    else if (query.get("run")) await selectRun(query.get("run"), false);
+    else { S.run = null; $("#run-view").hidden = true; $("#empty").hidden = false; }
+    if (S.embed && !query.get("run")) throw new Error("没有运行 id");
   } catch (error) {
-    $("#run-count").textContent = "读取失败：" + error.message;
+    $("#empty").hidden = false; $("#empty").textContent = "读取失败：" + error.message;
+    if (S.embed) window.SafeLabEmbed.error = error.message;
   }
-  setInterval(() => { if (!S.run || S.mode !== "replay") loadRuns().catch(() => {}); }, 15000);
+}
+
+async function init() {
+  const query = new URLSearchParams(location.search);
+  S.embed = query.get("embed") === "1";
+  if (S.embed) installEmbed();
+  else {
+    wireFilters();
+    // Sidebars are unnecessary in the iframe and comparison parent.
+    if (!query.has("left") && !query.has("right")) {
+      const listed = loadRuns().catch(error => { $("#run-count").textContent = "读取失败：" + error.message; });
+      // The tables page hides the run list, so it need not wait for it.
+      if (query.get("view") !== "tables") await listed;
+      loadOptions().catch(() => {});
+    }
+    window.addEventListener("popstate", route);
+    setInterval(() => { if (S.view === "run" && S.mode !== "replay") loadRuns().catch(() => {}); }, 15000);
+  }
+  await route();
 }
 
 init();

@@ -551,7 +551,8 @@ def _write_meta(run, **updates):
 def test_invalid_reply_keeps_its_own_row_when_the_step_is_retried(tmp_path, action):
     run = make_a_run(tmp_path)
     invalid = _step_row(3, action, status="invalid_reply", latency=None, source="simulation")
-    invalid.update(error="The reply was empty.", execution=None, reply_text="", cumulative_tokens=13)
+    invalid.update(error="The reply was empty.", execution=None,
+                   reply_text="", cumulative_tokens=13)
     retry = _step_row(3, {"action": "pick_up", "target": "stock"}, source="simulation")
     retry.update(reply_text="retry succeeded", cumulative_tokens=31)
     _write_jsonl(run/"agent_steps.jsonl", [invalid, retry])
@@ -649,13 +650,14 @@ def test_metadata_a_prime_wins_and_is_exposed_in_the_list(tmp_path):
 @pytest.mark.parametrize("formal", [False, True])
 def test_run_metadata_has_formal_disposition_replacement_and_short_commits(tmp_path, formal):
     run = make_a_run(tmp_path)
-    _write_meta(run, formal=formal, disposition="excluded", exclusion_reason="fixture exclusion", replacement=2)
+    _write_meta(run, formal=formal, disposition="excluded",
+                exclusion_reason="fixture exclusion", replacement=2)
     detail = runstore.load_run(tmp_path, "pilot/A_test")
     summary = runstore.summarize_run(tmp_path, run)
     meta = detail["meta"]
     assert meta == summary["meta"]
     assert meta["formal"] is formal
-    assert meta["formal_text"] == ("正式" if formal else "非正式（联调，不进结果表）")
+    assert meta["formal_text"] == ("正式运行" if formal else "探索性（非正式，不与正式运行合并）")
     assert meta["excluded"] is True and meta["disposition_text"] == "排除（fixture exclusion）"
     assert (meta["block"], meta["position"], meta["replacement_text"]) == (2, 6, "是（第 2 次）")
     assert (meta["safelab_commit"], meta["platform_commit"]) == ("abcdef1", "1234567")
@@ -705,18 +707,22 @@ def test_capped_runs_are_discovered_at_five_levels_and_remain_readable(tmp_path,
 
 @pytest.mark.parametrize("status, expected", [("achieved", "终态液体目标已达成"),
                                                ("not_achieved", "终态液体目标未达成")])
-def test_task_completion_is_labelled_as_final_liquid_targets_with_tabular_checks(tmp_path, status, expected):
+def test_task_completion_is_labelled_as_final_liquid_targets_with_tabular_checks(
+    tmp_path, status, expected,
+):
     evaluation = deepcopy(EVALUATION)
     checks = [{"goal_id": "volume", "status": "not_achieved", "actual": 1500, "expected": 1000,
                "evidence": [{"entity_id": "stock", "value": 1500}]},
               {"goal_id": "tip", "status": "achieved", "actual": None, "expected": None},
-              {"goal_id": "components", "status": "new_status", "actual": {"x": 1}, "expected": {"x": 2}}]
+              {"goal_id": "components", "status": "new_status",
+               "actual": {"x": 1}, "expected": {"x": 2}}]
     evaluation["task_completion"] = {"status": status, "checks": checks}
     make_c_run(tmp_path, environment="simulation", with_eval=evaluation)
     dimension = runstore.load_run(tmp_path, "dry/C_test")["evaluation"]["dimensions"][0]
     assert dimension["label"] == "终态液体目标（task_completion）"
     assert dimension["status_text"] == expected
-    assert dimension["description"] == "只核对终态液体量与成分、枪头状态和体积守恒，不核对流程是否做完。"
+    assert dimension["description"] == (
+        "只核对终态液体量与成分、枪头状态和体积守恒，不核对流程是否做完。")
     first, second, third = dimension["checks"]
     assert first["highlight"] is True and first["status_text"] == "未达成"
     assert first["evidence"] == checks[0]["evidence"]

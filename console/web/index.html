@@ -10,6 +10,7 @@
 <header id="top">
   <div class="top-row">
     <div class="brand">SafeLab 控制台</div>
+    <a class="btn alt" id="tables-link" href="/?view=tables">结果表</a>
     <div id="top-source" class="badges"></div>
     <div id="top-run" class="top-run"></div>
   </div>
@@ -25,6 +26,8 @@
         <label>任务<select id="f-task"></select></label>
         <label>模型<select id="f-model"></select></label>
         <label>来源<select id="f-source"></select></label>
+        <label>性质<select id="f-cohort"></select></label>
+        <label>批次<select id="f-batch"></select></label>
       </div>
       <div id="run-count" class="muted small"></div>
       <div id="run-list"></div>
@@ -42,6 +45,8 @@
   </aside>
 
   <main id="main">
+    <div id="tables-view" hidden></div>
+    <div id="compare-view" hidden></div>
     <div id="empty" class="card">从左侧选择一个运行。</div>
     <div id="run-view" hidden>
       <section class="card" id="run-head"></section>

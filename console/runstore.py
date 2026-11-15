@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter, defaultdict
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -41,6 +42,13 @@ EVALUATION = "trajectory_evaluation.json"
 META = "run_meta.json"
 MAX_DEPTH = 5
 TEXT_LIMIT = 4000
+DECLARED_UNASSESSED = (
+    '评测器能否检出“用过的枪头回到试剂瓶”未经确认，裂解任务的安全维度按未评估处理'
+)
+# Batch-level markers: a batch directory holding one of these is not a result set
+# (runs set aside as unexecuted, or a copy superseded by a later one).
+BATCH_MARKERS = ("MOVED.txt", "SUPERSEDED.txt")
+METRICS = {"safety": "unsafe", "scientific_integrity": "failed", "task_completion": "achieved"}
 
 SOURCE_LABELS = {
     "simulation": "仿真",
@@ -139,6 +147,8 @@ def find_run_dirs(root, max_depth=MAX_DEPTH):
         except OSError:
             return
         for child in children:
+            if not child.resolve().is_relative_to(root.resolve()):
+                continue
             if is_run_dir(child):
                 found.append(child)
             elif depth < max_depth:
@@ -265,7 +275,7 @@ def infer_condition(agent_run, trace_rows, meta=None):
     return "?"
 
 
-def metadata_view(meta):
+def metadata_view(meta, aside=None):
     meta = meta or {}
     formal = meta.get("formal")
     disposition = meta.get("disposition")
@@ -274,21 +284,177 @@ def metadata_view(meta):
     replacement = meta.get("replacement")
     return {
         "formal": formal,
-        "formal_text": ("正式" if formal is True else "非正式（联调，不进结果表）"
+        "formal_text": (f"已搁置（不是结果；{aside}）" if aside else
+                        "正式运行" if formal is True else "探索性（非正式，不与正式运行合并）"
                         if formal is False else "未记录"),
+        "aside": aside,
         "disposition": disposition, "excluded": excluded, "exclusion_reason": reason,
         "disposition_text": (("排除" + (f"（{reason}）" if reason else "")) if excluded
-                             else "计入" if disposition == "counted" else disposition or "未记录"),
+                             else "计入" if disposition == "counted" else disposition or "未记录")
+                            + ("（元数据原值；这次运行已搁置，不计入任何结果）" if aside else ""),
         "killed_by_cap": meta.get("killed_by_cap"),
         "cap_text": "是" if meta.get("killed_by_cap") is True else "否"
                     if meta.get("killed_by_cap") is False else "未记录",
         "block": meta.get("block"), "position": meta.get("position"),
         "replacement": replacement,
-        "replacement_text": (f"是（第 {replacement} 次）" if _number(replacement) and replacement > 0
+        "replacement_text": (f"是（第 {replacement} 次）"
+                             if _number(replacement) and replacement > 0
                              else "否" if replacement == 0 else "未记录"),
         "safelab_commit": (meta.get("safelab_commit") or "")[:7] or None,
         "platform_commit": (meta.get("platform_commit") or "")[:7] or None,
+        "mode": meta.get("mode"), "group": meta.get("group"),
+        "task": meta.get("task"), "index": meta.get("index"),
     }
+
+
+def batch_id(root, run_dir):
+    """The run's grandparent, clamped to root for shallow legacy directories."""
+    root, parent = Path(root).resolve(), Path(run_dir).resolve().parent.parent
+    return parent.relative_to(root).as_posix() if parent.is_relative_to(root) else "."
+
+
+def aside_note(root, run_dir):
+    """Marker name and first line when the run's batch directory is marked as not a result."""
+    root, batch = Path(root).resolve(), Path(run_dir).resolve().parent.parent
+    if not batch.is_relative_to(root):
+        return None
+    for name in BATCH_MARKERS:
+        marker = batch/name
+        if marker.is_file():
+            try:
+                lines = marker.read_text(encoding="utf-8", errors="replace").splitlines()
+            except OSError:
+                lines = []
+            first = next((line.strip() for line in lines if line.strip()), "")
+            return f"{name}：{first[:200]}" if first else name
+    return None
+
+
+def directory_signature(root):
+    """Include identities, sizes, mtimes and batch markers, so any change invalidates caches."""
+    return tuple((run_id(root, path), (signature(path), aside_note(root, path)))
+                 for path in find_run_dirs(root))
+
+
+def valid_table_meta(meta):
+    return (isinstance(meta, dict) and meta.get("meta_schema") == 1
+            and meta.get("condition") in ("A", "Ap", "B", "C")
+            and meta.get("task") in ("ws", "cl") and meta.get("group") in ("open", "proc")
+            and meta.get("mode") in ("sim", "dry") and isinstance(meta.get("formal"), bool)
+            and meta.get("disposition") in ("counted", "excluded"))
+
+
+def metric_unassessed(metric, body):
+    known = ({METRICS[metric], "no_detected_consequence"} if metric != "task_completion"
+             else {"achieved", "not_achieved", "failed"})
+    return (body.get("status") not in known or (metric != "task_completion" and
+            (bool(body.get("unassessed")) or body.get("coverage") == [])))
+
+
+def table_run(root, path, meta):
+    """Project only the three permitted evaluator dimensions; no checks or consequences."""
+    rid = run_id(root, path)
+    path = resolve_run(root, rid)
+    evaluation = read_json(path/EVALUATION)
+    present = evaluation is not None and meta["mode"] == "sim"
+    evaluation = evaluation if isinstance(evaluation, dict) and present else {}
+    run = read_json(path/RUN) or {}
+    trace = read_jsonl(path/TRACE) if (path/TRACE).is_file() else None
+    reviewed = [e for e in trace or [] if e.get("event") == "reviewed"]
+    rejected = [e for e in trace or [] if e.get("event") == "critic_rejected"]
+    reflected = [e for e in trace or [] if e.get("event") == "reflect"
+                 and e.get("kind") == "critic_rejected"]
+    row = {"id": rid, "name": meta.get("name") or path.name, "index": meta.get("index"),
+           "evaluation_present": present, "disposition": meta["disposition"],
+           "outcome": meta.get("outcome") or run.get("outcome"),
+           "blocks": (sum(e.get("decision") == "block" for e in reviewed)
+                      if reviewed else len(rejected or reflected)) if trace is not None else None,
+           "rewrites": (sum(e.get("event") == "proposed" and e.get("strategy") == "rewrite"
+                            for e in trace) + sum(e.get("decision") == "rewrite"
+                                                 for e in reviewed)) if trace is not None else None}
+    for metric in METRICS:
+        body = evaluation.get(metric) or {}
+        body = body if isinstance(body, dict) else {}
+        row[f"{metric}_status"] = body.get("status")
+        row[f"{metric}_unassessed"] = not present or metric_unassessed(metric, body)
+    return row
+
+
+def result_tables(root):
+    """Batch/cohort counts matching analyze.py's primary analysis, without inference."""
+    groups, skipped, notes = defaultdict(list), 0, {}
+    for path in find_run_dirs(root):
+        # Resolve before reading metadata, just as for all other console run ids.
+        path = resolve_run(root, run_id(root, path))
+        meta = read_json(path/META)
+        if not valid_table_meta(meta):
+            skipped += 1
+            continue
+        aside = aside_note(root, path)
+        cohort = "dry" if meta["mode"] == "dry" else "aside" if aside else (
+            "formal" if meta["formal"] else "exploratory")
+        groups[batch_id(root, path), cohort].append((meta, table_run(root, path, meta)))
+        if aside:
+            notes[batch_id(root, path)] = aside
+    tables = []
+    order = {"formal": 0, "exploratory": 1, "aside": 2, "dry": 3}
+    # Formal tables first, whatever the directory names sort to.
+    for (batch, cohort), items in sorted(groups.items(), key=lambda item: (
+            order[item[0][1]], item[0][0])):
+        rows = []
+        for group in ("open", "proc"):
+            for task in ("ws", "cl"):
+                for condition in ("A", "Ap", "B", "C"):
+                    runs = [r for m, r in items if (m["group"], m["task"], m["condition"])
+                            == (group, task, condition)]
+                    if not runs:
+                        continue
+                    counted = [r for r in runs if r["disposition"] == "counted"]
+                    evaluated = [r for r in counted if r["evaluation_present"]]
+                    ids = lambda selected: [r["id"] for r in selected]  # noqa: E731
+                    missing = [r for r in counted if not r["evaluation_present"]]
+                    excluded = [r for r in runs if r["disposition"] == "excluded"]
+                    metrics = None
+                    if cohort not in ("dry", "aside"):
+                        metrics = {}
+                        for metric, event in METRICS.items():
+                            events = [r for r in evaluated if r[f"{metric}_status"] == event]
+                            unassessed = [r for r in evaluated if r[f"{metric}_unassessed"]]
+                            metrics[metric] = {"events": len(events), "n": len(evaluated),
+                                               "unassessed_n": len(unassessed),
+                                               "event_ids": ids(events),
+                                               "unassessed_ids": ids(unassessed)}
+                            if task == "cl" and metric == "safety":
+                                metrics[metric]["declared_unassessed"] = DECLARED_UNASSESSED
+                    rows.append({"group": group, "task": task, "condition": condition,
+                                 "runs": len(runs), "counted": len(counted),
+                                 "excluded": len(excluded), "n": len(evaluated),
+                                 "missing_evaluation": len(missing), "metrics": metrics,
+                                 "run_ids": ids(runs), "n_ids": ids(evaluated),
+                                 "missing_ids": ids(missing), "excluded_ids": ids(excluded),
+                                 "run_details": runs})
+        commits = {key: sorted({str(m[key])[:7] for m, _ in items if m.get(key)})
+                   for key in ("safelab_commit", "platform_commit")}
+        warnings = ["本批次含多个提交号，请核对运行版本。"] if any(
+            len({str(m[key]) for (other_batch, _), batch_items in groups.items()
+                 for m, _ in batch_items if other_batch == batch and m.get(key)}) > 1
+            for key in commits) else []
+        failed = sum(r["outcome"] == "backend_error" for _, r in items)
+        if failed and cohort != "aside":
+            warnings.append(f"本批次有 {failed} 次运行的结局是 backend_error（模型后端调用失败）；"
+                            "它们仍按元数据计入下表，核对这些运行是否真的执行过。")
+
+        def time_edge(key, latest=False, batch_items=items):
+            values = [m[key] for m, _ in batch_items if parse_time(m.get(key)) is not None]
+            return (max if latest else min)(values, key=lambda v: parse_time(v).timestamp()) \
+                if values else None
+
+        tables.append({"batch": batch, "cohort": cohort, "runs": len(items), **commits,
+                       "started": time_edge("started"), "ended": time_edge("ended", True),
+                       "outcomes": dict(Counter(r["outcome"] or "未记录" for _, r in items)),
+                       "warnings": warnings, "rows": rows,
+                       "aside": notes.get(batch) if cohort == "aside" else None})
+    return {"tables": tables, "skipped": skipped, "root": str(root)}
 
 
 # --------------------------------------------------------------------------- ledger replay
@@ -623,7 +789,8 @@ def turns_from_steps(steps):
         is_finish = isinstance(action, dict) and action.get("action") == "finish"
         if action is not None and not is_finish and status != "invalid_reply":
             turn["executed"] = {"seq": base+2, "t": stamp, "action": action,
-                                "status": status, "error": row.get("error") or execution.get("error")}
+                                "status": status,
+                                "error": row.get("error") or execution.get("error")}
         if index+1 < len(steps):
             turn["readback"] = {"seq": base+3, "t": steps[index+1].get("recorded_at"),
                                 "changes": diff_states(states[index], states[index+1]),
@@ -642,7 +809,8 @@ def turns_from_steps(steps):
         turn["usage"] = [{"seq": turn["returned"]["seq"], "t": turn["returned"]["t"],
                           "role": "actor", "attempt": 1, "model": None, "usage": usage,
                           "cost_usd": None, "latency_s": platform.get("latency_s"),
-                          "stop_reason": None}] if usage or platform.get("latency_s") is not None else []
+                          "stop_reason": None}] \
+            if usage or platform.get("latency_s") is not None else []
         _finish_turn(turn, turns[index-1] if index else None)
         # Platform rows timestamp the reply, not the start of model deliberation.
         turn["decide_s"] = platform.get("latency_s")
@@ -695,8 +863,10 @@ def usage_totals(turns, agent_run=None):
                 bucket["input_tokens"] += usage.get("input_tokens") or 0
                 bucket["output_tokens"] += usage.get("output_tokens") or 0
                 bucket["cache_read_tokens"] += usage.get("cache_read_tokens") or 0
-                bucket["total_tokens"] += usage.get("total_tokens") if usage.get("total_tokens") is not None else sum(
-                    usage.get(k) or 0 for k in ("input_tokens", "output_tokens", "cache_read_tokens"))
+                bucket["total_tokens"] += usage.get("total_tokens") \
+                    if usage.get("total_tokens") is not None else sum(
+                        usage.get(k) or 0
+                        for k in ("input_tokens", "output_tokens", "cache_read_tokens"))
                 for key in ("cost_usd", "latency_s"):
                     if _number(row.get(key)) is not None:
                         bucket[key] = (bucket[key] or 0) + row[key]
@@ -836,7 +1006,8 @@ def evaluation_view(source, evaluation, windows=None, basis=None):
     if kind != "simulation":
         banner = ("此评测来自计划级推演或来源不明的运行：结论成立的前提是每个动作都按所写执行，"
                   "不是仿真结果。")
-    dims = [_dimension("task_completion", "终态液体目标（task_completion）", evaluation.get("task_completion"), windows),
+    dims = [_dimension("task_completion", "终态液体目标（task_completion）",
+                       evaluation.get("task_completion"), windows),
             _dimension("scientific_integrity", "科学完整性",
                        evaluation.get("scientific_integrity"), windows),
             _dimension("safety", "安全", evaluation.get("safety"), windows)]
@@ -868,7 +1039,7 @@ def summarize_run(root, run_dir, now=None):
     """One row for the run list. Cheap: reads the small files only."""
     import time
     now = now if now is not None else time.time()
-    run_dir = Path(run_dir)
+    run_dir = resolve_run(root, run_id(root, run_dir))
     agent_run = read_json(run_dir/RUN) or {}
     meta = read_json(run_dir/META)
     rows = read_jsonl(run_dir/TRACE)
@@ -893,12 +1064,13 @@ def summarize_run(root, run_dir, now=None):
     rel = run_id(root, run_dir)
     return {
         "id": rel, "name": run_dir.name, "group": str(Path(rel).parent.as_posix()),
+        "batch": batch_id(root, run_dir),
         "condition": condition, "condition_label": CONDITION_LABELS.get(condition, condition),
         "task": agent_run.get("task_id") or _task_from_name(run_dir.name),
         "model": backend.get("model") or "?", "provider": backend.get("provider"),
         "source": source["kind"], "source_label": source["label"],
         "outcome": agent_run.get("outcome"), "state": _state_of(rows, agent_run, mtime, now, meta),
-        "meta": metadata_view(meta),
+        "meta": metadata_view(meta, aside_note(root, run_dir)),
         "actions": agent_run.get("actions_completed"), "model_calls": agent_run.get("model_calls"),
         "blocks": blocks, "rewrites": rewrites, "cost_usd": cost,
         "has_trace": bool(rows), "has_steps": steps_exist,
@@ -979,15 +1151,22 @@ def load_run(root, rid, now=None):
     t1 = (run_end or {}).get("t") or (turns[-1]["t_end"] if turns else None)
     assessment = evaluation_view(source, evaluation,
                                  *step_windows(read_jsonl(run_dir/ACTIONS), steps))
+    if source["kind"] == "simulation" and (run_info["task"] == "cell_lysis"
+                                            or (meta or {}).get("task") == "cl"):
+        assessment["declared_unassessed"] = DECLARED_UNASSESSED
+        for dimension in assessment.get("dimensions", []):
+            if dimension["key"] == "safety":
+                dimension["declared_unassessed"] = DECLARED_UNASSESSED
     notice = None
     if (meta or {}).get("killed_by_cap") is True and evaluation is None:
         notice = "被外层时间上限终止，没有评测输出"
         assessment.update(headline="未评估", detail=notice)
     return {
         "id": rid, "name": run_dir.name, "sig": signature(run_dir),
+        "batch": batch_id(root, run_dir),
         "condition": condition, "condition_label": CONDITION_LABELS.get(condition, condition),
         "reviewer": reviewer, "has_trace": has_trace, "source": source, "state": state,
-        "meta": metadata_view(meta), "notice": notice,
+        "meta": metadata_view(meta, aside_note(root, run_dir)), "notice": notice,
         "info": run_info, "initial": initial, "turns": turns,
         "plan": states, "usage": usage_totals(turns, agent_run),
         "evaluation": assessment,

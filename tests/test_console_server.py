@@ -12,7 +12,14 @@ from pathlib import Path
 
 import pytest
 
-from test_console_runstore import EVALUATION, _step_row, _write_jsonl, _write_meta, make_a_run, make_c_run
+from test_console_runstore import (
+    EVALUATION,
+    _step_row,
+    _write_jsonl,
+    _write_meta,
+    make_a_run,
+    make_c_run,
+)
 
 CONSOLE = Path(__file__).resolve().parents[1]/"console"
 sys.path.insert(0, str(CONSOLE))
@@ -146,7 +153,8 @@ def test_capped_metadata_only_run_is_listed_opened_and_refreshed(live, tmp_path)
     call, _ = live
     run = tmp_path/"batch"/"integ"/"cap_sim"/"open"/"Ap_cl_01"
     run.mkdir(parents=True)
-    _write_meta(run, condition="Ap", killed_by_cap=True, disposition="excluded", exclusion_reason="time cap")
+    _write_meta(run, condition="Ap", killed_by_cap=True, disposition="excluded",
+                exclusion_reason="time cap")
     rid = "batch/integ/cap_sim/open/Ap_cl_01"
     rows = json.loads(call("/api/runs")[1])["runs"]
     summary = next(r for r in rows if r["id"] == rid)
@@ -171,13 +179,16 @@ def test_capped_metadata_only_run_is_listed_opened_and_refreshed(live, tmp_path)
     ("America/New_York", "05:00:03", "UTC−5"),
     ("Asia/Kolkata", "15:30:03", "UTC+5:30"),
 ])
-def test_frontend_renders_simulation_fields_and_local_time_without_changing_replay(tmp_path, timezone, local_clock, offset):
+def test_frontend_renders_simulation_fields_and_local_time_without_changing_replay(
+    tmp_path, timezone, local_clock, offset,
+):
     """Native JS smoke test with a tiny DOM stand-in; no browser dependency."""
     node = shutil.which("node")
     if not node:
         pytest.skip("Node is not available for the optional native JS rendering check")
     run = make_a_run(tmp_path)
-    _write_meta(run, condition="Ap", disposition="excluded", exclusion_reason="fixture exclusion", replacement=1)
+    _write_meta(run, condition="Ap", disposition="excluded",
+                exclusion_reason="fixture exclusion", replacement=1)
     invalid = _step_row(3, None, status="invalid_reply", source="simulation")
     invalid.update(error="The reply was empty.", execution=None)
     retry = _step_row(3, {"action": "pick_up"}, source="simulation")
@@ -192,9 +203,11 @@ def test_frontend_renders_simulation_fields_and_local_time_without_changing_repl
     evaluation = {**EVALUATION, "simulation_time_s": 43.208333333333336,
                   "execution_status": {"status": "failed"},
                   "task_completion": {"status": "not_achieved", "checks": [
-                      {"goal_id": "volume", "status": "not_achieved", "actual": 1500, "expected": 1000,
+                      {"goal_id": "volume", "status": "not_achieved",
+                       "actual": 1500, "expected": 1000,
                        "evidence": [{"value": 1500}]}]},
-                  "safety": {"status": "unsafe", "consequences": [{"occurred_time_s": 25.441666666666666}]}}
+                  "safety": {"status": "unsafe", "consequences": [
+                      {"occurred_time_s": 25.441666666666666}]}}
     (run/"trajectory_evaluation.json").write_text(json.dumps(evaluation), encoding="utf-8")
     from runstore import load_ledger, load_run, summarize_run
     make_c_run(tmp_path, environment="simulation")
@@ -229,7 +242,7 @@ vm.runInContext(`
   assert.equal(secs(43.208333333333336), "43.21 s");
   renderHead();
   const header = $("#run-head").textContent;
-  for (const text of ["A′ 平台基线", "非正式（联调，不进结果表）", "排除（fixture exclusion）", "abcdef1", "1234567", data.offset, "第 1 次"]) assert.ok(header.includes(text), text);
+  for (const text of ["A′ 平台基线", "探索性（非正式，不与正式运行合并）", "排除（fixture exclusion）", "abcdef1", "1234567", data.offset, "第 1 次"]) assert.ok(header.includes(text), text);
   const first = turnView(S.run.turns[0]).textContent;
   assert.ok(first.includes("步 3 · 无效回复") && first.includes("The reply was empty."));
   assert.ok(!first.includes("等待平台执行") && !first.includes("等待执行"));
@@ -267,8 +280,9 @@ vm.runInContext(`
   S.run = data.trace;
   assert.ok(turnView(S.run.turns[0]).textContent.includes("dirty tip"));
 `, context);
-'''
+'''  # noqa: E501
     result = subprocess.run([node, "-e", harness, str(CONSOLE/"web"/"app.js")],
-                            input=json.dumps(data), text=True, encoding="utf-8", capture_output=True,
+                            input=json.dumps(data), text=True, encoding="utf-8",
+                            capture_output=True,
                             env={**os.environ, "TZ": timezone}, timeout=20)
     assert result.returncode == 0, result.stdout + result.stderr

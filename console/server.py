@@ -158,19 +158,25 @@ class Jobs:
 class Cache:
     """Parsed runs and list rows, keyed by file signature; keeps the last few."""
 
-    def __init__(self, size=12):
+    def __init__(self, size=8192):
+        # Must stay well above the number of runs: one list row per run is cached, and
+        # evicting them (or the tables built from them) makes every request rebuild.
         self.size, self.items, self.lock = size, {}, threading.Lock()
 
-    def get(self, key, build):
+    def peek(self, key):
         with self.lock:
-            if key in self.items:
-                return self.items[key]
-        value = build()
+            return self.items.get(key)
+
+    def put(self, key, value):
         with self.lock:
             self.items[key] = value
-            while len(self.items) > self.size*8:
+            while len(self.items) > self.size:
                 self.items.pop(next(iter(self.items)))
         return value
+
+    def get(self, key, build):
+        value = self.peek(key)
+        return value if value is not None else self.put(key, build())
 
 
 def make_handler(runs_root, jobs):
@@ -210,6 +216,7 @@ def make_handler(runs_root, jobs):
                     return self._error(HTTPStatus.NOT_FOUND, f"missing web file {name}")
             routes = {"/api/health": self._health, "/api/runs": self._runs, "/api/run": self._run,
                       "/api/ledger": self._ledger, "/api/step": self._step,
+                      "/api/tables": self._tables,
                       "/api/options": self._options, "/api/jobs": self._jobs}
             handler = routes.get(url.path)
             if handler is None:
@@ -226,13 +233,28 @@ def make_handler(runs_root, jobs):
                         "bench_root_exists": bench_root().is_dir()})
 
         def _runs(self, query):
-            rows = []
-            for run_dir in runstore.find_run_dirs(runs_root):
-                key = ("summary", str(run_dir), runstore.signature(run_dir),
-                       int(time.time()//30))
-                rows.append(cache.get(key, lambda d=run_dir: runstore.summarize_run(runs_root, d)))
-            rows.sort(key=lambda r: r["mtime"], reverse=True)
-            self._json({"runs": rows, "root": str(runs_root)})
+            signature = runstore.directory_signature(runs_root)
+
+            def build():
+                rows = []
+                for rid, sig in signature:
+                    row = cache.peek(("summary", rid, sig))
+                    if row is None:
+                        row = runstore.summarize_run(
+                            runs_root, runstore.resolve_run(runs_root, rid))
+                        # A running row turns stale by the clock alone; the others only
+                        # change when a file does, which changes the signature.
+                        if row.get("state") != "running":
+                            cache.put(("summary", rid, sig), row)
+                    rows.append(row)
+                rows.sort(key=lambda r: r["mtime"], reverse=True)
+                return {"runs": rows, "root": str(runs_root)}
+
+            self._json(cache.get(("runs", signature, int(time.time()//30)), build))
+
+        def _tables(self, query):
+            sig = runstore.directory_signature(runs_root)
+            self._json(cache.get(("tables", sig), lambda: runstore.result_tables(runs_root)))
 
         def _run(self, query):
             rid = query.get("id", "")
