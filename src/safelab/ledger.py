@@ -20,6 +20,8 @@ actions plus readback on either side of them:
   ledger began at step 0), ``attached`` (on any pipette), ``discarded``
   (unavailable and off every pipette), or ``unknown`` (earlier history or
   availability is missing). ``fresh_tips()`` lists the confirmed unused tips.
+* each device's confirmed ``instrument_start`` -- step, device, program, and
+  the load read back before it (after it if no prior load reading, else unknown).
 
 Where the readback disagrees with what a confirmed action should have done, or
 something changed that no confirmed action explains, the ledger does not
@@ -132,6 +134,7 @@ class Ledger:
         self.containers = {}
         self.tips = {}
         self.devices = {}
+        self.device_runs = []
         self.pipettes = {}
         self.last_action = None
         self.pending = None
@@ -158,6 +161,7 @@ class Ledger:
         step = observation["step_index"]
         first = self.step_index is None
         prior_containers = deepcopy(self.containers)
+        prior_devices = deepcopy(self.devices)
         prior_pipettes = deepcopy(self.pipettes)
         prior_tool = self.held_tool
         prior_held = self.held_object
@@ -172,6 +176,7 @@ class Ledger:
             before_pickup = prior_containers.get(self.held_object)
             self.held_from = before_pickup.support if before_pickup is not None else None
         if confirmed is not None:
+            self._record_device_run(confirmed, action_step, prior_devices)
             self._record_contact(confirmed, action_step, prior_tip, prior_containers, step)
             self._check_effects(confirmed, action_step, prior_containers, prior_tip,
                                 prior_tip_held, step)
@@ -216,6 +221,7 @@ class Ledger:
             "containers": {cid: asdict(c) for cid, c in sorted(self.containers.items())},
             "tips": {tid: asdict(t) for tid, t in sorted(self.tips.items())},
             "devices": {did: asdict(d) for did, d in sorted(self.devices.items())},
+            "device_runs": deepcopy(self.device_runs),
             "pipettes": deepcopy(self.pipettes),
             "last_action": deepcopy(self.last_action),
             "pending": deepcopy(self.pending),
@@ -322,6 +328,18 @@ class Ledger:
         tip.location = row.get("location")
         tip.available = row.get("available")
         tip.attached_to = row.get("attached_to")
+
+    def _record_device_run(self, action, action_step, prior_devices):
+        if action.get("action") != "instrument_start":
+            return
+        device_id = action.get("device")
+        before, after = prior_devices.get(device_id), self.devices.get(device_id)
+        loaded = before.loaded_entities if before is not None else None
+        if loaded is None and after is not None:
+            loaded = after.loaded_entities
+        self.device_runs.append({"step": action_step, "device": device_id,
+                                 "program": action.get("program"),
+                                 "loaded": deepcopy(loaded)})
 
     def _record_contact(self, action, action_step, prior_tip, prior_containers, step):
         if action.get("action") not in TIP_ACTIONS:

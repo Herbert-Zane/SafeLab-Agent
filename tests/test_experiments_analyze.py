@@ -164,6 +164,29 @@ def test_interrupted_trace_recovers_usage_and_keeps_unknown_counts(tmp_path):
     assert any("行无效" in w for w in warnings)
 
 
+@pytest.mark.parametrize("model_count,unpriced,expected,source", [
+    (2, 0, 0.297, "trace.run_end"),
+    (1, 0, 0.339, "agent_run.usage"),
+    (2, 1, 0.339, "agent_run.usage"),
+])
+def test_mixed_model_trace_cost_overrides_platform_cost_only_when_priced(
+        tmp_path, model_count, unpriced, expected, source):
+    models = {"actor": {"input_tokens": 20, "unpriced_calls": 0}}
+    if model_count == 2:
+        models["critic"] = {"input_tokens": 10, "unpriced_calls": unpriced}
+    folder = make_run(tmp_path, "C", condition="C", events=[
+        {"event": "run_end", "usage": {"by_model": models, "total_cost_usd": 0.297}}])
+    platform = {"usage": {"input_tokens": 123, "output_tokens": 45,
+                           "total_tokens": 168, "cost_usd": 0.339}}
+    (folder / "agent_run.json").write_text(json.dumps(platform), encoding="utf-8")
+    rows, _, _ = analyze.load_runs(tmp_path)
+    result = rows[0]
+    assert result["cost_usd"] == pytest.approx(expected)
+    assert result["usage_source"] == source
+    assert result["input_tokens"] == 123 and result["total_tokens"] == 168
+    assert platform["usage"]["cost_usd"] == 0.339
+
+
 @pytest.mark.parametrize("unpriced", [0, 1])
 def test_run_end_usage_fallback_does_not_double_count(tmp_path, unpriced):
     folder = make_run(tmp_path, "B", condition="B", events=[

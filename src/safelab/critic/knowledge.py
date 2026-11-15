@@ -60,8 +60,9 @@ PREDICATE_RULES = {
     "tip_return_to_stock": "R4",
     "capacity": "R5",
     "pour_off_container": "R6",
+    "claims_match_record": "R7",
 }
-RULE_IDS = ("R1", "R2", "R3", "R4", "R5", "R6")
+RULE_IDS = ("R1", "R2", "R3", "R4", "R5", "R6", "R7")
 _CARD_FIELDS = ("id", "title", "conclusion", "scope", "predicate", "rules", "evidence",
                 "enforcement", "sources", "quote")
 

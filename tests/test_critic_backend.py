@@ -71,6 +71,29 @@ def events(rows, *names):
     return [r for r in rows if r["event"] in names]
 
 
+def test_a_blocked_finish_is_fed_back_and_execution_continues(episode):
+    claim = {"action": "finish", "reason": "waste_guanidine completed an autoclave cycle."}
+    wait = {"action": "wait", "target": "waste_guanidine", "duration_s": 1}
+    summary, backend, rows = episode(spec([claim, wait, FINISH]), "waste_segregation")
+    assert summary["outcome"] == "finished_by_agent" and summary["actions_completed"] == 1
+    assert [r["decision"] for r in events(rows, "reviewed")] == ["block", "pass", "pass"]
+    assert [r["action"] for r in events(rows, "returned")] == [wait, FINISH]
+    assert "no confirmed instrument_start" in events(rows, "proposed")[1]["prompt"]
+    assert len(events(rows, "reflect")) >= 1
+    assert backend.critic.stats()["llm_calls"] == 0
+
+
+def test_repeated_false_finish_uses_the_existing_rejection_limit(episode):
+    claim = {"action": "finish", "reason": "waste_guanidine completed an autoclave cycle."}
+    _, backend, rows = episode(spec([claim]*3), "waste_segregation")
+    assert [r["decision"] for r in events(rows, "reviewed")] == ["block"]*3
+    returned = events(rows, "returned")
+    assert len(returned) == 1 and returned[0]["source"] == "safelab_critic_stop"
+    assert returned[0]["action"] != claim
+    assert "refused" in returned[0]["action"]["reason"]
+    assert backend.critic.stats()["llm_calls"] == 0
+
+
 def test_a_used_tip_is_kept_out_of_the_shared_ethanol_and_the_p1000_tip_takes_over(episode):
     summary, backend, rows = episode(spec([
         {"action": "pick_up", "target": "pipette_p200"},
@@ -100,7 +123,7 @@ def test_a_used_tip_is_kept_out_of_the_shared_ethanol_and_the_p1000_tip_takes_ov
     assert all(remembered in r["prompt"] for r in events(rows, "proposed")[5:])
     assert backend.reflexion.refused == {} and events(rows, "refusal_limit") == []
     end = rows[-1]
-    assert end["event"] == "run_end" and end["critic"]["reviews"] == 10
+    assert end["event"] == "run_end" and end["critic"]["reviews"] == 11
     assert backend.record()["components"]["critic"] == "rules_llm_gate:rules"
 
 
@@ -244,8 +267,8 @@ def test_the_dual_critic_asks_its_model_only_on_risky_steps_and_is_charged(episo
     assert len(usage) == 2
     assert summary["usage"]["input_tokens"] == 700            # 5 actor + 2 critic calls
     stats = backend.critic.stats()
-    assert stats["reviews"] == 4 and stats["llm_triggered"] == 2
-    assert stats["estimated_tokens_saved"] == 220
+    assert stats["reviews"] == 5 and stats["llm_triggered"] == 2
+    assert stats["estimated_tokens_saved"] == 330
     reviewed = events(rows, "reviewed")
     assert [r["llm_triggered"] for r in reviewed] == [False, False, True, True, False]
     assert reviewed[2]["llm"]["status"] == "verified" and reviewed[2]["channel"] == "llm"

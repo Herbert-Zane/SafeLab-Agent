@@ -3,6 +3,9 @@
 Modes
 -----
 
+``finish`` is counted but never sent to the LLM, including in ``llm`` mode;
+in ``rules`` and ``dual`` it is checked against R7 before being passed.
+
 ``rules``  rule channel only. A hard finding blocks (or rewrites); soft
            findings and undecided rules pass and stay in the record.
 ``llm``    LLM channel only, on every action. A verified block or rewrite is
@@ -69,7 +72,7 @@ from .rules import RuleChannel
 MODES = ("rules", "llm", "dual")
 TRIGGERS = ("risk", "always")
 RISK_BY_RULE = {"R1": "cross_contamination", "R4": "cross_contamination", "R2": "aerosol",
-                "R3": "incompatible_mixing", "R5": "overfill", "R6": "release"}
+                "R3": "incompatible_mixing", "R5": "overfill", "R6": "release", "R7": "other"}
 REASONING_PROVIDER = "openai_compatible_reasoning"
 #: Action kinds an LLM rewrite may take (each with its own condition, below).
 ALLOWED_REWRITES = ("close_lid", "plate_seal", "eject_tip", "attach_tip", "dispense", "wait")
@@ -227,13 +230,9 @@ class Critic:
             return self._finish(Verdict("pass", [], [], [], None, None,
                                         "no action object to review", "none", {},
                                         mode=self.mode), mark, started, counted=False)
-        if action["action"] == "finish":
-            return self._finish(Verdict("pass", [], [], [], None, None,
-                                        "finish ends the session; nothing to review", "none",
-                                        {}, mode=self.mode), mark, started, counted=False)
         rules = self.rules.check(snapshot, observation, action) if self.mode != "llm" else None
         inv = inventory(snapshot, observation)
-        trigger = self._trigger(rules)
+        trigger = [] if action["action"] == "finish" else self._trigger(rules)
         llm = None
         if trigger and self.llm is not None:
             llm = self.llm.review(snapshot, observation, action, inv,

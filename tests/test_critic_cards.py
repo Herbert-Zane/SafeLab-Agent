@@ -131,7 +131,7 @@ def test_the_capacity_card_admits_it_has_no_literature_source(knowledge):
     assert card.grade == "P" and card.sources == () and card.enforcement == "hard"
 
 
-def test_every_rule_r1_to_r6_rests_on_at_least_one_card(knowledge):
+def test_every_rule_r1_to_r7_rests_on_at_least_one_card(knowledge):
     by_rule = {rule: [c for c in knowledge.cards.values() if c.predicate
                       and PREDICATE_RULES[c.predicate["kind"]] == rule] for rule in RULE_IDS}
     assert all(by_rule.values()), {k: len(v) for k, v in by_rule.items()}

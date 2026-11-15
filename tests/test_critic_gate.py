@@ -16,6 +16,7 @@ from test_critic_rules import (
     Scene,
     asp,
     disp,
+    finish_scene,
     sample_into_lysis,
     sample_with_empty_hand,
     waste_bench,
@@ -391,9 +392,26 @@ def test_the_llm_is_called_only_for_risky_or_undecided_actions():
     assert verdict.llm_triggered and any("soft rule finding" in t for t in verdict.trigger)
     assert len(model.calls) == 1
     stats = made.stats()
-    assert stats["reviews"] == 3 and stats["llm_triggered"] == 1     # finish is not a review
-    assert stats["trigger_ratio"] == pytest.approx(1/3, abs=1e-3)
-    assert stats["estimated_tokens_saved"] == 2*1100
+    assert stats["reviews"] == 4 and stats["llm_triggered"] == 1
+    assert stats["trigger_ratio"] == pytest.approx(1/4, abs=1e-3)
+    assert stats["estimated_tokens_saved"] == 3*1100
+
+
+@pytest.mark.parametrize("mode", ["rules", "dual", "llm"])
+@pytest.mark.parametrize("reason,blocked", [
+    ("waste_guanidine completed an autoclave cycle.", True),
+    ("waste_guanidine was not autoclaved.", False),
+    ("done", False),
+])
+def test_finish_is_counted_and_rule_checked_without_any_llm_call(mode, reason, blocked):
+    made, model, _ = critic(mode=mode, llm_trigger="always")
+    verdict = review(made, finish_scene(), {"action": "finish", "reason": reason})
+    assert verdict.decision == ("block" if blocked and mode != "llm" else "pass")
+    assert model.calls == [] and not verdict.llm_triggered and verdict.llm is None
+    assert made.stats()["reviews"] == 1
+    assert verdict.usage["llm_calls"] == 0
+    if blocked and mode != "llm":
+        assert verdict.rule_ids == ["R7"] and verdict.rules["status"] == "violation"
 
 
 def test_a_benign_transfer_is_not_sent_to_the_llm():

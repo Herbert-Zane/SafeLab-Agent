@@ -101,7 +101,7 @@ def read_trace(path, warnings):
 
 
 def usage_summary(run, events):
-    """Prefer the platform totals; recover interrupted SafeLab calls from usage events."""
+    """Prefer platform totals, except mixed-model costs; recover interrupted calls."""
     usage = run.get("usage") or {}
     source = "agent_run.usage"
     if not usage:
@@ -124,6 +124,13 @@ def usage_summary(run, events):
             source = "trace.usage" if calls else "missing"
     else:
         models = {}
+        ends = [e.get("usage") for e in events if e.get("event") == "run_end" and e.get("usage")]
+        if ends:
+            report = ends[-1]
+            by_model = report.get("by_model", {})
+            if len(by_model) >= 2 and not any(v.get("unpriced_calls") for v in by_model.values()):
+                usage = {**usage, "cost_usd": report.get("total_cost_usd")}
+                source = "trace.run_end"
     tokens = {key: usage.get(key) for key in TOKEN_FIELDS}
     known = [value for value in tokens.values() if value is not None]
     models = set(models) | ({usage["model"]} if usage.get("model") else set())

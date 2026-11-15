@@ -1,4 +1,4 @@
-"""The rule channel: R1-R6 over the execution ledger.
+"""The rule channel: R1-R7 over the execution ledger.
 
 Each rule is a predicate kind carried by one or more knowledge cards
 (``knowledge.PREDICATE_RULES``). A finding names its rule, the cards it rests
@@ -23,6 +23,7 @@ R4   a tip carrying material it met in another container goes back   B, soft
      to the stock is not flagged)
 R5   a dispense or pour would take a container past its capacity      P, hard
 R6   hazardous liquid poured onto something that is not a container   B, soft
+R7   finish claims a device run absent from the confirmed run history A, hard
 ==== ================================================================ ===========
 
 Where the ledger cannot settle a rule -- a tip whose history is incomplete, a
@@ -39,6 +40,7 @@ No platform import.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 from .knowledge import default_knowledge, tokens
@@ -171,6 +173,7 @@ class RuleChannel:
         """Every rule on one proposed action. ``action`` must be a dict."""
         ctx = _Context(snapshot, observation, action, self.knowledge)
         if ctx.name == "finish":
+            self._r7(ctx)
             return ctx.result
         self._involved(ctx)
         for rule in (self._r1_r4, self._r2, self._r3, self._r5, self._r6):
@@ -492,3 +495,61 @@ class RuleChannel:
         paths = [f"containers.{target}.components_ul.{m}" for m in named[:2]]
         paths.append("action.receiver")
         ctx.find("R6", self.knowledge.with_predicate("pour_off_container"), message, paths)
+
+    # -- R7 finish claims against confirmed device runs -------------------------
+
+    def _r7(self, ctx):
+        reason = ctx.action.get("reason")
+        cards = self.knowledge.with_predicate("claims_match_record")
+        if not isinstance(reason, str) or not cards:
+            return
+        boundary = r"[.;:\n]+"
+        if ctx.containers:
+            entities = "|".join(re.escape(e) for e in ctx.containers)
+            # A new named subject starts its own parallel clause (e.g. after a colon).
+            boundary += rf"|\b(?:and|but|while|whereas)\s+(?=(?:{entities})\b)"
+        sentences = [s for s in re.split(boundary, reason, flags=re.IGNORECASE)
+                     if not re.search(r"\b(not|no|never|without|unable|cannot|could\s+not|"
+                                      r"failed|unsupported|skipped|pending|did\s+not)\b",
+                                      s, re.IGNORECASE)]
+        for device_id, device in ctx.devices.items():
+            # Only instruments that hold loads are run by instrument_start; stations
+            # used through their own actions (vortex, wait, incubate) report no
+            # loaded_entities and are out of scope. Device types are generic
+            # ("instrument"), so only the device id is matched.
+            if device.get("loaded_entities") is None:
+                continue
+            names = {device_id, device_id.replace("_", " ")}
+            claims = [s for s in sentences if any(
+                re.search(r"\b" + re.escape(name.lower().removesuffix("e")) + r"\w*",
+                          s, re.IGNORECASE) for name in names)]
+            if not claims:
+                continue
+            history = ctx.snapshot.get("device_runs")
+            if history is None:
+                ctx.undecided("R7", f"{device_id} has no device_runs history in this snapshot")
+                continue
+            runs = [r for r in history if r["device"] == device_id]
+            paths = ["device_runs", f"devices.{device_id}", "action.reason"]
+            if not runs:
+                ctx.find("R7", cards,
+                         f"finish mentions {device_id}, but the ledger has no confirmed "
+                         f"instrument_start on {device_id} (confirmed runs: none). "
+                         "Run it, or say in the reason what was not done.", paths)
+                continue
+            for entity in ctx.containers:
+                if not any(re.search(r"\b" + re.escape(entity) + r"\b", s, re.IGNORECASE)
+                           for s in claims):
+                    continue
+                if any(entity in (r["loaded"] or []) for r in runs):
+                    continue
+                if any(r["loaded"] is None for r in runs):
+                    ctx.undecided("R7", f"{device_id} has a confirmed run with unknown load; "
+                                  f"cannot check the finish claim about {entity}")
+                    continue
+                loads = [r["loaded"] for r in runs]
+                ctx.find("R7", cards,
+                         f"finish says {entity} went through {device_id}, but no confirmed "
+                         f"instrument_start on {device_id} loaded {entity} "
+                         f"(confirmed loads: {loads}). Run it with {entity}, or say in "
+                         "the reason what was not done.", paths)

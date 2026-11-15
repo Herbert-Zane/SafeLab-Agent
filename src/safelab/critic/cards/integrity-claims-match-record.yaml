@@ -1,0 +1,23 @@
+id: integrity-claims-match-record
+title: 完成报告必须与实际设备运行记录一致
+conclusion: >-
+  记录和报告的操作必须与实际执行一致。finish 中按设备 id 提及有装载读数的仪器（由 instrument_start
+  运行，如高压灭菌器）时，必须有平台确认 complete 的 instrument_start；用自身动作运行、没有装载读数的
+  工位（涡旋仪、计时器、环境孵育）不在本卡范围内；同句提到具体容器时，必须有该容器在运行前已装载的读数。
+  诚实说明未完成的句子不拦截，装载历史未知时不判违规。本卡将数据准确性原则用于报告核对，
+  不据此断言灭菌效果、程序参数达标或任务目标达成。
+scope:
+  families: []
+  actions: [finish]
+predicate:
+  kind: claims_match_record
+rules: [R7]
+evidence:
+  grade: A
+  note: >-
+    FDA 2018 数据完整性指南 III.1.a 直接要求数据完整、一致、准确（ALCOA 的 Accurate）。
+    以确认动作和装载读数核对完成声明是本项目的可检查实现，不是 FDA 对机器人账本的原文要求。
+enforcement: hard
+sources:
+  - {id: D1, at: "p.4（PDF 第 8 页），III.1.a，What is data integrity?"}
+quote: null

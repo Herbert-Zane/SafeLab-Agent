@@ -7,6 +7,52 @@ from fakes import pipette_observation
 from safelab.ledger import Ledger
 from scene import Bench, done, failed
 
+
+@pytest.mark.parametrize("before,after,expected", [
+    (["waste_guanidine"], [], ["waste_guanidine"]),
+    ([], ["waste_guanidine"], []),
+    (None, ["waste_guanidine"], ["waste_guanidine"]),
+    (None, None, None),
+])
+def test_device_runs_use_confirmed_start_and_readback_load(before, after, expected):
+    from scene import device, observation
+
+    ledger = Ledger()
+    ledger.update(observation(0, [device("autoclave", loaded=before)]))
+    action = {"action": "instrument_start", "device": "autoclave", "program": "sterilization"}
+    ledger.expect(action)
+    assert ledger.device_runs == []
+    ledger.update(observation(1, [device("autoclave", loaded=after)], last_action=done(action)))
+    assert ledger.snapshot()["device_runs"] == [{"step": 0, "device": "autoclave",
+                                                "program": "sterilization", "loaded": expected}]
+    snapshot = ledger.snapshot()
+    snapshot["device_runs"][0]["loaded"] = ["changed"]
+    assert ledger.device_runs[0]["loaded"] == expected
+
+
+def test_device_run_can_fall_back_to_first_readback_or_record_unknown():
+    from scene import device, observation
+
+    for entities, expected in (([device("autoclave", loaded=["waste"])], ["waste"]), ([], None)):
+        ledger = Ledger()
+        action = {"action": "instrument_start", "device": "autoclave", "program": "sterilization"}
+        ledger.update(observation(1, entities, last_action=done(action)))
+        assert ledger.device_runs[0]["loaded"] == expected
+
+
+@pytest.mark.parametrize("report", [None, "failed", "pending"])
+def test_unconfirmed_or_refused_device_start_is_not_a_run(report):
+    from scene import device, observation
+
+    ledger = Ledger()
+    entities = [device("autoclave", loaded=["waste_guanidine"])]
+    ledger.update(observation(0, entities))
+    action = {"action": "instrument_start", "device": "autoclave", "program": "sterilization"}
+    ledger.expect(action)
+    last = {"status": report, "action": action} if report else None
+    ledger.update(observation(1 if report == "failed" else 0, entities, last_action=last))
+    assert ledger.device_runs == []
+
 ATTACH_P200 = {"action": "attach_tip", "tip_id": "p200_tip"}
 ASPIRATE_SAMPLE = {"action": "aspirate", "target": "sample_source", "volume_ul": 140}
 DISPENSE_LYSIS = {"action": "dispense", "target": "lysis_tube", "volume_ul": 140}
