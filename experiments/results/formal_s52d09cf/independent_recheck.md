@@ -1,6 +1,6 @@
 # 正式 110 次结果的独立重算
 
-本报告按预注册第 5、6、7 节及修订 1、5，从 `runs/formal_s52d09cf_full/formal/` 的 110 次原始运行独立重算，并读取 `analysis/results.json`、`analysis/runs.csv` 和仓库内 `results.md` 文本逐项比对。脚本为 `recheck_independent.py`，不导入原分析脚本；SafeLab 提交 `52d09cf`，平台 `36914f5`。statsmodels 未安装。路径均相对仓库；`--runs-root` 可替换输入根目录。
+本报告按预注册第 5、6、7 节及修订 1、5，从 `runs/formal_s52d09cf_full/formal/` 的 110 次原始运行独立重算，并读取 `analysis/results.json`、`analysis/runs.csv` 和仓库内 `results.md` 文本逐项比对。脚本为 `recheck_independent.py`，不导入原分析脚本；SafeLab 提交 `52d09cf`，平台 `36914f5`。statsmodels 0.15.0。路径均相对仓库；`--runs-root` 可替换输入根目录。
 
 汇总按下文一行作为一项；一行内的所有字段均须通过。数值与 JSON 使用 `rel_tol=1e-9, abs_tol=1e-12`；Markdown 比例、Wilson、差值区间为小数点后 1 位，p 和资源统计为 6 位有效数字，按原文件格式重新格式化后逐字符比较。诊断、预注册正文和文件哈希行注明其实际参考源；独立来源资源的差异单列，不进入不一致数。
 
@@ -22,8 +22,8 @@
 | 修订5字面对照核验 | 3 | 3 | 0 |
 | 字面规则结果表 | 14 | 14 | 0 |
 | 字面规则H1 | 7 | 7 | 0 |
-| 统计交叉核对 | 3 | 3 | 0 |
-| 合计 | 264 | 264 | 0 |
+| 统计交叉核对 | 4 | 4 | 0 |
+| 合计 | 265 | 265 | 0 |
 
 ## 计算定义与统计核对
 
@@ -398,6 +398,7 @@ JSON 参考为 `analysis_literal_rule/results.json`；文本参考为 `results_l
 | Newcombe 1998 方法10：56/70 − 48/80 | ["0.0524","0.3339"] | 不适用（设计或数学自检） | ["0.0524","0.3339"] | 一致 |
 | H1 hypergeom.cdf 与 scipy Fisher | 5.412544112234515e-06 | 不适用（设计或数学自检） | 5.412544112234515e-06 | 一致 |
 | Wilson 与 scipy 交叉核对：19 组 (k,n)，最大绝对误差 ≤ 1e-12 | true | 不适用（设计或数学自检） | true | 一致 |
+| Newcombe 与 statsmodels：14 组，最大误差 ≤ 1e-12 | true | 不适用（设计或数学自检） | true | 一致 |
 
 ## 文件一致性的哈希明细
 
@@ -703,6 +704,5 @@ JSON 参考为 `analysis_literal_rule/results.json`；文本参考为 `results_l
 
 ## 未核对到的内容
 
-- statsmodels 未安装，未做此项核对；未尝试安装。Wilson 的 scipy 核对、Newcombe 论文例子及 H1 的超几何核对已执行。
 - 人工审查标签、案例因果解释、H3 和重规划/驳回/改写的描述性统计不在本任务第 1–11 项数值重算范围；四份文件只另做内容哈希一致性核对。
 - 未重新运行仿真，未核对评测器模型正确性或具体风险覆盖；只读运行产物，不读取后果模型或任务 criteria/goals。
