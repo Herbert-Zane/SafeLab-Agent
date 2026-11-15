@@ -61,7 +61,7 @@
 
 | # | 资料 | 链接 | 与本项目相关的内容（已按原文改写） | 出处位置 | 访问日期 | 核对状态 |
 |---|---|---|---|---|---|---|
-| D1 | FDA, Data Integrity and Compliance With Drug CGMP: Questions and Answers, Guidance for Industry（December 2018） | https://www.fda.gov/media/119267/download | 数据完整性指数据完整、一致、准确；ALCOA 包括准确性（Accurate）。R7 用此原则核对完成声明与平台确认动作、装载读数；该机器人实现不是指南原文，也不证明处理效果或法规合规。 | p.4（PDF 第 8 页），III.1.a | 2026-11-15 | 部分核对：指南名称、链接与 III.1.a 内容（数据完整、一致、准确；ALCOA）按已知资料核对；页码未对照原文 PDF |
+| D1 | FDA, Data Integrity and Compliance With Drug CGMP: Questions and Answers, Guidance for Industry（December 2018） | https://www.fda.gov/media/119267/download | 数据完整性指数据完整、一致、准确；ALCOA 包括准确性（Accurate）。R7 用此原则核对完成声明与平台确认动作、装载读数；该机器人实现不是指南原文，也不证明处理效果或法规合规。 | p.4（PDF 第 8 页），III.1.a | 2026-11-15 | 已核对（FDA 官网 PDF 原文：III.1.a 定义 data integrity 为数据的 completeness, consistency, accuracy，并列出 ALCOA；目录页码 4） |
 
 ## 5. 外部评测数据
 
