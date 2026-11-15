@@ -5,8 +5,10 @@
 ```powershell
 .venv\Scripts\python.exe tools/export_prompts.py
 ```
-SafeLab 提交：`98852c70b3aeeba30c377febd33f4cdc04cf9e05`；平台提交：`36914f595622909d1cf9d02095b852cb7203a9b4`。
+SafeLab 提交：`ee71b2475db5604d4634ed068bd30e51f404770c`；平台提交：`36914f595622909d1cf9d02095b852cb7203a9b4`。
 提交号表示 HEAD；实际导出读取当前工作树，未提交改动不会另获提交号。无生成时间戳。
+正式运行（110 次）用的是 SafeLab `52d09cf`。此后 `src/`、`configs/` 中有改动的文件：`src/safelab/ledger.py`、`src/safelab/planner.py`、`src/safelab/summary.py`；下文的提示词和行号是改动之后的。
+与正式运行所用源码逐字对应的本文版本：`git show 3f97f1e:docs/prompts_and_tools.md`。
 哈希统一按 UTF-8、LF 换行计算，保留原文的首尾空白；代码块分隔符前的额外换行不计入。
 
 ## 角色及用户消息的组成
@@ -47,7 +49,7 @@ SafeLab 提交：`98852c70b3aeeba30c377febd33f4cdc04cf9e05`；平台提交：`36
 ### `safelab.planner.PLANNER_PROTOCOL`
 
 来源：`src/safelab/planner.py:97::PLANNER_PROTOCOL`。
-SHA-256：`89bf3e4fdaf64651e55611be41d79295d1207a73efb193512f85392cb6c0b434`。
+SHA-256：`54b3b675958e050647fd320a72d39bcba6d5e29e14ef641dd2f1a113f58949c3`。
 
 ````text
 You plan the work of a single-arm laboratory robot. You do not operate the robot: another component chooses one action per turn and follows your plan stage by stage.
@@ -56,7 +58,7 @@ Write the plan as an ordered list of stages. Each stage has:
 - "name": a short identifier.
 - "subgoal": what the stage achieves, in one or two sentences, naming entities by their exact ids.
 - "preconditions": checks on the observed state that should hold when the stage starts.
-- "expected": checks on the observed state that will hold once the stage is done. They are evaluated after every action; when all of them hold, the stage is complete and the next stage begins.
+- "expected": checks on the observed state that will hold once the stage is done. They are evaluated after every action; when all of them hold, the stage is complete and the next stage begins at once, from whatever state the bench and the robot's hand are in at that moment.
 - "max_actions" (optional): the most actions the stage should take.
 
 A check is {"entity": ..., "field": ..., "op": ..., "value": ...}:
@@ -66,7 +68,7 @@ A check is {"entity": ..., "field": ..., "op": ..., "value": ...}:
 - device fields: status, active, program, loaded_entities, power
 - pipette fields: type, capacity_ul, location, support, attached_tip
 - robot fields: held_object, attached_tip, tool_held, held_tool, pipette_type
-- actions fields: an action name, or several joined by "|"; the value is how many of them have been carried out
+- actions fields: an action name, or several joined by "|"; the value is how many of them have been carried out. In "expected" the count covers only the actions carried out since that stage began, so {"entity": "actions", "field": "vortex", "op": "gte", "value": 1} asks for one vortex within the stage however many came before it. In "preconditions" the count covers the whole run so far.
 - op: eq, ne, gt, gte, lt, lte, contains, excludes (contains and excludes test membership of a list such as loaded_entities)
 Volumes are in microlitres and compared with a small tolerance. An absent component counts as 0.
 
@@ -78,7 +80,7 @@ Reply with exactly one JSON object {"stages": [...]} inside a ```json fenced blo
 
 ### `safelab.planner.REFUSALS_HEADING`
 
-来源：`src/safelab/planner.py:526::REFUSALS_HEADING`。
+来源：`src/safelab/planner.py:559::REFUSALS_HEADING`。
 SHA-256：`581097bec7ee9a744702e1a0b0370439941a0dc13228e0968db13fb5e6541f54`。
 
 ````text
@@ -87,7 +89,7 @@ Actions SafeLab's reviewer has refused in this run, each with its reason:
 
 ### `safelab.planner.REFUSALS_PLAN_NOTE`
 
-来源：`src/safelab/planner.py:527::REFUSALS_PLAN_NOTE`。
+来源：`src/safelab/planner.py:560::REFUSALS_PLAN_NOTE`。
 SHA-256：`60b3838797a1cdd7a62dd76e5b0dd58f74247635ad7b55890d1e7c89d53dc1bb`。
 
 ````text
@@ -123,7 +125,7 @@ The reviewer refuses each of them for as long as its reason holds. If part of th
 
 ### `safelab.summary.REFUSED_HEADING`
 
-来源：`src/safelab/summary.py:206::REFUSED_HEADING`。
+来源：`src/safelab/summary.py:213::REFUSED_HEADING`。
 SHA-256：`23c55a78b5ec2b8e0c8302328da01a0f399295ad77d3f2c8e97f63f1c598d127`。
 
 ````text
@@ -248,14 +250,14 @@ Knowledge cards (one JSON object per line):
 
 以下为从源码直接提取的构造函数；动态消息没有一个通用哈希。不是一次真实运行的消息实例。
 
-标题替换来自 `src/safelab/planner.py:140::PLANNER_HEADINGS`：
+标题替换来自 `src/safelab/planner.py:144::PLANNER_HEADINGS`：
 
 | 原标题 | 规划器标题 |
 |---|---|
 | Actions available to you: | Actions the robot can carry out: |
 | To end the session when you judge the work complete: | The operating component ends the session with: |
 
-### `src/safelab/planner.py:515::planner_system`
+### `src/safelab/planner.py:548::planner_system`
 
 ````python
 def planner_system(system):
@@ -270,7 +272,7 @@ def planner_system(system):
 
 ````
 
-### `src/safelab/planner.py:534::plan_request`
+### `src/safelab/planner.py:567::plan_request`
 
 ````python
 def plan_request(snapshot, observation, *, notes=(), reason=None, tracker=None, k=6,
@@ -297,7 +299,7 @@ def plan_request(snapshot, observation, *, notes=(), reason=None, tracker=None, 
 
 ````
 
-### `src/safelab/planner.py:575::make`
+### `src/safelab/planner.py:608::make`
 
 ````python
     def make(self, system, snapshot, observation, *, notes=(), reason=None, tracker=None,
@@ -738,16 +740,16 @@ planner.mode 的条件表达式取决于有无 planner 角色。平台限额与�
 
 | 项目 | 代码值或表达式 | 来源 |
 |---|---|---|
-| 规划器重规划时的最近步窗口（调用 make 未传 k，独立于 actor.history_k） | `6` | `src/safelab/planner.py:534::plan_request` |
-| 平台旧拒绝摘要最多保留的失败种类 | `10` | `src/safelab/summary.py:210::render_refused` |
+| 规划器重规划时的最近步窗口（调用 make 未传 k，独立于 actor.history_k） | `6` | `src/safelab/planner.py:567::plan_request` |
+| 平台旧拒绝摘要最多保留的失败种类 | `10` | `src/safelab/summary.py:217::render_refused` |
 | 训练经验库读取上限 | `8` | `src/safelab/reflexion.py:281::read` |
 | DEFAULT_STAGE_ACTIONS | `8` | `src/safelab/planner.py:50::DEFAULT_STAGE_ACTIONS` |
 | MIN_MISMATCH_ACTIONS | `6` | `src/safelab/planner.py:55::MIN_MISMATCH_ACTIONS` |
 | 审查器最近动作窗口 RECENT_ACTIONS | `4` | `src/safelab/critic/llm_critic.py:51::RECENT_ACTIONS` |
 | 固定回退计划 prepare 阶段 max_actions | `3` | `src/safelab/planner.py:88::FALLBACK_STAGES` |
-| 账本摘要未确认项尾部截取 | `out += [f"  step {item.get('step')}: {item.get('detail')}" for item in unconfirmed[-5:]]` | `src/safelab/summary.py:186` |
-| 不合法计划的纠正重试上限 | `if corrections >= 1:` | `src/safelab/planner.py:610` |
-| 计划纠正请求最多列出的错误 | `+ "\n".join(f"- {e}" for e in errors[:12])` | `src/safelab/planner.py:615` |
+| 账本摘要未确认项尾部截取 | `out += [f"  step {item.get('step')}: {item.get('detail')}" for item in unconfirmed[-5:]]` | `src/safelab/summary.py:193` |
+| 不合法计划的纠正重试上限 | `if corrections >= 1:` | `src/safelab/planner.py:643` |
+| 计划纠正请求最多列出的错误 | `+ "\n".join(f"- {e}" for e in errors[:12])` | `src/safelab/planner.py:648` |
 | 提前 finish 的额外重规划上限 | `if action.get("action") == "finish" and self.check_finish and self.finish_replans < 1:` | `src/safelab/backend.py:323` |
 | 审查循环的最终保护上界 | `for _ in range(2*self.reflexion.critic_limit+2):` | `src/safelab/backend.py:425` |
 
