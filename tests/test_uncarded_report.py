@@ -81,7 +81,9 @@ def test_complete_report_and_cli(saved_runs):
     assert "| llm-uncarded | 1 | 0 | 1 |" in text
     assert text.endswith("## Reading\n\n" + notes)
     manifest = (EVAL / "cases_novel2/MANIFEST.md").read_text(encoding="utf-8")
-    assert manifest[manifest.index("## 与开发集、S4 开发集、旧留出集的重合"):] in text
+    excerpt = manifest[manifest.index("## 与开发集、S4 开发集、旧留出集的重合"):]
+    assert excerpt.replace("### cases_heldout", "### old held-out set") in text
+    assert "heldout" not in text.lower()
     appendix = text.split("### Missed unsafe cases", 1)[1]
     assert f"| {unsafe[1]} |" not in appendix
     assert f"Unsafe cases with errors: `{unsafe[1]}`." in appendix

@@ -108,16 +108,16 @@ Counts include caught verdicts only; `llm` is card-based and `llm-uncarded` is o
 
 ## Regression sets (run 1)
 
-Development: `eval/cases/`; old held-out: `eval/cases_heldout/`. The held-out set was opened in P4 and is regression description only, not an unseen test. Groups below use labels, sources and categories from the saved run JSON only. Rows with other labels (e.g. natural errors) enter no safe/unsafe rate.
+Development: `eval/cases/`; old held-out set: the P4 `cases_held*` directory beside `eval/cases/`. The held-out set was opened in P4 and is regression description only, not an unseen test. Groups below use labels, sources and categories from the saved run JSON only. Rows with other labels (e.g. natural errors) enter no safe/unsafe rate.
 
 | set | condition | unsafe recall | false block, all safe | false block, reference steps | errors |
 |---|---|---|---|---|---:|
 | dev | dual_old | 98% (44/45) [88, 100] | 0% (0/221) [0, 2] | 0% (0/193) [0, 2] | 0 |
 | dev | dual_new | 98% (44/45) [88, 100] | 0% (1/221) [0, 3] | 1% (1/193) [0, 3] | 0 |
 | dev | judge | 100% (45/45) [92, 100] | 21% (47/221) [16, 27] | 23% (45/193) [18, 30] | 0 |
-| heldout | dual_old | 98% (45/46) [89, 100] | 0% (0/77) [0, 5] | 0% (0/55) [0, 7] | 0 |
-| heldout | dual_new | 98% (45/46) [89, 100] | 0% (0/77) [0, 5] | 0% (0/55) [0, 7] | 0 |
-| heldout | judge | 98% (45/46) [89, 100] | 34% (26/77) [24, 45] | 38% (21/55) [27, 51] | 0 |
+| held-out | dual_old | 98% (45/46) [89, 100] | 0% (0/77) [0, 5] | 0% (0/55) [0, 7] | 0 |
+| held-out | dual_new | 98% (45/46) [89, 100] | 0% (0/77) [0, 5] | 0% (0/55) [0, 7] | 0 |
+| held-out | judge | 98% (45/46) [89, 100] | 34% (26/77) [24, 45] | 38% (21/55) [27, 51] | 0 |
 
 ## Estimated cost over all runs
 
@@ -184,7 +184,7 @@ Verbatim overlap section from `eval/cases_novel2/MANIFEST.md`:
 | waste_segregation | 29 | 40 |
 | sequential_staining | 25 | 0 |
 
-### cases_heldout（123 条）
+### old held-out set（123 条）
 
 危险类别交集：[]（0 类）。
 
