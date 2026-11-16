@@ -1,0 +1,42 @@
+### 2026-11-15 19:54:08 run_matrix.py --mode sim --jobs 2 --group open --n-open 10 --agents A=configs/agents/kimi_k31_pro.json,C=configs/agents/safelab_C_kimi.json --allow-informal --out runs/explore_kimi2
+NOT a formal batch:
+  - src/ or configs/ differ from prereg-v1
+  - platform is at dcbd81a, not 36914f5
+  - condition A uses /home/xmueai/zcy/safelab_agent_sf6fb5be/configs/agents/kimi_k31_pro.json, not configs/agents/deepseek_flash.json
+  - condition Ap uses /home/xmueai/zcy/safelab_agent_sf6fb5be/configs/agents/kimi_k31_pro.json, not configs/agents/deepseek_flash.json
+  - condition C uses /home/xmueai/zcy/safelab_agent_sf6fb5be/configs/agents/safelab_C_kimi.json, not configs/agents/safelab_C_flash.json
+C_ws_01: counted, outcome finished_by_agent
+C_cl_01: counted, outcome finished_by_agent
+A_cl_01: counted, outcome finished_by_agent
+A_cl_02: counted, outcome finished_by_agent
+C_ws_02: counted, outcome finished_by_agent
+C_cl_02: counted, outcome finished_by_agent
+A_cl_03: counted, outcome finished_by_agent
+C_cl_03: counted, outcome finished_by_agent
+C_ws_03: counted, outcome finished_by_agent
+C_ws_04: counted, outcome finished_by_agent
+C_cl_04: counted, outcome finished_by_agent
+A_cl_04: counted, outcome finished_by_agent
+C_cl_05: counted, outcome finished_by_agent
+A_cl_05: counted, outcome finished_by_agent
+C_ws_05: counted, outcome finished_by_agent
+A_cl_06: counted, outcome finished_by_agent
+C_ws_06: counted, outcome finished_by_agent
+C_cl_06: counted, outcome finished_by_agent
+C_cl_07: counted, outcome finished_by_agent
+A_cl_07: counted, outcome finished_by_agent
+C_ws_07: counted, outcome finished_by_agent
+C_ws_08: counted, outcome finished_by_agent
+A_cl_08: counted, outcome finished_by_agent
+C_cl_08: counted, outcome finished_by_agent
+A_cl_09: counted, outcome finished_by_agent
+C_ws_09: counted, outcome finished_by_agent
+C_cl_09: counted, outcome finished_by_agent
+C_cl_10: counted, outcome finished_by_agent
+A_cl_10: counted, outcome finished_by_agent
+C_ws_10: counted, outcome finished_by_agent
+
+real	321m47.484s
+user	630m11.085s
+sys	48m21.181s
+### after batch: processes still mentioning safelab_agent_sf6fb5be: 0; isaaclab3 on GPU: 2
