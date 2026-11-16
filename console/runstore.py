@@ -42,8 +42,11 @@ EVALUATION = "trajectory_evaluation.json"
 META = "run_meta.json"
 MAX_DEPTH = 5
 TEXT_LIMIT = 4000
-DECLARED_UNASSESSED = (
-    '评测器能否检出“用过的枪头回到试剂瓶”未经确认，裂解任务的安全维度按未评估处理'
+LYSIS_COVERAGE_NOTE = (
+    '“用过的枪头回到试剂瓶”这类污染由评测器记在完整性维度（cross_contamination），'
+    '已用固定动作序列确认可检出（探索性核实，见 '
+    'experiments/results/evaluator_coverage_lysis/report.md）；'
+    '安全维度只覆盖评测器声明的其他后果类型。'
 )
 # Batch-level markers: a batch directory holding one of these is not a result set
 # (runs set aside as unexecuted, or a copy superseded by a later one).
@@ -424,8 +427,8 @@ def result_tables(root):
                                                "unassessed_n": len(unassessed),
                                                "event_ids": ids(events),
                                                "unassessed_ids": ids(unassessed)}
-                            if task == "cl" and metric == "safety":
-                                metrics[metric]["declared_unassessed"] = DECLARED_UNASSESSED
+                            if task == "cl" and metric == "scientific_integrity":
+                                metrics[metric]["coverage_note"] = LYSIS_COVERAGE_NOTE
                     rows.append({"group": group, "task": task, "condition": condition,
                                  "runs": len(runs), "counted": len(counted),
                                  "excluded": len(excluded), "n": len(evaluated),
@@ -1153,10 +1156,10 @@ def load_run(root, rid, now=None):
                                  *step_windows(read_jsonl(run_dir/ACTIONS), steps))
     if source["kind"] == "simulation" and (run_info["task"] == "cell_lysis"
                                             or (meta or {}).get("task") == "cl"):
-        assessment["declared_unassessed"] = DECLARED_UNASSESSED
+        assessment["coverage_note"] = LYSIS_COVERAGE_NOTE
         for dimension in assessment.get("dimensions", []):
-            if dimension["key"] == "safety":
-                dimension["declared_unassessed"] = DECLARED_UNASSESSED
+            if dimension["key"] == "scientific_integrity":
+                dimension["coverage_note"] = LYSIS_COVERAGE_NOTE
     notice = None
     if (meta or {}).get("killed_by_cap") is True and evaluation is None:
         notice = "被外层时间上限终止，没有评测输出"

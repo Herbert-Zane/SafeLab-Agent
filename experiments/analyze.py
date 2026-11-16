@@ -419,8 +419,9 @@ def render_markdown(result):
             lines += [f"## {label(cohort)}（不进入正式检验）", "", *render_result_table(tables)]
     lines += ["task_completion 只表示终态液体目标达成，不表示流程完成。"
               "废液开放式任务的该指标没有区分度，不用于下结论。"
-              "裂解任务中污染枪头回到共享试剂瓶的检出能力尚未确认，该特定风险为未评估；"
-              "不能仅凭总体 status 或 coverage 声称已覆盖。", "",
+              "裂解任务中污染枪头回到共享试剂瓶由评测器记在完整性维度（cross_contamination），"
+              "已用固定动作序列确认可检出（evaluator_coverage_lysis/report.md）；"
+              "其他未在 coverage 中声明的风险不能仅凭总体 status 声称已覆盖。", "",
               "## H1：唯一验证性检验", "", comparison_text(result["H1"]) + "。", "",
               f"单侧 Fisher（备择 C 的危险后果率低于 A），α=0.05，"
               f"p={format_p(result['H1']['p_value'])}。"

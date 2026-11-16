@@ -10,6 +10,7 @@ from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from console.runstore import LYSIS_COVERAGE_NOTE  # noqa: E402
 from experiments.analyze import METRICS, TOKEN_FIELDS, ending, metric_summary  # noqa: E402
 
 MISSING = "未记录"
@@ -308,7 +309,7 @@ def turn_records(run, args):
     return out
 
 
-def evaluation_lines(run, safety_unassessed, heading="## 评测器事后结果"):
+def evaluation_lines(run, heading="## 评测器事后结果"):
     evaluation = run["evaluation"]
     present = evaluation is not None and run["meta"].get("mode") != "dry"
     out = [heading, "", "以下结果在回合结束后由平台评测器产出，智能体和审查器运行时看不到。", ""]
@@ -319,9 +320,7 @@ def evaluation_lines(run, safety_unassessed, heading="## 评测器事后结果")
                f"{metric}_unassessed": section.get("unassessed"),
                f"{metric}_coverage": [] if section.get("coverage") else None}
         result = metric_summary([row], metric)
-        if metric == "safety" and safety_unassessed is not None:
-            verdict = f"未评估（{safety_unassessed}）"
-        elif not present:
+        if not present:
             verdict = "未评估"
         elif result["events"]:
             verdict = "已达成" if metric == "task_completion" else "有"
@@ -330,12 +329,13 @@ def evaluation_lines(run, safety_unassessed, heading="## 评测器事后结果")
         else:
             verdict = "未达成" if metric == "task_completion" else "无（未检出）"
         out += [f"- {label}：{verdict}。"]
-        if present and result["events"] and metric != "task_completion" and not (
-                metric == "safety" and safety_unassessed is not None):
+        if metric == "scientific_integrity" and run["meta"].get("task") == "cl":
+            out += [f"- 覆盖说明：{LYSIS_COVERAGE_NOTE}"]
+        if present and result["events"] and metric != "task_completion":
             out += ["", *table(("后果类型", "涉及实体"),
                                [(c.get("type"), ", ".join(c.get("entities") or []))
                                 for c in section.get("consequences", [])])]
-    if safety_unassessed is not None:
+    if run["meta"].get("task") == "cl":
         out += ["", "评测器未报告危险后果不等于安全。"]
     return [*out, ""]
 
@@ -351,7 +351,7 @@ def contrast_lines(run, args):
                      excerpt(step.get("reply_thinking"), limit)))
         previous_failed = step.get("status") in FAILURE
     out += table(("步号", "动作", "平台结果 / 报错原文", "推理摘录"), rows)
-    return out + evaluation_lines(run, args.safety_unassessed, "### 对照评测器事后结果")
+    return out + evaluation_lines(run, "### 对照评测器事后结果")
 
 
 def appendix(run, prompt_calls):
@@ -379,7 +379,6 @@ def main(argv=None):
     parser.add_argument("--prompt-calls", default="")
     parser.add_argument("--reasoning-chars", type=int, default=400)
     parser.add_argument("--key-reasoning-chars", type=int, default=2500)
-    parser.add_argument("--safety-unassessed")
     args = parser.parse_args(argv)
     if min(args.reasoning_chars, args.key_reasoning_chars) < 0:
         parser.error("推理摘录长度不能为负数")
@@ -393,7 +392,7 @@ def main(argv=None):
         run = load_run(args.run_dir)
         out = [f"# 运行日志样本：{run['meta']['name']}", "", *provenance(run), *overview(run),
                *plans(run), *turn_records(run, args),
-               *evaluation_lines(run, args.safety_unassessed)]
+               *evaluation_lines(run)]
         if args.contrast:
             out += contrast_lines(load_run(args.contrast), args)
         out += appendix(run, calls)

@@ -849,7 +849,8 @@ function renderEval() {
   if (!finished) { box.replaceChildren(title, h("div", { class: "muted" }, "评测在回合结束后产出；回放尚未到结尾。")); return; }
   if (ev.state === "absent") {
     box.replaceChildren(title, aside, h("div", { class: "big-note warn" }, ev.headline), h("div", { class: "muted small" }, ev.detail),
-      ev.declared_unassessed ? h("div", { class: "big-note warn" }, ev.declared_unassessed) : null);
+      ev.declared_unassessed ? h("div", { class: "big-note warn" }, ev.declared_unassessed) : null,
+      ev.coverage_note ? h("div", { class: "muted small" }, ev.coverage_note) : null);
     return;
   }
   const parts = [title, aside];
@@ -863,6 +864,7 @@ function renderEval() {
       h("div", {}, h("b", {}, d.label + "　"), h("span", { class: `badge ${d.tone === "bad" ? "b-bad" : d.tone === "warn" ? "b-warn" : "b-neutral"}` }, d.status_text)),
       d.description ? h("div", { class: "muted small" }, d.description) : null,
       d.declared_unassessed ? h("div", { class: "big-note warn" }, d.declared_unassessed) : null,
+      d.coverage_note ? h("div", { class: "muted small" }, d.coverage_note) : null,
       ...d.consequences.map((c) => h("div", { class: "small" },
         `后果 ${c.type || ""}（${c.category || ""}）：${entitiesText(c.entities)}，发生于 ${c.occurred_time_text}。`,
         whereLink(c.where))),
@@ -971,7 +973,7 @@ function tablePeers(table, row, run) {
 }
 
 function shortStatus(run, metric, task, cohort) {
-  if (cohort === "aside" || cohort === "dry" || !run.evaluation_present || run[metric + "_unassessed"] || (task === "cl" && metric === "safety")) return "未评估";
+  if (cohort === "aside" || cohort === "dry" || !run.evaluation_present || run[metric + "_unassessed"]) return "未评估";
   const status = run[metric + "_status"];
   if (metric === "task_completion") return status === "achieved" ? "目标已达成" : ["failed", "not_achieved"].includes(status) ? "目标未达成" : "未评估";
   return status === "unsafe" ? "检出危险后果" : status === "failed" ? "完整性失败" : status === "no_detected_consequence" ? "未检出" : "未评估";
@@ -1022,7 +1024,8 @@ function drillPanel(table) {
           ...tablePeers(table, row, r).map(other => h("a", { href: orderedCompareURL({ ...r, condition: row.condition }, other) }, `并排 ${conditionText(other.condition)} · ${other.name}`)))],
     })))) : h("p", { class: "muted" }, "没有符合此选择的运行。"),
     table.cohort === "aside" ? h("p", { class: "muted small" }, "已搁置的运行不给评测结论；下面各列一律按未评估显示。")
-      : h("p", { class: "muted small" }, "“未检出”指评测器在已声明覆盖范围内没有检出后果，不等于安全；“未评估”指评测器没有覆盖或没有评测输出。高亮的是计入该格分子的运行。"));
+      : h("p", { class: "muted small" }, "“未检出”指评测器在已声明覆盖范围内没有检出后果，不等于安全；“未评估”指评测器没有覆盖或没有评测输出。高亮的是计入该格分子的运行。"),
+    row.metrics?.scientific_integrity?.coverage_note ? h("p", { class: "muted small" }, row.metrics.scientific_integrity.coverage_note) : null);
 }
 
 function renderTables() {
@@ -1041,12 +1044,14 @@ function renderTables() {
         tableNumber(table, row, "missing", String(row.missing_evaluation)), tableNumber(table, row, "excluded", String(row.excluded)),
       ] }));
       const notes = uniq(table.rows.map(r => r.metrics?.safety?.declared_unassessed));
+      const coverageNotes = uniq(table.rows.map(r => r.metrics?.scientific_integrity?.coverage_note));
       return h("section", { class: "card result-table" }, h("div", { class: "title-row" }, h("h2", {}, table.batch), cohortBadge(table.cohort)),
         h("div", { class: `big-note ${table.cohort === "formal" ? "" : "warn"}` }, banner),
         h("p", { class: "muted small table-meta" }, `${table.runs} 次运行 · SafeLab ${(table.safelab_commit || []).join("、") || "未记录"} · 平台 ${(table.platform_commit || []).join("、") || "未记录"} · ${table.started || "未记录"} — ${table.ended || "未记录"} · 结束方式 ${Object.entries(table.outcomes).map(([key, n]) => `${key}: ${n}`).join("；")}`),
         ...table.warnings.map(w => h("div", { class: "big-note warn" }, w)),
         h("div", { class: "table-scroll" }, tableOf(["条件", "任务", "组", "n（有评测）", "危险后果", "完整性失败", "终态液体目标达成", "评测器自报未评估（安全/完整性/目标）", "缺评测", "排除"], rows)),
-        ...notes.map(note => h("p", { class: "big-note warn small" }, note)), drillPanel(table));
+        ...notes.map(note => h("p", { class: "big-note warn small" }, note)),
+        ...coverageNotes.map(note => h("p", { class: "muted small" }, note)), drillPanel(table));
     }));
 }
 
@@ -1105,6 +1110,7 @@ function embedVerdict(run) {
       : d.key === "task_completion" ? d.status_text.replace("终态液体目标", "") : d.status_text,
     title: d.declared_unassessed || d.status_text,
     tone: d.declared_unassessed ? "warn" : d.tone,
+    coverage_note: d.coverage_note,
   }));
 }
 
@@ -1148,7 +1154,8 @@ function applyCompare() {
     const done = ended ? side.ends.length : side.ends.filter(end => end <= i).length;
     side.verdict.replaceChildren(h("span", { class: "muted" }, `已完成 ${done} / ${side.ends.length} 步　`),
       ...(ended ? side.api.verdict().flatMap(v => [h("span", {}, v.label + "："),
-        h("span", { class: `badge ${v.tone === "bad" ? "b-bad" : v.tone === "warn" ? "b-warn" : "b-neutral"}`, title: v.title || "" }, v.text), " "])
+        h("span", { class: `badge ${v.tone === "bad" ? "b-bad" : v.tone === "warn" ? "b-warn" : "b-neutral"}`, title: v.title || "" }, v.text), " ",
+        v.coverage_note ? h("div", { class: "muted small" }, v.coverage_note) : null])
         : [h("span", { class: "muted" }, "评测在这一侧回放到结尾后显示")]));
   }
   const progress = $("#compare-progress");

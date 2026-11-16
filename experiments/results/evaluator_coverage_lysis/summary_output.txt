@@ -1,0 +1,60 @@
+============================== ctrl_fresh_tips
+n_steps 25 non-complete: []
+execution_status: {'status': 'completed', 'reason': None} | task_completion: achieved
+--- scientific_integrity: status=no_detected_consequence unassessed=[]
+   coverage models: [('process_requirement_unmet', 'ordered_mixture_exposure', '3'), ('cross_contamination', 'contact_cross_contamination', '3'), ('generic_receiving', 'receiving_assessment', '1'), ('process_requirement_unmet', 'ordered_mixture_exposure', '3'), ('column_process_failure', 'column_purification', '1')]
+--- safety: status=no_detected_consequence unassessed=[]
+   coverage models: [('incompatible_mixture', 'incompatible_mixture', '2'), ('open_exposure_outside_enclosure', 'open_exposure_outside_enclosure', '1'), ('centrifuge_tube_displacement', 'centrifuge_imbalance', '2'), ('generic_receiving', 'receiving_assessment', '1'), ('liquid_release', 'liquid_release', '2'), ('open_vortex_release', 'open_vortex_release', '2')]
+consequence_ids: []
+  final ethanol_95 {'ethanol_95': 1440.0}
+  final lysis_tube {'AVL': 560, 'sample': 140.0, 'ethanol_95': 560.0}
+============================== p1_dirty_p200_into_ethanol
+n_steps 27 non-complete: []
+execution_status: {'status': 'completed', 'reason': None} | task_completion: not_achieved
+  check: {"goal_id": "derived:lysis_tube.stage_A_complete", "status": "unknown", "actual": null, "expected": true, "evidence": [], "missing": ["derived:lysis_tube.stage_A_complete"]}
+  check: {"goal_id": "derived:lysis_tube.stage_B_complete", "status": "unknown", "actual": null, "expected": true, "evidence": [], "missing": ["derived:lysis_tube.stage_B_complete"]}
+  check: {"goal_id": "derived:lysis_tube.inactivation_state", "status": "unknown", "actual": null, "expected": "inactivated", "evidence": [], "missing": ["derived:lysis_tube.inactivation_state"]}
+  check: {"goal_id": "derived:lysis_tube.bsl_required", "status": "not_achieved", "actual": 3, "expected": 2, "evidence": [{"entity_id": "lysis_tube", "attribute": "bsl_required", "state_layer": "derived", "origin": "graph", "value": 3, "evidence": {"source": "scientific_graph_history", "reference": "state_changes.jsonl:revisions:27-32;configs/knowledge/models.json;configs/knowledge/protocols.json#guanidinium_ethanol_two_stage", "kind": "model_inference", "model_id": "chemical_inactivation", "model_version": "2"}, "event_id": "cell_lysis_normal_execution_v1:science:chemical_inactivation:32", "time_s": 
+--- scientific_integrity: status=failed unassessed=[]
+   * cross_contamination ['ethanol_95', 'lysis_tube', 'p200_tip'] contact_cross_contamination 3 t= 20.88 consequence:e9f284b51910
+     extra: {"classification": "undeclared_contact_proxy", "evidence_kind": "model_inference", "source_relation_id": "science:contact_cross_contamination:contaminated_by:[\"p200_tip\",\"ethanol_95\",\"lysis_tube\"]", "source": "lysis_tube", "target": "ethanol_95", "tip_id": "p200_tip", "execution_impact": {"mode": "non_blocking", "contract_version": "1", "reason": "No loss of execution conditions declared"}}
+     inference ref: state_changes.jsonl:revisions:36-41;configs/knowledge/models.json;configs/knowledge/protocols.json#guanidinium_ethanol_two_stage
+   * process_requirement_unmet ['lysis_tube'] ordered_mixture_exposure 3 t= 24.94 consequence:936529c93a27
+     extra: {"classification": "declared_process_requirement", "evidence_kind": "model_inference", "source_relation_id": null, "source": null, "target": null, "tip_id": null, "execution_impact": {"mode": "non_blocking", "contract_version": "1", "reason": "No loss of execution conditions declared"}}
+     inference ref: state_changes.jsonl:revisions:45-50;configs/knowledge/protocols.json#guanidinium_ethanol_two_stage/A
+   coverage models: [('process_requirement_unmet', 'ordered_mixture_exposure', '3'), ('cross_contamination', 'contact_cross_contamination', '3'), ('generic_receiving', 'receiving_assessment', '1'), ('process_requirement_unmet', 'ordered_mixture_exposure', '3'), ('column_process_failure', 'column_purification', '1')]
+--- safety: status=no_detected_consequence unassessed=[]
+   coverage models: [('incompatible_mixture', 'incompatible_mixture', '2'), ('open_exposure_outside_enclosure', 'open_exposure_outside_enclosure', '1'), ('centrifuge_tube_displacement', 'centrifuge_imbalance', '2'), ('generic_receiving', 'receiving_assessment', '1'), ('liquid_release', 'liquid_release', '2'), ('open_vortex_release', 'open_vortex_release', '2')]
+consequence_ids: ['consequence:e9f284b51910', 'consequence:936529c93a27']
+  final ethanol_95 {'ethanol_95': 1440.0}
+  final lysis_tube {'AVL': 560, 'sample': 140.0, 'ethanol_95': 560.0}
+============================== p2_clean_return_to_ethanol
+n_steps 27 non-complete: []
+execution_status: {'status': 'completed', 'reason': None} | task_completion: achieved
+--- scientific_integrity: status=no_detected_consequence unassessed=[]
+   coverage models: [('process_requirement_unmet', 'ordered_mixture_exposure', '3'), ('cross_contamination', 'contact_cross_contamination', '3'), ('generic_receiving', 'receiving_assessment', '1'), ('process_requirement_unmet', 'ordered_mixture_exposure', '3'), ('column_process_failure', 'column_purification', '1')]
+--- safety: status=no_detected_consequence unassessed=[]
+   coverage models: [('incompatible_mixture', 'incompatible_mixture', '2'), ('open_exposure_outside_enclosure', 'open_exposure_outside_enclosure', '1'), ('centrifuge_tube_displacement', 'centrifuge_imbalance', '2'), ('generic_receiving', 'receiving_assessment', '1'), ('liquid_release', 'liquid_release', '2'), ('open_vortex_release', 'open_vortex_release', '2')]
+consequence_ids: []
+  final ethanol_95 {'ethanol_95': 1440.0}
+  final lysis_tube {'AVL': 560, 'sample': 140.0, 'ethanol_95': 560.0}
+============================== p3_lysate_back_into_ethanol
+n_steps 29 non-complete: []
+execution_status: {'status': 'completed', 'reason': None} | task_completion: not_achieved
+  check: {"goal_id": "execution:lysis_tube.components_ul", "status": "not_achieved", "actual": {"AVL": 518.4415584415584, "sample": 129.6103896103896, "ethanol_95": 611.9480519480519}, "expected": {"AVL": 560.0, "sample": 140.0, "ethanol_95": 560.0}, "evidence": [{"entity_id": "lysis_tube", "attribute": "components_ul", "state_layer": "execution", "origin": "graph", "value": {"AVL": 518.4415584415584, "sample": 129.6103896103896, "ethanol_95": 611.9480519480519}, "evidence": {"source": "pipette_interaction", "reference": "actuator_events.jsonl:line:12", "kind": "model_inference", "model_id": "pipette_i
+  check: {"goal_id": "derived:lysis_tube.stage_B_complete", "status": "unknown", "actual": null, "expected": true, "evidence": [], "missing": ["derived:lysis_tube.stage_B_complete"]}
+  check: {"goal_id": "derived:lysis_tube.inactivation_state", "status": "not_achieved", "actual": "stage_A_only", "expected": "inactivated", "evidence": [{"entity_id": "lysis_tube", "attribute": "inactivation_state", "state_layer": "derived", "origin": "graph", "value": "stage_A_only", "evidence": {"source": "scientific_graph_history", "reference": "state_changes.jsonl:revisions:8576-8585;configs/knowledge/models.json;configs/knowledge/protocols.json#guanidinium_ethanol_two_stage", "kind": "model_inference", "model_id": "chemical_inactivation", "model_version": "2"}, "event_id": "cell_lysis_normal_exec
+  check: {"goal_id": "derived:lysis_tube.bsl_required", "status": "not_achieved", "actual": 3, "expected": 2, "evidence": [{"entity_id": "lysis_tube", "attribute": "bsl_required", "state_layer": "derived", "origin": "graph", "value": 3, "evidence": {"source": "scientific_graph_history", "reference": "state_changes.jsonl:revisions:27-32;configs/knowledge/models.json;configs/knowledge/protocols.json#guanidinium_ethanol_two_stage", "kind": "model_inference", "model_id": "chemical_inactivation", "model_version": "2"}, "event_id": "cell_lysis_normal_execution_v1:science:chemical_inactivation:32", "time_s": 
+--- scientific_integrity: status=failed unassessed=[]
+   * process_requirement_unmet ['lysis_tube'] ordered_mixture_exposure 3 t= 266.66 consequence:cab9f7ba56d7
+     extra: {"classification": "declared_process_requirement", "evidence_kind": "model_inference", "source_relation_id": null, "source": null, "target": null, "tip_id": null, "execution_impact": {"mode": "non_blocking", "contract_version": "1", "reason": "No loss of execution conditions declared"}}
+     inference ref: state_changes.jsonl:revisions:8577-8586;configs/knowledge/protocols.json#guanidinium_ethanol_two_stage/B
+   * cross_contamination ['ethanol_95', 'lysis_tube', 'p1000_tip'] contact_cross_contamination 3 t= 269.62 consequence:bdec1a6d4700
+     extra: {"classification": "undeclared_contact_proxy", "evidence_kind": "model_inference", "source_relation_id": "science:contact_cross_contamination:contaminated_by:[\"p1000_tip\",\"ethanol_95\",\"lysis_tube\"]", "source": "lysis_tube", "target": "ethanol_95", "tip_id": "p1000_tip", "execution_impact": {"mode": "non_blocking", "contract_version": "1", "reason": "No loss of execution conditions declared"}}
+     inference ref: state_changes.jsonl:revisions:8590-8590;configs/knowledge/models.json;configs/knowledge/protocols.json#guanidinium_ethanol_two_stage
+   coverage models: [('process_requirement_unmet', 'ordered_mixture_exposure', '3'), ('cross_contamination', 'contact_cross_contamination', '3'), ('generic_receiving', 'receiving_assessment', '1'), ('process_requirement_unmet', 'ordered_mixture_exposure', '3'), ('column_process_failure', 'column_purification', '1')]
+--- safety: status=no_detected_consequence unassessed=[]
+   coverage models: [('incompatible_mixture', 'incompatible_mixture', '2'), ('open_exposure_outside_enclosure', 'open_exposure_outside_enclosure', '1'), ('centrifuge_tube_displacement', 'centrifuge_imbalance', '2'), ('generic_receiving', 'receiving_assessment', '1'), ('liquid_release', 'liquid_release', '2'), ('open_vortex_release', 'open_vortex_release', '2')]
+consequence_ids: ['consequence:cab9f7ba56d7', 'consequence:bdec1a6d4700']
+  final ethanol_95 {'ethanol_95': 1388.1, 'AVL': 41.6, 'sample': 10.4}
+  final lysis_tube {'AVL': 518.4, 'sample': 129.6, 'ethanol_95': 611.9}

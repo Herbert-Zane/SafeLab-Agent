@@ -146,21 +146,34 @@ def test_export_is_deterministic_and_attributes_events(tmp_path, formal):
     assert first.endswith(b"\n")
 
 
-def test_unassessed_contrast_and_end_reason(tmp_path):
+@pytest.mark.parametrize(("status", "verdict"), [
+    ("no_detected_consequence", "无（未检出）"), ("unsafe", "有")])
+def test_lysis_coverage_contrast_and_end_reason(tmp_path, status, verdict):
     folder = make_run(tmp_path)
     contrast = make_run(tmp_path, "A_sample", formal=False, trace=False)
     meta_path = folder / "run_meta.json"
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
     meta["outcome"] = "action_failure_limit"
+    meta["task"] = "cl"
     meta_path.write_text(json.dumps(meta), encoding="utf-8")
-    report = export(folder, tmp_path / "report.md", "--contrast", str(contrast),
-                    "--safety-unassessed", "coverage not confirmed")
+    path = folder / "trajectory_evaluation.json"
+    evaluation = json.loads(path.read_text(encoding="utf-8"))
+    evaluation["safety"]["status"] = status
+    if status == "no_detected_consequence":
+        evaluation["safety"]["consequences"] = []
+    path.write_text(json.dumps(evaluation), encoding="utf-8")
+    report = export(folder, tmp_path / "report.md", "--contrast", str(contrast))
     assert "## 对照运行" in report and "A_sample" in report
     assert "探索性运行（不与正式运行合并报告）" in report
     assert "action_failure_limit" in report
-    assert report.count("危险后果：未评估（coverage not confirmed）") == 2
+    main, comparison = report.split("## 对照运行")
+    assert f"危险后果：{verdict}。" in main
+    assert "危险后果：未评估" not in report
+    assert "危险后果：有。" in comparison
+    assert report.count(exporter.LYSIS_COVERAGE_NOTE) == 1
+    assert ("- 完整性失败：无（未检出）。\n- 覆盖说明：" + exporter.LYSIS_COVERAGE_NOTE) in main
     assert "评测器未报告危险后果不等于安全" in report
-    assert "recorded_consequence" not in report
+    assert "recorded_consequence" in comparison
     assert "| 步号 | 动作 | 平台结果 / 报错原文 | 推理摘录 |" in report
     assert "D:" not in report and "FORBIDDEN" not in report
 
@@ -184,8 +197,13 @@ def test_evaluation_uses_analyzer_unassessed_rules(tmp_path, change):
         meta = json.loads(path.read_text(encoding="utf-8"))
         meta["mode"] = "dry"
         path.write_text(json.dumps(meta), encoding="utf-8")
+    path = folder / "run_meta.json"
+    meta = json.loads(path.read_text(encoding="utf-8"))
+    meta["task"] = "cl"
+    path.write_text(json.dumps(meta), encoding="utf-8")
     report = export(folder, tmp_path / "report.md")
     assert "危险后果：未评估" in report
+    assert exporter.LYSIS_COVERAGE_NOTE in report
 
 
 def test_rejects_output_inside_input_directory(tmp_path):

@@ -70,6 +70,23 @@ def test_an_unchanged_run_is_not_resent(live):
     assert (status, json.loads(body)["unchanged"]) == (200, True)
 
 
+def test_lysis_api_reports_integrity_coverage_without_overriding_safety(live, tmp_path):
+    from runstore import LYSIS_COVERAGE_NOTE
+    call, _ = live
+    make_c_run(tmp_path, name="C_cl_01", environment="simulation", with_eval={
+        **EVALUATION, "safety": {"status": "no_detected_consequence", "coverage": ["one"]}})
+    _write_meta(tmp_path / "dry/C_cl_01", task="cl")
+    status, body = call("/api/run?id=dry/C_cl_01")
+    evaluation = json.loads(body)["evaluation"]
+    dims = {d["key"]: d for d in evaluation["dimensions"]}
+    assert status == 200
+    assert dims["safety"]["status"] == "no_detected_consequence"
+    assert "declared_unassessed" not in dims["safety"]
+    assert "declared_unassessed" not in evaluation
+    assert evaluation["coverage_note"] == LYSIS_COVERAGE_NOTE
+    assert dims["scientific_integrity"]["coverage_note"] == LYSIS_COVERAGE_NOTE
+
+
 def test_ledger_step_and_bad_ids(live):
     call, _ = live
     status, body = call("/api/ledger?id=dry/C_test&call=2")

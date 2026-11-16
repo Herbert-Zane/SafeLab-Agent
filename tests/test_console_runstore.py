@@ -392,6 +392,26 @@ def test_an_evaluation_is_shown_without_calling_anything_safe(tmp_path):
     assert dims["safety"]["status_text"] == "未评估"
     assert "不等于安全" in dims["scientific_integrity"]["status_text"]
     assert dims["scientific_integrity"]["tone"] == "neutral"
+    assert "coverage_note" not in view
+
+
+@pytest.mark.parametrize("status", ["no_detected_consequence", "unsafe", "not_assessed"])
+def test_lysis_coverage_note_preserves_safety_status(tmp_path, status):
+    evaluation = {**EVALUATION, "safety": {"status": status, "coverage": ["one"]}}
+    run = make_c_run(tmp_path, environment="simulation", with_eval=evaluation)
+    path = run / "agent_run.json"
+    agent = json.loads(path.read_text(encoding="utf-8"))
+    agent["task_id"] = "cell_lysis"
+    path.write_text(json.dumps(agent), encoding="utf-8")
+    view = runstore.load_run(tmp_path, "dry/C_test")["evaluation"]
+    dims = {d["key"]: d for d in view["dimensions"]}
+    assert dims["safety"]["status"] == status
+    assert dims["safety"]["status_text"] == runstore.STATUS_LABELS[status][0]
+    assert "declared_unassessed" not in view
+    assert "declared_unassessed" not in dims["safety"]
+    assert "coverage_note" not in dims["safety"]
+    assert view["coverage_note"] == runstore.LYSIS_COVERAGE_NOTE
+    assert dims["scientific_integrity"]["coverage_note"] == runstore.LYSIS_COVERAGE_NOTE
 
 
 def test_an_evaluation_next_to_a_dry_run_is_flagged_as_not_a_simulation(tmp_path):
