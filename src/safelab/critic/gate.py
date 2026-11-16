@@ -39,7 +39,9 @@ channel's own replacements (close_lid, eject_tip) are on the list already.
 
 Risk trigger (S2.5, ``llm_trigger: "risk"``, the default in ``dual``): the LLM
 is called only for a consequential action that involves a hazardous substance
-family, or when the rule channel has soft findings or cannot decide. Every
+family, or when the rule channel has soft findings or cannot decide, and (S9,
+``outside_card_triggers``) for a device run, the disposal of a used tip, and a
+transfer into a container holding a component the liquid does not. Every
 review counts towards ``stats()``: trigger ratio, tokens spent, and an
 estimate of the tokens saved (skipped reviews times the mean tokens of a
 triggered one). ``llm_trigger: "always"`` calls the LLM on every action.
@@ -66,6 +68,7 @@ from .resources import (
     kinds,
     last_tip_type,
     observed_docks,
+    positive,
 )
 from .rules import RuleChannel
 
@@ -101,6 +104,9 @@ class Verdict:
     trigger: list = field(default_factory=list)
     disagreement: dict | None = None
     rewrite_rejected: list = field(default_factory=list)
+    #: What a non-pass rests on: "rules", "card" (LLM, card-grounded) or "uncarded"
+    #: (LLM, a hazard no card covers; channel "llm-uncarded"). None on a pass.
+    basis: str | None = None
 
     def record(self):
         return asdict(self)
@@ -147,6 +153,38 @@ def rewrite_kind_problems(candidate, original, snapshot, observation):
             return [f"dispense into {candidate.get('target')!r}, which is neither where the "
                     f"tip's liquid came from nor the proposed dispense's target "
                     f"({', '.join(sorted(allowed)) or 'none known'})"]
+    return []
+
+
+def outside_card_triggers(snapshot, action):
+    """Risk-trigger reasons that do not depend on the cards' substance families (S9).
+
+    Three kinds of step where a hazard no card names can arise: a device run; the
+    disposal of a tip that has touched something; and a transfer into a container
+    that holds a component the transferred liquid does not (substances meet).
+    """
+    name = action.get("action")
+    if name == "instrument_start":
+        return [f"device run ({action.get('device')})"]
+    if name == "eject_tip":
+        _, tip = attached(snapshot)
+        if tip is not None and (tip.get("contacts") or positive(tip.get("components_ul"))):
+            return ["disposal of a used tip"]
+        return []
+    if name not in ("dispense", "pour"):
+        return []
+    containers = snapshot.get("containers") or {}
+    if name == "dispense":
+        _, tip = attached(snapshot)
+        moving, target = set(positive((tip or {}).get("components_ul"))), action.get("target")
+    else:
+        moving = set(positive((containers.get(action.get("target")) or {}).get("components_ul")))
+        target = action.get("receiver")
+    if not isinstance(target, str):
+        return []
+    there = set(positive((containers.get(target) or {}).get("components_ul")))
+    if target not in containers or there - moving:
+        return [f"substances meet in {target}"]
     return []
 
 
@@ -232,7 +270,7 @@ class Critic:
                                         mode=self.mode), mark, started, counted=False)
         rules = self.rules.check(snapshot, observation, action) if self.mode != "llm" else None
         inv = inventory(snapshot, observation)
-        trigger = [] if action["action"] == "finish" else self._trigger(rules)
+        trigger = [] if action["action"] == "finish" else self._trigger(rules, snapshot, action)
         llm = None
         if trigger and self.llm is not None:
             llm = self.llm.review(snapshot, observation, action, inv,
@@ -253,12 +291,12 @@ class Critic:
             problems = [f"{f.rule}: {f.message}" for f in result.hard]
         return problems
 
-    def _trigger(self, rules):
+    def _trigger(self, rules, snapshot, action):
         if self.llm is None:
             return []
         if self.mode == "llm" or self.llm_trigger == "always":
             return ["every action is reviewed"]
-        reasons = []
+        reasons = outside_card_triggers(snapshot, action)
         if rules.soft:
             reasons.append("soft rule finding: " + ", ".join(sorted({f.rule for f in rules.soft})))
         if rules.undecided:
@@ -293,6 +331,7 @@ class Critic:
 
         if rules is not None and rules.hard:
             verdict.decision = "block"
+            verdict.basis = "rules"
             verdict.reason = " ".join(f.message for f in rules.hard)
             verdict.card_ids = rules.card_ids
             verdict.evidence = rules.evidence
@@ -308,7 +347,8 @@ class Critic:
             verdict.evidence = answer["evidence"]
             verdict.confidence = answer["confidence"]
             verdict.risk_category = answer["risk_category"]
-            verdict.channel = "llm"
+            verdict.basis = answer.get("basis")
+            verdict.channel = "llm-uncarded" if verdict.basis == "uncarded" else "llm"
             candidates = [("llm", r) for r in llm_rewrite]
         else:
             candidates = []

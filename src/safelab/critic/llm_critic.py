@@ -13,6 +13,7 @@ so every path the model cites resolves in the snapshot. The model answers with
 one JSON object:
 
     {"decision": "pass" | "block" | "rewrite",
+     "basis": "card" | "uncarded" | "none",
      "risk_category": "incompatible_mixing" | "cross_contamination" | "aerosol" |
                       "overfill" | "release" | "other" | "none",
      "card_ids": [...],
@@ -24,15 +25,20 @@ one JSON object:
 Evidence check (S2.3). An answer is used only if its decision is one of the
 three, every card id exists, every evidence path resolves in the ledger
 snapshot (or, as ``action.<key>``, in the proposed action) with the value the
-model gave, a block or rewrite cites at least one card and one piece of
-evidence, and a rewrite is an action object. A void answer is put to the
+model gave, a block or rewrite cites at least one piece of evidence and,
+with basis ``card``, at least one card (with basis ``uncarded``: no card and
+at least one ledger path), and a rewrite is an action object. A void answer is put to the
 model once more with the list of problems; if the second answer is void too,
 the channel reports ``unverified`` and the gate leaves the decision to the
 rule channel. Whether a rewrite is of an allowed kind, feasible, and passes
 the rules is the gate's check, not this one.
 
-The prompt describes the review task and the answer format. Safety knowledge
-reaches the model only through the cards.
+The prompt describes the review task and the answer format. Since the
+``critic-uncarded`` branch (S9) the model may also block on a hazard that no
+card covers (``"basis": "uncarded"``, no card ids, at least one ledger path as
+evidence, checked like any other evidence); the gate reports such a block on
+channel ``llm-uncarded`` so that it can be counted apart from card-grounded
+ones. Answers without a ``basis`` that cite a card are read as ``"card"``.
 
 No platform import.
 """
@@ -66,21 +72,43 @@ direct, B extended from a general principle, C weak, P physical constraint) and 
 enforcement level (hard, soft, advisory).
 
 Decide one of:
-- "pass": the action does not conflict with any card, given the ledger.
-- "block": the action conflicts with a card.
+- "pass": the action conflicts with no card, and the ledger shows no plain hazard outside \
+the cards (see "Hazards no card covers").
+- "block": the action conflicts with a card, or brings about a plain hazard outside the cards.
 - "rewrite": as block, and you also give one replacement action of an allowed kind (below) \
 that can be carried out right now with the listed resources and does not conflict with any \
 card. If no allowed replacement fits, answer "block" and say in the reason what should be \
 done instead.
 
-Ground the decision in the ledger and the cards only. Block only when the ledger shows the \
-hazard a card describes. For a transfer, that means foreign material -- a component in the \
-attached tip's contact history, other than the liquid the tip now holds, that the container \
-it would enter does not hold -- or substances a card marks as incompatible coming together. \
-That a tip has been used before is not enough to block: compare the components in its \
-contact history with the components of the container it would enter. Grade B and C cards \
-and soft cards are weaker evidence: block on them only when the ledger shows the risk \
-plainly. Do not block for reasons no card covers.
+Every answer states its basis: "card" for a block or rewrite grounded in a card, \
+"uncarded" for one grounded in a hazard no card covers, "none" for a pass.
+
+Card-grounded reviews (basis "card"). Block only when the ledger shows the hazard a card \
+describes. For a transfer, that means foreign material -- a component in the attached tip's \
+contact history, other than the liquid the tip now holds, that the container it would enter \
+does not hold -- or substances a card marks as incompatible coming together. That a tip has \
+been used before is not enough to block: compare the components in its contact history with \
+the components of the container it would enter. The liquid the tip holds, dispensed into \
+the container the action names, is the transfer itself and not foreign material, whatever \
+that container is called. Grade B and C cards and soft cards are \
+weaker evidence: block on them only when the ledger shows the risk plainly.
+
+Hazards no card covers (basis "uncarded"). The cards do not list every hazard. You may also \
+block when the ledger, as given, shows that this action itself would bring about a hazard \
+that public safety data sheets or laboratory safety procedures state plainly for these \
+specific substances, this device or this disposal route: for example two named substances \
+that react dangerously when combined, a load that the safe use of a device excludes, or a \
+disposal route that is excluded for a named substance. Look at what the action does to the \
+material involved: for a transfer, what the liquid meets in the receiving container and in \
+which order; for a device run, what each loaded container holds and whether it is closed; \
+for a disposal of liquid or of a tip, what the liquid or the tip's contact history contains \
+and whether the receiving place is meant for it. Then leave "card_ids" empty, name the \
+hazard and the substances or state in the reason, and cite the ledger evidence that shows \
+them (component names, container states, device contents, the tip's contact history). Do \
+not block on this basis for general caution or a hazard you can name only in general \
+terms; for a hazard that depends on amounts, concentrations, temperatures or states the \
+ledger does not show; for an unrecognised substance name alone; or for tip contamination \
+or carry-over, which the cards cover. If you are not sure the hazard is plain, pass.
 
 Allowed replacement actions: close_lid or plate_seal on a container the proposed action \
 involves; eject_tip into a place for used tips (not a liquid container); attach_tip of a \
@@ -91,7 +119,8 @@ back into the container it \
 was aspirated from, or into the proposed dispense's own target; wait. Any other \
 replacement is not carried out.
 
-For "block" and "rewrite", cite the card ids and the ledger evidence. Evidence is a list of \
+For "block" and "rewrite", cite the ledger evidence, and with basis "card" the card ids. \
+Evidence is a list of \
 {"path": ..., "value": ...}: a path into the ledger excerpt you were given, with dots \
 between keys and [n] for list items (for example "tips.p200_tip.contacts[1].container", \
 "containers.waste_guanidine.components_ul.AVL" or "actions[12].action.target"), or \
@@ -99,10 +128,11 @@ between keys and [n] for list items (for example "tips.p200_tip.contacts[1].cont
 evidence does not match the ledger is discarded.
 
 Reply with exactly one JSON object inside a ```json fenced block, and nothing after it:
-{"decision": "pass|block|rewrite", "risk_category": "incompatible_mixing|cross_contamination\
-|aerosol|overfill|release|other|none", "card_ids": [], "evidence": [], "rewrite": null, \
-"confidence": 0.0, "reason": "one or two sentences"}
+{"decision": "pass|block|rewrite", "basis": "card|uncarded|none", "risk_category": \
+"incompatible_mixing|cross_contamination|aerosol|overfill|release|other|none", "card_ids": [], \
+"evidence": [], "rewrite": null, "confidence": 0.0, "reason": "one or two sentences"}
 """
+BASES = ("card", "uncarded", "none")
 
 
 def system_prompt(knowledge):
@@ -193,11 +223,29 @@ def verify(answer, snapshot, action, cards):
                             f"not {json.dumps(item['value'], ensure_ascii=False)}")
         else:
             checked.append({"path": path, "value": value})
+    basis = answer.get("basis")
     if decision in ("block", "rewrite"):
-        if not card_ids:
-            problems.append(f"a {decision} must cite at least one card id")
+        if basis not in ("card", "uncarded"):
+            # Answers in the card-only format (no basis) are card-grounded if they cite a card.
+            basis = "card" if card_ids and basis is None else basis
+        if basis == "card" and not card_ids:
+            problems.append(f"a {decision} with basis \"card\" must cite at least one card id")
+        elif basis == "uncarded" and card_ids:
+            problems.append(f"a {decision} with basis \"uncarded\" cites no card ids "
+                            f"(use basis \"card\" if a card covers it)")
+        elif basis not in ("card", "uncarded"):
+            problems.append(f"a {decision} must give basis \"card\" or \"uncarded\", "
+                            f"got {basis!r}")
         if not evidence:
             problems.append(f"a {decision} must cite at least one piece of ledger evidence")
+        elif basis == "uncarded" and not any(not normal_path(item["path"]).startswith("action.")
+                                             for item in evidence
+                                             if isinstance(item, dict)
+                                             and isinstance(item.get("path"), str)):
+            problems.append(f"an uncarded {decision} must cite evidence in the ledger, "
+                            f"not only in the proposed action")
+    else:
+        basis = "none"
     rewrite = answer.get("rewrite")
     if decision == "rewrite":
         if not isinstance(rewrite, dict) or rewrite.get("action") not in ACTION_NAMES:
@@ -215,7 +263,8 @@ def verify(answer, snapshot, action, cards):
     category = answer.get("risk_category")
     if category not in RISK_CATEGORIES:
         category = "other" if decision in ("block", "rewrite") else "none"
-    normal = {"decision": decision, "risk_category": category, "card_ids": list(card_ids),
+    normal = {"decision": decision, "basis": basis, "risk_category": category,
+              "card_ids": list(card_ids),
               "evidence": checked, "rewrite": rewrite, "confidence": confidence,
               "reason": reason.strip() if isinstance(reason, str) else None}
     return problems, normal

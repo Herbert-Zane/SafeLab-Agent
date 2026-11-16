@@ -380,21 +380,24 @@ def test_the_rule_rewrite_comes_before_the_llm_rewrite():
 
 
 def test_the_llm_is_called_only_for_risky_or_undecided_actions():
-    made, model, _ = critic(reply("pass", cards=[], reason="ok"))
+    made, model, _ = critic(reply("pass", cards=[], reason="ok"),
+                            reply("pass", cards=[], reason="ok"))
     scene = sample_into_lysis()
     for action in ({"action": "close_lid", "target": "lysis_tube"},
-                   {"action": "eject_tip", "target": "waste"},
                    {"action": "finish", "reason": "done"}):
         verdict = review(made, scene, action)
         assert verdict.decision == "pass" and not verdict.llm_triggered
+    # S9: disposing of a used tip goes to the LLM (a hazard no card names can arise there).
+    verdict = review(made, scene, {"action": "eject_tip", "target": "waste"})
+    assert verdict.llm_triggered and verdict.trigger == ["disposal of a used tip"]
     verdict = review(made, scene, {"action": "incubate", "target": "lysis_tube",
                                    "duration_s": 600, "condition": "room_temperature"})
     assert verdict.llm_triggered and any("soft rule finding" in t for t in verdict.trigger)
-    assert len(model.calls) == 1
+    assert len(model.calls) == 2
     stats = made.stats()
-    assert stats["reviews"] == 4 and stats["llm_triggered"] == 1
-    assert stats["trigger_ratio"] == pytest.approx(1/4, abs=1e-3)
-    assert stats["estimated_tokens_saved"] == 3*1100
+    assert stats["reviews"] == 4 and stats["llm_triggered"] == 2
+    assert stats["trigger_ratio"] == pytest.approx(2/4, abs=1e-3)
+    assert stats["estimated_tokens_saved"] == 2*1100
 
 
 @pytest.mark.parametrize("mode", ["rules", "dual", "llm"])
