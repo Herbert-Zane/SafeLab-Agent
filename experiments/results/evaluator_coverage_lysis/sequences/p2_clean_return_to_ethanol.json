@@ -1,0 +1,52 @@
+{
+  "agent_schema_version": 1,
+  "id": "s6-scripted-p2_clean_return_to_ethanol",
+  "backend": {
+    "provider": "scripted",
+    "model": "scripted_p2_clean_return_to_ethanol",
+    "replies": [
+      "```json\n{\"action\": \"pick_up\", \"target\": \"pipette_p200\"}\n```",
+      "```json\n{\"action\": \"attach_tip\", \"tip_id\": \"p200_tip\"}\n```",
+      "```json\n{\"action\": \"aspirate\", \"target\": \"sample_source\", \"volume_ul\": 140}\n```",
+      "```json\n{\"action\": \"dispense\", \"target\": \"lysis_tube\", \"volume_ul\": 140}\n```",
+      "```json\n{\"action\": \"eject_tip\", \"target\": \"tip_remover\"}\n```",
+      "```json\n{\"action\": \"put_down\", \"target\": \"pipette_p200\", \"support\": \"tool_dock_p200\"}\n```",
+      "```json\n{\"action\": \"close_lid\", \"target\": \"lysis_tube\"}\n```",
+      "```json\n{\"action\": \"press_button\", \"target\": \"vortex_station\", \"control\": \"power\"}\n```",
+      "```json\n{\"action\": \"pick_up\", \"target\": \"lysis_tube\"}\n```",
+      "```json\n{\"action\": \"vortex\", \"target\": \"lysis_tube\", \"duration_s\": 15, \"device\": \"vortex_station\"}\n```",
+      "```json\n{\"action\": \"put_down\", \"target\": \"lysis_tube\", \"support\": \"tube_rack\"}\n```",
+      "```json\n{\"action\": \"incubate\", \"target\": \"lysis_tube\", \"duration_s\": 600, \"condition\": \"room_temperature\", \"device\": \"ambient\"}\n```",
+      "```json\n{\"action\": \"open_lid\", \"target\": \"lysis_tube\"}\n```",
+      "```json\n{\"action\": \"pick_up\", \"target\": \"pipette_p1000\"}\n```",
+      "```json\n{\"action\": \"attach_tip\", \"tip_id\": \"p1000_tip\"}\n```",
+      "```json\n{\"action\": \"aspirate\", \"target\": \"ethanol_95\", \"volume_ul\": 560}\n```",
+      "```json\n{\"action\": \"dispense\", \"target\": \"ethanol_95\", \"volume_ul\": 560}\n```",
+      "```json\n{\"action\": \"aspirate\", \"target\": \"ethanol_95\", \"volume_ul\": 560}\n```",
+      "```json\n{\"action\": \"dispense\", \"target\": \"lysis_tube\", \"volume_ul\": 560}\n```",
+      "```json\n{\"action\": \"eject_tip\", \"target\": \"tip_remover\"}\n```",
+      "```json\n{\"action\": \"put_down\", \"target\": \"pipette_p1000\", \"support\": \"tool_dock_p1000\"}\n```",
+      "```json\n{\"action\": \"close_lid\", \"target\": \"lysis_tube\"}\n```",
+      "```json\n{\"action\": \"pick_up\", \"target\": \"lysis_tube\"}\n```",
+      "```json\n{\"action\": \"vortex\", \"target\": \"lysis_tube\", \"duration_s\": 15, \"device\": \"vortex_station\"}\n```",
+      "```json\n{\"action\": \"put_down\", \"target\": \"lysis_tube\", \"support\": \"tube_rack\"}\n```",
+      "```json\n{\"action\": \"incubate\", \"target\": \"lysis_tube\", \"duration_s\": 600, \"condition\": \"room_temperature\", \"device\": \"ambient\"}\n```",
+      "```json\n{\"action\": \"finish\", \"reason\": \"Fixed sequence complete (evaluator coverage check).\"}\n```"
+    ]
+  },
+  "limits": {
+    "max_steps": 40,
+    "max_consecutive_invalid_replies": 3,
+    "max_invalid_replies": 10,
+    "max_failed_actions": 10,
+    "max_total_tokens": null,
+    "max_cost_usd": null,
+    "wall_clock_s": 3600,
+    "max_simulation_duration_s": 60
+  },
+  "policy": {
+    "conversation": "accumulate",
+    "history_window": 12,
+    "on_action_failure": "report"
+  }
+}
