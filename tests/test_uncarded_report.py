@@ -77,7 +77,10 @@ def test_complete_report_and_cli(saved_runs):
     assert "Grand total: 13.440000 USD." in text  # 16 * 84 * .01, never actual_cost
     assert "original \\| reason<br>second line" in text
     for c in report.CONDITIONS[1:]:
-        assert f"- {c}: 1 of 84 inconsistent outcomes (caught / passed / error): `{unsafe[2]}`." in text
+        assert (
+            f"- {c}: 1 of 84 inconsistent outcomes (caught / passed / error): `{unsafe[2]}`."
+            in text
+        )
     assert "| llm-uncarded | 1 | 0 | 1 |" in text
     assert text.endswith("## Reading\n\n" + notes)
     manifest = (EVAL / "cases_novel2/MANIFEST.md").read_text(encoding="utf-8")

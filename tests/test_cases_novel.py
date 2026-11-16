@@ -15,10 +15,10 @@ import pytest
 EVAL = Path(__file__).resolve().parents[1] / "eval"
 sys.path.insert(0, str(EVAL))
 
-import build_novel as builder
-import common
-import labels
-import labels_novel as novel
+import build_novel as builder  # noqa: E402
+import common  # noqa: E402
+import labels  # noqa: E402
+import labels_novel as novel  # noqa: E402
 
 
 @pytest.fixture(scope="module")
@@ -66,7 +66,9 @@ def test_format_counts_vocabulary_and_diversity(cases, rows):
             else:
                 assert re.fullmatch(r"nh-ref-\d{2}", c["id"])
     assert Counter(c["category"] for c in cases["mutation"]) == dict.fromkeys(novel.CATEGORIES, 5)
-    assert Counter(c["twin_category"] for c in cases["hard_negative"]) == dict.fromkeys(novel.CATEGORIES, 3)
+    assert Counter(c["twin_category"] for c in cases["hard_negative"]) == dict.fromkeys(
+        novel.CATEGORIES, 3
+    )
     for category in novel.CATEGORIES:
         group = [c for c in cases["mutation"] if c["category"] == category]
         assert len({c["base_task"] for c in group}) >= 2
@@ -82,10 +84,14 @@ def test_format_counts_vocabulary_and_diversity(cases, rows):
                 continue
             tip = c["snapshot"]["tips"][c["snapshot"]["robot"]["attached_tip"]]
             cargo = set(novel.positive(tip["components_ul"]))
-            target = set(novel.positive(c["snapshot"]["containers"][c["action"]["target"]]["components_ul"]))
+            target = set(
+                novel.positive(c["snapshot"]["containers"][c["action"]["target"]]["components_ul"])
+            )
             assert len(tip["contacts"]) == 1
             assert tip["contacts"][0]["action"] == "aspirate" and len(cargo) == 1
-            directions.add((bool(cargo & left and target & right), bool(cargo & right and target & left)))
+            directions.add(
+                (bool(cargo & left and target & right), bool(cargo & right and target & left))
+            )
         assert directions == {(True, False), (False, True)}
 
 
@@ -104,13 +110,12 @@ def test_check_2_all_193_development_references():
 
 
 @pytest.mark.slow
-def test_check_3_actual_prefix_replay_and_candidate_execution(rows):
+def test_check_3_actual_prefix_replay_and_candidate_execution(bench, rows):
     for c in rows:
         assert builder.replay(c, candidate=True) == (c["observation"], c["snapshot"]), c["id"]
 
 
-def test_all_prefix_and_candidate_action_schemas(rows):
-    common.bench_root()
+def test_all_prefix_and_candidate_action_schemas(bench, rows):
     from agent_interface.action_schema import available_actions, validate_action
 
     for c in rows:
@@ -200,7 +205,10 @@ def test_no_organic_autoclave_candidates_in_any_source(rows):
         if c["action"]["action"] != "instrument_start":
             continue
         for cid in c["snapshot"]["devices"][c["action"]["device"]]["loaded_entities"]:
-            assert not set(novel.positive(c["snapshot"]["containers"][cid]["components_ul"])) & novel.ORGANIC
+            assert (
+                not set(novel.positive(c["snapshot"]["containers"][cid]["components_ul"]))
+                & novel.ORGANIC
+            )
 
 
 def test_rule_boundary_controls(cases):
@@ -233,7 +241,9 @@ def test_rule_boundary_controls(cases):
 def test_sources_overview_manifest_and_scripted_overlaps(cases, rows):
     prereg = (common.REPO / "experiments" / "prereg_explore_v2.md").read_text(encoding="utf-8")
     section = prereg.split("## 4. 来源\n", 1)[1].split("## 5. 标签规则", 1)[0]
-    assert (builder.OUT / "SOURCES.md").read_text(encoding="utf-8") == "# 来源（原样摘录预注册第 4 节）\n" + section
+    assert (builder.OUT / "SOURCES.md").read_text(
+        encoding="utf-8"
+    ) == "# 来源（原样摘录预注册第 4 节）\n" + section
     overview = (builder.OUT / "cases_overview.md").read_text(encoding="utf-8")
     assert overview == builder.overview(cases)
     assert len([line for line in overview.splitlines() if line.startswith("| nh-")]) == len(rows)
@@ -248,7 +258,7 @@ def test_sources_overview_manifest_and_scripted_overlaps(cases, rows):
 
 
 @pytest.mark.slow
-def test_rebuild_is_byte_identical_twice():
+def test_rebuild_is_byte_identical_twice(bench):
     # Run the actual CLI twice, comparing data AND human-review artifacts with the frozen files.
     names = [f"{source}.jsonl" for source in builder.SOURCES]
     names += ["SOURCES.md", "MANIFEST.md", "cases_overview.md"]
@@ -257,7 +267,14 @@ def test_rebuild_is_byte_identical_twice():
     rebuilt = common.REPO / f".novel-rebuild-{uuid4().hex}"
     rebuilt.mkdir()
     try:
-        command = [sys.executable, "-X", "utf8", str(EVAL / "build_novel.py"), "--out", str(rebuilt)]
+        command = [
+            sys.executable,
+            "-X",
+            "utf8",
+            str(EVAL / "build_novel.py"),
+            "--out",
+            str(rebuilt),
+        ]
         for _ in range(2):
             result = subprocess.run(command, cwd=common.REPO, capture_output=True, text=True,
                                     encoding="utf-8", timeout=60)
@@ -273,7 +290,7 @@ def test_rebuild_is_byte_identical_twice():
 
 
 def test_no_two_cases_share_state_and_action():
-    """Every case is a distinct (ledger state, candidate action); a twin used twice would count twice."""
+    """Every case has a distinct pair of ledger state and candidate action."""
     import hashlib
     import json
     from pathlib import Path

@@ -120,10 +120,18 @@ def test_r7_skips_stations_without_load_readback(station, reason):
     """Formal C_cl_04/06/07 and C_ws_02: stations run by their own actions."""
     scene = finish_scene()
     snapshot = scene.ledger.snapshot()
-    snapshot["devices"][station] = {"device_type": "vortex", "loaded_entities": None,
-                                    "status": "idle", "active": None, "program": None,
-                                    "power": None}
-    assert RuleChannel().check(snapshot, None, {"action": "finish", "reason": reason}).status == "clear"
+    snapshot["devices"][station] = {
+        "device_type": "vortex",
+        "loaded_entities": None,
+        "status": "idle",
+        "active": None,
+        "program": None,
+        "power": None,
+    }
+    assert (
+        RuleChannel().check(snapshot, None, {"action": "finish", "reason": reason}).status
+        == "clear"
+    )
 
 
 class Scene:

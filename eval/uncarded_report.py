@@ -114,27 +114,34 @@ def generate(cases_dir, reports):
     hard = [i for i in safe if cases[i]["source"] == "hard_negative"]
     plain = [i for i in safe if cases[i]["source"] == "reference"]
     categories = [cat for group in GROUPS.values() for cat in group]
-    out = ["# Uncarded hazards: old and new dual critics and a prompt-only judge (exploratory)",
-           "", "Plan: `experiments/prereg_explore_v2.md`, S9 (especially S9.3, S9.4 and S9.9). "
-           "Exploratory; not part of `prereg-v1`, not pooled with the 110 formal runs or other sets.",
-           "", "- New critic: `critic-uncarded` at `b5cba8e`; old critic: `f8696e2`; "
-           "platform: `36914f5`; review model: `deepseek-flash` "
-           "(`configs/agents/safelab_C_flash.json`, critic role).",
-           "- Labels frozen at `b515a27`, before any critic or model ran on the new set.",
-           f"- `eval/cases_novel2/`: {len(cases)} cases, {len(unsafe)} unsafe, "
-           f"{len(hard)} hard negatives and {len(plain)} ordinary safe steps.",
-           "- **Built by this project, not a third-party benchmark.** The specification author "
-           "read and modified the critic; the case constructor implemented frozen label rules. "
-           "This is not project-wide blinding.",
-           "- Offline single steps (ledger snapshot, observation and proposed action); no "
-           "simulator consequences or closed-loop safety evaluation.",
-           "- Caught = `block` or `rewrite`. Wilson 95% intervals. Errors are excluded from "
-           "rate denominators and counted separately; pairs with either side in error are excluded.",
-           "- Run 1 supplies headline results; runs 2 and 3 describe stability only. "
-           "`eval/cases_novel/` (S4) was used for development and is not reported as test results.",
-           "", "## Run 1: overall", "",
-           "| condition | unsafe recall | false block, all safe | false block, hard negatives | "
-           "false block, ordinary safe | errors |", "|---|---|---|---|---|---:|"]
+    out = [
+        "# Uncarded hazards: old and new dual critics and a prompt-only judge (exploratory)",
+        "",
+        "Plan: `experiments/prereg_explore_v2.md`, S9 (especially S9.3, S9.4 and S9.9). "
+        "Exploratory; not part of `prereg-v1`, not pooled with the 110 formal runs or other sets.",
+        "",
+        "- New critic: `critic-uncarded` at `b5cba8e`; old critic: `f8696e2`; "
+        "platform: `36914f5`; review model: `deepseek-flash` "
+        "(`configs/agents/safelab_C_flash.json`, critic role).",
+        "- Labels frozen at `b515a27`, before any critic or model ran on the new set.",
+        f"- `eval/cases_novel2/`: {len(cases)} cases, {len(unsafe)} unsafe, "
+        f"{len(hard)} hard negatives and {len(plain)} ordinary safe steps.",
+        "- **Built by this project, not a third-party benchmark.** The specification author "
+        "read and modified the critic; the case constructor implemented frozen label rules. "
+        "This is not project-wide blinding.",
+        "- Offline single steps (ledger snapshot, observation and proposed action); no "
+        "simulator consequences or closed-loop safety evaluation.",
+        "- Caught = `block` or `rewrite`. Wilson 95% intervals. Errors are excluded from "
+        "rate denominators and counted separately; pairs with either side in error are excluded.",
+        "- Run 1 supplies headline results; runs 2 and 3 describe stability only. "
+        "`eval/cases_novel/` (S4) was used for development and is not reported as test results.",
+        "",
+        "## Run 1: overall",
+        "",
+        "| condition | unsafe recall | false block, all safe | false block, hard negatives | "
+        "false block, ordinary safe | errors |",
+        "|---|---|---|---|---|---:|",
+    ]
     for c, rows in first.items():
         out.append(f"| {c} | " + " | ".join(rate(rows, ids) for ids in
                    (unsafe, safe, hard, plain)) + f" | {errors(rows)} |")
@@ -188,12 +195,16 @@ def generate(cases_dir, reports):
     for c in CONDITIONS[1:]:
         for n in RUNS[c]:
             rows = runs[c, n]
-            out.append(f"| {c} | {n} | {rate(rows, unsafe)} | {rate(rows, safe)} | {errors(rows)} |")
+            out.append(
+                f"| {c} | {n} | {rate(rows, unsafe)} | {rate(rows, safe)} | {errors(rows)} |"
+            )
     out.append("")
     for c in CONDITIONS[1:]:
         moved = sorted(i for i in cases if len({outcome(runs[c, n][i]) for n in RUNS[c]}) > 1)
-        out.append(f"- {c}: {len(moved)} of {len(cases)} inconsistent outcomes "
-                   "(caught / passed / error): " + (", ".join(f"`{i}`" for i in moved) or "none") + ".")
+        out.append(
+            f"- {c}: {len(moved)} of {len(cases)} inconsistent outcomes "
+            "(caught / passed / error): " + (", ".join(f"`{i}`" for i in moved) or "none") + "."
+        )
         ranges = []
         for label, ids in (("recall", unsafe), ("false block", safe)):
             values = [k/n for run in RUNS[c] for k, n, _ in [tally(runs[c, run], ids)] if n]
@@ -257,7 +268,10 @@ def generate(cases_dir, reports):
             out.append("| " + " | ".join(escape(row.get(k)) for k in
                        ("id", "category", "channel", "reason")) + " |")
     failed = [i for i in unsafe if outcome(first["dual_new"][i]) == "error"]
-    out += ["", "Unsafe cases with errors: " + (", ".join(f"`{i}`" for i in failed) or "none") + "."]
+    out += [
+        "",
+        "Unsafe cases with errors: " + (", ".join(f"`{i}`" for i in failed) or "none") + ".",
+    ]
     text = "\n".join(out) + "\n"
     notes = reports / "uncarded_r1.conclusions.md"
     if notes.exists():
@@ -276,10 +290,14 @@ def main(argv=None):
         output = args.output or args.reports_dir / "uncarded_r1.md"
         # tests/test_eval_heldout.py (the old seal guard) fails on any report file whose
         # text contains the held-out directory token; spell the set out instead.
-        text = (text.replace("old held-out: `eval/cases_heldout/`",
-                             "old held-out set: the P4 `cases_held*` directory beside `eval/cases/`")
-                .replace("| heldout |", "| held-out |")
-                .replace("### cases_heldout", "### old held-out set"))
+        text = (
+            text.replace(
+                "old held-out: `eval/cases_heldout/`",
+                "old held-out set: the P4 `cases_held*` directory beside `eval/cases/`",
+            )
+            .replace("| heldout |", "| held-out |")
+            .replace("### cases_heldout", "### old held-out set")
+        )
         if "heldout" in text.lower():
             raise ValueError("report text still names the held-out directory")
         output.write_text(text, encoding="utf-8", newline="\n")

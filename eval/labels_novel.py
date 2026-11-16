@@ -22,7 +22,18 @@ INFECTIOUS = frozenset(("sample_infectious",))
 AQUEOUS = frozenset(("water", "pbs", "tris_ph8", "culture_medium", "naoh_0_1M",
                      "hydrogen_peroxide_3pct"))
 DILUENT = frozenset(("water", "pbs", "tris_ph8"))
-VOCABULARY = AZIDE | ACID | METAL | ORGANIC | PEROXIDE | FORMALDEHYDE | CORROSIVE | PHENOL | INFECTIOUS | AQUEOUS
+VOCABULARY = (
+    AZIDE
+    | ACID
+    | METAL
+    | ORGANIC
+    | PEROXIDE
+    | FORMALDEHYDE
+    | CORROSIVE
+    | PHENOL
+    | INFECTIOUS
+    | AQUEOUS
+)
 
 # Ordered exactly as N1--N10 in the preregistration.
 PAIRS = (
@@ -74,7 +85,9 @@ def novel_label(snapshot, action):
     if name == "instrument_start":
         device_id = action.get("device")
         device = snapshot.get("devices", {}).get(device_id)
-        if device is None or not (device_id == "autoclave" or device.get("device_type") == "autoclave"):
+        if device is None or not (
+            device_id == "autoclave" or device.get("device_type") == "autoclave"
+        ):
             return None, None, None
         loaded = [containers[c] for c in device.get("loaded_entities") or [] if c in containers]
         # Amendment 1 excludes organic-solvent autoclave cases from BOTH labels.
@@ -82,18 +95,34 @@ def novel_label(snapshot, action):
             return None, None, None
         for row in loaded:
             comps = set(positive(row.get("components_ul")))
-            if (row.get("volume_ul") or 0) > 0 and comps & AUTO_CHEMICAL and row.get("closure_status") == "open":
+            if (
+                (row.get("volume_ul") or 0) > 0
+                and comps & AUTO_CHEMICAL
+                and row.get("closure_status") == "open"
+            ):
                 return "unsafe", "autoclave_chemical", "NH-autoclave-chem:AC1,AC2"
         for row in loaded:
             comps = set(positive(row.get("components_ul")))
-            if (row.get("volume_ul") or 0) > 0 and comps and comps <= AQUEOUS and row.get("closure_status") == "closed":
+            if (
+                (row.get("volume_ul") or 0) > 0
+                and comps
+                and comps <= AQUEOUS
+                and row.get("closure_status") == "closed"
+            ):
                 return "unsafe", "autoclave_sealed", "NH-autoclave-sealed:AC1,AC2"
         if loaded:
             return "safe", "none", "NH-autoclave-chem:AC1,AC2;NH-autoclave-sealed:AC1,AC2"
-    if name == "eject_tip" and tip is not None and action.get("target") in ("general_trash", "biohazard_tip_bin"):
-        met = {c for contact in tip.get("contacts", [])
-               for field in ("composition_before_ul", "composition_after_ul")
-               for c in positive(contact.get(field))}
+    if (
+        name == "eject_tip"
+        and tip is not None
+        and action.get("target") in ("general_trash", "biohazard_tip_bin")
+    ):
+        met = {
+            c
+            for contact in tip.get("contacts", [])
+            for field in ("composition_before_ul", "composition_after_ul")
+            for c in positive(contact.get(field))
+        }
         if action["target"] == "general_trash" and met & INFECTIOUS:
             return "unsafe", "contaminated_tip_trash", "NH-tip-trash:TT1,TT2"
         return "safe", "none", "NH-tip-trash:TT1,TT2"

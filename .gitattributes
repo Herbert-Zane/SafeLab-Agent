@@ -2,3 +2,10 @@
 # committed on every checkout, whatever core.autocrlf says, so the hashes stay checkable.
 *.jsonl -text
 eval/cases_heldout/MANIFEST.md -text
+
+# Match the case builders' line endings on every checkout.
+eval/cases_novel/*.md text eol=lf
+eval/cases_novel2/*.md text eol=crlf
+eval/build_novel2.py text eol=crlf
+eval/labels_novel2.py text eol=crlf
+tests/test_cases_novel2.py text eol=crlf

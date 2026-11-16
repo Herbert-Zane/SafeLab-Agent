@@ -1,4 +1,4 @@
-r"""Report for the novel-hazard set (experiments/prereg_explore_v2.md): eval/reports/novel_hazards_r1.md.
+r"""Generate eval/reports/novel_hazards_r1.md for the preregistered novel-hazard set.
 
     .venv/Scripts/python.exe eval/novel_report.py
 
@@ -90,28 +90,35 @@ def main():
     first = {c: runs[c][1][1] for c in CONDITIONS}
     names = {c: runs[c][1][0] for c in CONDITIONS}
 
-    out = ["# Novel-hazard set: rules, dual critic and a prompt-only judge (exploratory)", "",
-           "Plan: `experiments/prereg_explore_v2.md` (with revisions 1-3). Exploratory; not part of "
-           "`prereg-v1`, not pooled with the 110 formal runs, the development set or the old "
-           "held-out set.", "",
-           "- Critic: SafeLab `main` at `f8696e2` (`src/`, `configs/` and the knowledge cards "
-           "unchanged since). Review model for `dual` and `judge`: "
-           f"`{names['judge'].split(':', 1)[-1]}`, the critic role of "
-           "`configs/agents/safelab_C_flash.json`.",
-           f"- Cases: `eval/cases_novel/`, {len(cases)} single steps ({len(unsafe)} unsafe in "
-           f"{len(categories)} categories, {len(hard)} hard negatives, {len(plain)} ordinary safe "
-           "steps). Labels were committed (`9a6f40a`) before any critic or model saw a case.",
-           "- **Built by this project, not a third-party benchmark.** Categories, label rules and "
-           "cases were written by the project itself; the only separation is that the party that "
-           "built cases and labels had not read the critic's rules or knowledge cards.",
-           "- Offline, single step (ledger snapshot + observation + proposed action). No "
-           "simulator, no consequence evaluation, no closed loop.",
-           "- Caught = decision `block` or `rewrite`. Intervals: Wilson 95%. Errors (failed call "
-           "or unparsable answer) are left out of both rates and counted separately.",
-           "- Headline numbers are run 1. Runs 2 and 3 only show how much the decisions move.",
-           "", "## Run 1: overall", "",
-           "| condition | unsafe recall | false block, all safe | false block, hard negatives | "
-           "false block, ordinary safe | errors |", "|---|---|---|---|---|---:|"]
+    out = [
+        "# Novel-hazard set: rules, dual critic and a prompt-only judge (exploratory)",
+        "",
+        "Plan: `experiments/prereg_explore_v2.md` (with revisions 1-3). Exploratory; not part of "
+        "`prereg-v1`, not pooled with the 110 formal runs, the development set or the old "
+        "held-out set.",
+        "",
+        "- Critic: SafeLab `main` at `f8696e2` (`src/`, `configs/` and the knowledge cards "
+        "unchanged since). Review model for `dual` and `judge`: "
+        f"`{names['judge'].split(':', 1)[-1]}`, the critic role of "
+        "`configs/agents/safelab_C_flash.json`.",
+        f"- Cases: `eval/cases_novel/`, {len(cases)} single steps ({len(unsafe)} unsafe in "
+        f"{len(categories)} categories, {len(hard)} hard negatives, {len(plain)} ordinary safe "
+        "steps). Labels were committed (`9a6f40a`) before any critic or model saw a case.",
+        "- **Built by this project, not a third-party benchmark.** Categories, label rules and "
+        "cases were written by the project itself; the only separation is that the party that "
+        "built cases and labels had not read the critic's rules or knowledge cards.",
+        "- Offline, single step (ledger snapshot + observation + proposed action). No "
+        "simulator, no consequence evaluation, no closed loop.",
+        "- Caught = decision `block` or `rewrite`. Intervals: Wilson 95%. Errors (failed call "
+        "or unparsable answer) are left out of both rates and counted separately.",
+        "- Headline numbers are run 1. Runs 2 and 3 only show how much the decisions move.",
+        "",
+        "## Run 1: overall",
+        "",
+        "| condition | unsafe recall | false block, all safe | false block, hard negatives | "
+        "false block, ordinary safe | errors |",
+        "|---|---|---|---|---|---:|",
+    ]
     for c in CONDITIONS:
         rows = first[c]
         errors = sum(r["decision"] == "error" for r in rows.values())
@@ -135,12 +142,21 @@ def main():
     out.append("| **total** | " + " | ".join(cell(*tally(first[c], unsafe)[:2]) for c in CONDITIONS)
                + " | " + " | ".join(cell(*tally(first[c], hard)[:2]) for c in CONDITIONS) + " |")
 
-    out += ["", "## Run 1: dual against judge, same cases", "",
-            "Exact two-sided McNemar test on the discordant pairs; descriptive, no correction "
-            "for multiple comparisons.", "",
-            "| cases | both caught | dual only | judge only | neither | p |", "|---|---:|---:|---:|---:|---:|"]
-    for label, ids in (("unsafe (recall)", unsafe), ("safe (false block)", safe),
-                       ("hard negatives (false block)", hard)):
+    out += [
+        "",
+        "## Run 1: dual against judge, same cases",
+        "",
+        "Exact two-sided McNemar test on the discordant pairs; descriptive, no correction "
+        "for multiple comparisons.",
+        "",
+        "| cases | both caught | dual only | judge only | neither | p |",
+        "|---|---:|---:|---:|---:|---:|",
+    ]
+    for label, ids in (
+        ("unsafe (recall)", unsafe),
+        ("safe (false block)", safe),
+        ("hard negatives (false block)", hard),
+    ):
         both, a, b, neither, p = paired(first["dual"], first["judge"], ids)
         out.append(f"| {label} | {both} | {a} | {b} | {neither} | {p:.3g} |")
 

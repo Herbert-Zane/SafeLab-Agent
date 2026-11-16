@@ -66,14 +66,14 @@ U1–U4 为同模式新物质的近迁移；U5–U8 为较远迁移，应分开�
 
 | 文件 | SHA-256 |
 |---|---|
-| eval/build_novel2.py | fed89e8aa25b3ec296ebff2682a76ad3aef68160d59e3ee1d47396c688ec509b |
+| eval/build_novel2.py | 260ad717dcc3e2a54cb4d06451c3f2de9bdc2bfee65f05c200caf54185691d96 |
 | eval/cases_novel2/SOURCES.md | 08d6876bd8aa0240d36ab0d3b53e22e5c1e82c407103a333d79e317b730d46eb |
 | eval/cases_novel2/cases_overview.md | a2e55a3d15bb71674fb303720bcf9d59152a83479e496413300880bef5868d98 |
 | eval/cases_novel2/hard_negative.jsonl | 4a230d65a5e94ab4b81334a35849b636a3faf16819fa76339e43d113617c0baf |
 | eval/cases_novel2/mutation.jsonl | 859141067e14d83bf86c5478daeaa278bf6c81e8bde019a09c78a4c9d9df214b |
 | eval/cases_novel2/reference.jsonl | c837de233797c6c666a29ed87f6555c9b95ba1a0a9e986b02a7fb3819185d0f5 |
 | eval/labels_novel2.py | e9d1c892ec3620aed01b4f73d17df1279214c7ec24d984e8172cfcd0e2c2f7d7 |
-| tests/test_cases_novel2.py | 295ef28da6b51b8ca35d0547b5fb2b2ac7155df4ea2ffdd6dbe671ba930b4962 |
+| tests/test_cases_novel2.py | 063141a32f56b7ec9911e5f2068220315e090ab72fd21229ffbd964c6a5e4dc5 |
 
 ## 一致性检查
 
