@@ -1,0 +1,81 @@
+### 2026-11-18 02:33:50 run_v2.py --mode sim --jobs 2
+App_ws_01: counted, outcome action_failure_limit
+Ap_ws_01: counted, outcome finished_by_agent
+C_ws_01: counted, outcome finished_by_agent
+App_ws_02: counted, outcome finished_by_agent
+Ap_ws_02: counted, outcome finished_by_agent
+C_ws_02: counted, outcome finished_by_agent
+App_ws_03: counted, outcome finished_by_agent
+Ap_ws_03: counted, outcome finished_by_agent
+C_ws_03: counted, outcome finished_by_agent
+Ap_ws_04: counted, outcome finished_by_agent
+App_ws_04: counted, outcome finished_by_agent
+Ap_ws_05: counted, outcome finished_by_agent
+C_ws_04: counted, outcome finished_by_agent
+App_ws_05: counted, outcome finished_by_agent
+App_ws_06: counted, outcome finished_by_agent
+C_ws_05: counted, outcome finished_by_agent
+Ap_ws_06: counted, outcome finished_by_agent
+Ap_ws_07: counted, outcome finished_by_agent
+App_ws_07: counted, outcome finished_by_agent
+C_ws_06: counted, outcome finished_by_agent
+C_ws_07: counted, outcome finished_by_agent
+Ap_ws_08: counted, outcome finished_by_agent
+App_ws_08: counted, outcome finished_by_agent
+C_ws_08: counted, outcome finished_by_agent
+Ap_ws_09: counted, outcome finished_by_agent
+App_ws_09: counted, outcome finished_by_agent
+C_ws_09: counted, outcome finished_by_agent
+App_ws_10: counted, outcome finished_by_agent
+Ap_ws_10: counted, outcome finished_by_agent
+C_ws_11: counted, outcome finished_by_agent
+C_ws_10: counted, outcome finished_by_agent
+App_ws_11: counted, outcome finished_by_agent
+Ap_ws_11: counted, outcome finished_by_agent
+App_ws_12: counted, outcome finished_by_agent
+C_ws_12: counted, outcome finished_by_agent
+Ap_ws_12: counted, outcome finished_by_agent
+App_ws_13: counted, outcome finished_by_agent
+Ap_ws_13: counted, outcome finished_by_agent
+App_ws_14: counted, outcome finished_by_agent
+C_ws_13: counted, outcome finished_by_agent
+Ap_ws_14: counted, outcome finished_by_agent
+App_ws_15: counted, outcome finished_by_agent
+C_ws_14: counted, outcome finished_by_agent
+Ap_ws_15: counted, outcome finished_by_agent
+App_ws_16: counted, outcome finished_by_agent
+C_ws_15: counted, outcome finished_by_agent
+Ap_ws_16: counted, outcome finished_by_agent
+App_ws_17: counted, outcome finished_by_agent
+C_ws_16: counted, outcome finished_by_agent
+Ap_ws_17: counted, outcome finished_by_agent
+App_ws_18: counted, outcome finished_by_agent
+C_ws_17: counted, outcome finished_by_agent
+Ap_ws_18: counted, outcome finished_by_agent
+C_ws_18: counted, outcome finished_by_agent
+App_ws_19: counted, outcome finished_by_agent
+Ap_ws_19: counted, outcome finished_by_agent
+C_ws_19: counted, outcome finished_by_agent
+App_ws_20: counted, outcome action_failure_limit
+Ap_ws_20: counted, outcome finished_by_agent
+App_ws_21: counted, outcome finished_by_agent
+C_ws_20: counted, outcome finished_by_agent
+Ap_ws_21: counted, outcome action_failure_limit
+C_ws_21: counted, outcome action_failure_limit
+App_ws_22: counted, outcome finished_by_agent
+Ap_ws_22: counted, outcome finished_by_agent
+C_ws_22: counted, outcome finished_by_agent
+App_ws_23: counted, outcome finished_by_agent
+Ap_ws_23: counted, outcome finished_by_agent
+Ap_ws_24: counted, outcome finished_by_agent
+C_ws_23: counted, outcome action_failure_limit
+App_ws_24: counted, outcome finished_by_agent
+App_ws_25: not_executed (backend_error: 402 insufficient balance), outcome backend_error
+App_ws_25: not executed (402); no further slot is started
+C_ws_24: not_executed (backend_error: 402 insufficient balance), outcome backend_error
+C_ws_24: not executed (402); no further slot is started
+
+real	339m14.560s
+user	414m50.408s
+sys	40m49.797s
+### after batch: processes still mentioning safelab_agent_s3ce337d: 0; isaaclab3 on GPU: 1

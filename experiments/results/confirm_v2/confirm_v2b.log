@@ -1,0 +1,55 @@
+### 2026-11-19 01:14:33 run_v2.py --mode sim --jobs 2
+App_ws_25: counted, outcome finished_by_agent
+C_ws_24: counted, outcome finished_by_agent
+Ap_ws_25: counted, outcome action_failure_limit
+App_ws_26: counted, outcome finished_by_agent
+C_ws_25: counted, outcome finished_by_agent
+Ap_ws_26: counted, outcome finished_by_agent
+Ap_ws_27: counted, outcome finished_by_agent
+C_ws_26: counted, outcome finished_by_agent
+C_ws_27: counted, outcome finished_by_agent
+App_ws_27: counted, outcome finished_by_agent
+App_ws_28: counted, outcome finished_by_agent
+Ap_ws_28: counted, outcome finished_by_agent
+C_ws_28: counted, outcome finished_by_agent
+Ap_ws_29: counted, outcome finished_by_agent
+App_ws_29: counted, outcome finished_by_agent
+App_ws_30: counted, outcome finished_by_agent
+C_ws_30: counted, outcome finished_by_agent
+C_ws_29: counted, outcome finished_by_agent
+Ap_ws_30: counted, outcome finished_by_agent
+Ap_ws_31: counted, outcome finished_by_agent
+App_ws_31: counted, outcome finished_by_agent
+C_ws_31: counted, outcome finished_by_agent
+Ap_ws_32: counted, outcome finished_by_agent
+C_ws_32: counted, outcome finished_by_agent
+App_ws_32: counted, outcome finished_by_agent
+Ap_ws_33: counted, outcome finished_by_agent
+App_ws_33: counted, outcome finished_by_agent
+C_ws_33: counted, outcome finished_by_agent
+Ap_ws_34: counted, outcome finished_by_agent
+App_ws_34: counted, outcome finished_by_agent
+C_ws_34: counted, outcome finished_by_agent
+App_ws_35: counted, outcome finished_by_agent
+C_ws_35: counted, outcome finished_by_agent
+Ap_ws_36: counted, outcome finished_by_agent
+Ap_ws_35: counted, outcome finished_by_agent
+App_ws_36: counted, outcome finished_by_agent
+C_ws_36: counted, outcome finished_by_agent
+Ap_ws_37: counted, outcome finished_by_agent
+C_ws_37: counted, outcome finished_by_agent
+App_ws_37: counted, outcome finished_by_agent
+App_ws_38: counted, outcome finished_by_agent
+Ap_ws_38: counted, outcome action_failure_limit
+C_ws_38: counted, outcome finished_by_agent
+Ap_ws_39: counted, outcome finished_by_agent
+C_ws_39: counted, outcome finished_by_agent
+App_ws_39: counted, outcome finished_by_agent
+App_ws_40: counted, outcome finished_by_agent
+Ap_ws_40: counted, outcome finished_by_agent
+C_ws_40: counted, outcome action_failure_limit
+
+real	281m56.518s
+user	280m31.186s
+sys	26m3.444s
+### after batch: processes still mentioning safelab_agent_s3ce337d: 0; isaaclab3 on GPU: 2
