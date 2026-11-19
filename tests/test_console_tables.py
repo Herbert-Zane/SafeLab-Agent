@@ -114,6 +114,27 @@ def test_invalid_metadata_is_skipped(tmp_path, field, value):
     assert runstore.result_tables(tmp_path)["tables"] == []
 
 
+def test_app_is_counted_in_order_and_shown_as_double_prime(tmp_path):
+    for condition in ("C", "B", "App", "Ap", "A"):
+        write_run(tmp_path, name=f"{condition}_ws_01", condition=condition, trace=False)
+    data = runstore.result_tables(tmp_path)
+    assert data["skipped"] == 0
+    table, = data["tables"]
+    assert table["runs"] == 5
+    assert [(r["condition"], r["n"]) for r in table["rows"]] == [
+        ("A", 1), ("Ap", 1), ("App", 1), ("B", 1), ("C", 1)]
+
+    rid = "batch/open/App_ws_01"
+    run = runstore.load_run(tmp_path, rid)
+    summary = runstore.summarize_run(tmp_path, tmp_path / rid)
+    for view in (run, summary):
+        assert view["condition"] == "A″"
+        assert view["condition_label"] == "A″ 平台基线 + 审查卡片原文写进 brief（无审查器）"
+    assert not run["has_trace"] and all("已退化" not in note for note in run["notes"])
+    assert runstore.infer_condition({"brief": {"source": "ws.primed.json"}}, [],
+                                    {"condition": "App"}) == "A″"
+
+
 def test_missing_malformed_metadata_and_shallow_batch(tmp_path):
     path = write_run(tmp_path)
     (path / runstore.META).unlink()
@@ -218,22 +239,45 @@ def test_tables_api_cache_invalidates_edits_additions_and_removals(api, matrix, 
     assert api("/api/tables?id=" + quote("../../private")) == api("/api/tables")
 
 
+def test_batch_note_updates_cached_tables_without_changing_counts(api, matrix):
+    initial = api("/api/tables")
+    assert all(t["note"] is None for t in initial["tables"])
+    path = matrix / "batch" / runstore.BATCH_NOTE
+
+    def expected(text):
+        return {**initial, "tables": [dict(t, note=text) if t["batch"] == "batch" else t
+                                      for t in initial["tables"]]}
+
+    first = "确认批（第二份预注册），与正式 110 次分开报告"
+    path.write_text(f"\n  {first}  \n第二行", encoding="utf-8")
+    assert api("/api/tables") == expected(first)
+
+    revised = "新说明" * 100
+    path.write_text(f"{revised}\n第二行", encoding="utf-8")
+    assert api("/api/tables") == expected(revised[:200])
+
+    path.unlink()
+    assert api("/api/tables") == initial
+
+
 def test_table_reads_are_allowlisted_and_run_ids_are_resolved(matrix, monkeypatch):
-    original_read, original_resolve = Path.read_text, runstore.resolve_run
+    (matrix / "batch" / runstore.BATCH_NOTE).write_text("批次说明", encoding="utf-8")
+    original_open, original_resolve = Path.open, runstore.resolve_run
     resolved = set()
 
-    def read(path, *args, **kwargs):
+    def open_allowed(path, *args, **kwargs):
         if path.is_relative_to(matrix):
-            assert path.name in runstore.RUN_FILES + runstore.BATCH_MARKERS
-        return original_read(path, *args, **kwargs)
+            assert path.name in runstore.RUN_FILES + runstore.BATCH_MARKERS + (runstore.BATCH_NOTE,)
+        return original_open(path, *args, **kwargs)
 
     def resolve(root, rid):
         resolved.add(rid)
         return original_resolve(root, rid)
 
-    monkeypatch.setattr(Path, "read_text", read)
+    monkeypatch.setattr(Path, "open", open_allowed)
     monkeypatch.setattr(runstore, "resolve_run", resolve)
     data = runstore.result_tables(matrix)
+    assert all(t["note"] == "批次说明" for t in data["tables"] if t["batch"] == "batch")
     assert {rid for t in data["tables"] for r in t["rows"] for rid in r["run_ids"]} <= resolved
     for invalid in ("../private", "/private", "batch/../../private"):
         with pytest.raises(runstore.RunError):
@@ -284,6 +328,16 @@ def test_real_formal_and_aside_counts():
     assert aside["outcomes"] == {"backend_error": 90}
 
 
+def test_real_confirm_v2_counts():
+    root = CONSOLE.parent / "runs/confirm_v2"
+    if not root.is_dir():
+        pytest.skip("Confirmation run artifacts are unavailable")
+    # When scoped to confirm_v2, the batch itself is shown as the root (.).
+    table = next(t for t in runstore.result_tables(root)["tables"] if t["batch"] == ".")
+    assert table["runs"] == 120
+    assert [(r["condition"], r["n"]) for r in table["rows"]] == [("Ap", 40), ("App", 40), ("C", 40)]
+
+
 def test_marked_batch_is_set_aside_not_formal(api, tmp_path, matrix):
     write_run(matrix, "kept", name="A_ws_01", outcome="backend_error")
     path = write_run(matrix, "moved", name="A_ws_01", outcome="backend_error")
@@ -314,6 +368,7 @@ def test_native_tables_and_replay_controller(matrix):
     node = shutil.which("node")
     if not node:
         pytest.skip("Node is unavailable")
+    (matrix / "batch" / runstore.BATCH_NOTE).write_text("确认批说明", encoding="utf-8")
     harness = r'''
 const fs = require("node:fs"), vm = require("node:vm"), assert = require("node:assert/strict");
 const data = JSON.parse(fs.readFileSync(0, "utf8"));
@@ -337,6 +392,8 @@ vm.runInContext(`
 const all = node => [node, ...node.children.filter(c => c?.nodeType).flatMap(all)];
 S.tables = data; S.view = "tables"; renderTables();
 const panel = $("#tables-view"), text = panel.textContent;
+assert.equal(conditionText("App"), "A″");
+assert.ok(all(panel).some(n => n.className === "big-note" && n.textContent === "批次说明（COHORT_NOTE.txt）：确认批说明"));
 for (const word of ["正式运行", "探索性（非正式）", "干跑", "未预注册", "不与正式运行合并报告", "不等于安全", "cross_contamination", "探索性核实", "干跑不给评测结论（未评估）"]) assert.ok(text.includes(word), word);
 for (const cls of ["b-formal", "b-exploratory", "b-dry"]) assert.ok(all(panel).some(n => n.className?.includes(cls)));
 assert.ok(all(panel).some(n => n.tag === "button" && n.textContent === "0"));

@@ -44,7 +44,11 @@ function cohortBadge(cohort) {
 function formalCohort(meta) {
   return meta?.aside ? "aside" : meta?.formal === true ? "formal" : meta?.formal === false ? "exploratory" : null;
 }
-function conditionText(condition) { return condition === "Ap" ? "A′" : condition; }
+function conditionText(condition) {
+  if (condition === "Ap") return "A′";
+  if (condition === "App") return "A″";
+  return condition;
+}
 const DECISION = { pass: ["放行", "b-ok"], block: ["驳回", "b-bad"], rewrite: ["改写", "b-rewrite"] };
 const CHANNEL = { rules: "仅规则通道", llm: "仅 LLM 通道", "rules+llm": "规则 + LLM 合议", none: "未触发审查" };
 const STRATEGY = { rewrite: "按驳回理由重新提议", replan: "重规划后提议", remediate: "补救提议" };
@@ -892,7 +896,11 @@ function whereLink(where) {
   const turn = where.step == null ? null : S.run.turns.find((t) => t.step === where.step);
   if (!turn) return h("span", { class: where.kind === "unknown" ? "muted" : "" }, where.text);
   const link = h("a", { href: "#" }, where.text);
-  link.addEventListener("click", (event) => { event.preventDefault(); selectTurn(turn.call); });
+  link.addEventListener("click", (event) => {
+    event.preventDefault(); selectTurn(turn.call);
+    // Bring the step into view: in the side-by-side iframe the ledger column is hidden.
+    document.querySelector("#timeline .turn.sel")?.scrollIntoView?.({ block: "center" });
+  });
   return link;
 }
 
@@ -937,7 +945,7 @@ function returnQuery() {
 }
 
 function runURL(id) { return "/?run=" + encodeURIComponent(id) + returnQuery(); }
-const CONDITION_ORDER = ["A", "Ap", "B", "C"];
+const CONDITION_ORDER = ["A", "Ap", "A′", "App", "A″", "B", "C"];
 // The baseline goes on the left whichever row the link was opened from.
 function orderedCompareURL(a, b) {
   const rank = r => { const i = CONDITION_ORDER.indexOf(r.condition); return i < 0 ? 99 : i; };
@@ -1046,6 +1054,7 @@ function renderTables() {
       const notes = uniq(table.rows.map(r => r.metrics?.safety?.declared_unassessed));
       const coverageNotes = uniq(table.rows.map(r => r.metrics?.scientific_integrity?.coverage_note));
       return h("section", { class: "card result-table" }, h("div", { class: "title-row" }, h("h2", {}, table.batch), cohortBadge(table.cohort)),
+        table.note ? h("div", { class: "big-note" }, "批次说明（COHORT_NOTE.txt）：" + table.note) : null,
         h("div", { class: `big-note ${table.cohort === "formal" ? "" : "warn"}` }, banner),
         h("p", { class: "muted small table-meta" }, `${table.runs} 次运行 · SafeLab ${(table.safelab_commit || []).join("、") || "未记录"} · 平台 ${(table.platform_commit || []).join("、") || "未记录"} · ${table.started || "未记录"} — ${table.ended || "未记录"} · 结束方式 ${Object.entries(table.outcomes).map(([key, n]) => `${key}: ${n}`).join("；")}`),
         ...table.warnings.map(w => h("div", { class: "big-note warn" }, w)),
@@ -1151,6 +1160,7 @@ function applyCompare() {
     if (side.index !== i) { side.api.seekEvent(i); side.index = i; }
     const ended = !side.offsets.length || i >= side.offsets.length - 1;
     side.ended.textContent = ended ? "已到结尾" : "";
+    side.ended.hidden = !ended;
     const done = ended ? side.ends.length : side.ends.filter(end => end <= i).length;
     side.verdict.replaceChildren(h("span", { class: "muted" }, `已完成 ${done} / ${side.ends.length} 步　`),
       ...(ended ? side.api.verdict().flatMap(v => [h("span", {}, v.label + "："),
@@ -1162,6 +1172,24 @@ function applyCompare() {
   if (progress) { progress.max = total; progress.value = C.position; }
   const pos = $("#compare-pos");
   if (pos) pos.textContent = C.align === "step" ? `步 ${C.position} / ${total}` : `${mmss(C.position)} / ${mmss(total)}`;
+  fitCompareFrames();
+}
+
+// Fill the viewport without letting the parent page scroll: otherwise the
+// embedded page's scrollIntoView also scrolls the parent on every step.
+function fitCompareFrames() {
+  const root = document.documentElement;
+  if (!root || !window.innerHeight) return;
+  const frames = C.sides.map(s => s.iframe).filter(f => f?.getBoundingClientRect && !f.hidden);
+  if (!frames.length) return;
+  const top = Math.max(...frames.map(f => f.getBoundingClientRect().top + window.scrollY));
+  let height = Math.max(320, window.innerHeight - top - 12);
+  for (const f of frames) f.style.height = height + "px";
+  const extra = root.scrollHeight - window.innerHeight;
+  if (extra > 0 && height > 320) {
+    height = Math.max(320, height - extra);
+    for (const f of frames) f.style.height = height + "px";
+  }
 }
 
 function comparisonWarnings(infos) {
@@ -1203,7 +1231,7 @@ function compareControls() {
     h("label", {}, "对齐 ", h("select", { onchange: e => { C.align = e.target.value; jump(0); } },
       h("option", { value: "step", selected: C.align === "step" }, "按步号"), h("option", { value: "time", selected: C.align === "time" }, "按经过时间"))),
     h("label", {}, "倍速 ", speed),
-    h("label", {}, h("input", { type: "checkbox", checked: C.compress, onchange: e => {
+    C.align !== "time" ? null : h("label", {}, h("input", { type: "checkbox", checked: C.compress, onchange: e => {
       C.compress = e.target.checked;
       for (const side of C.sides) if (side.api) side.offsets = side.api.offsets(C.compress);
       jump(0);
@@ -1245,8 +1273,10 @@ function showCompare(left, right) {
   for (const [label, id] of [["左", left], ["右", right]]) {
     const title = h("div", { class: "compare-title" }, `${label}侧：${id}`);
     const error = h("div", { class: "big-note warn", hidden: true });
-    const iframe = h("iframe", { title: `${label}侧运行回放`, src: "/?run=" + encodeURIComponent(id || "") + "&embed=1" });
-    const side = { id, title, iframe, api: null, offsets: [], ends: [], index: null, ended: h("span", { class: "badge b-neutral" }),
+    const theme = document.documentElement?.dataset?.theme;
+    const iframe = h("iframe", { title: `${label}侧运行回放`,
+      src: "/?run=" + encodeURIComponent(id || "") + "&embed=1" + (theme ? "&theme=" + theme : "") });
+    const side = { id, title, iframe, api: null, offsets: [], ends: [], index: null, ended: h("span", { class: "badge b-neutral", hidden: true }),
       verdict: h("div", { class: "compare-verdict small" }) };
     C.sides.push(side);
     const fail = message => { error.hidden = false; error.textContent = `读取失败：${message}`; iframe.hidden = true; };
@@ -1300,6 +1330,15 @@ async function route() {
 
 async function init() {
   const query = new URLSearchParams(location.search);
+  // ?theme=light|dark overrides the system colour scheme (e.g. for screen recording)
+  // for the rest of this tab; ?theme=auto follows the system again.
+  let theme = query.get("theme");
+  try {
+    if (theme === "auto") sessionStorage.removeItem("safelab-theme");
+    else if (["light", "dark"].includes(theme)) sessionStorage.setItem("safelab-theme", theme);
+    else theme = sessionStorage.getItem("safelab-theme");
+  } catch { /* storage blocked: the URL parameter still applies to this page */ }
+  if (["light", "dark"].includes(theme)) document.documentElement.dataset.theme = theme;
   S.embed = query.get("embed") === "1";
   if (S.embed) installEmbed();
   else {
@@ -1312,6 +1351,7 @@ async function init() {
       loadOptions().catch(() => {});
     }
     window.addEventListener("popstate", route);
+    window.addEventListener("resize", () => { if (S.view === "compare") fitCompareFrames(); });
     setInterval(() => { if (S.view === "run" && S.mode !== "replay") loadRuns().catch(() => {}); }, 15000);
   }
   await route();

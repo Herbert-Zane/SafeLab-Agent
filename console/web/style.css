@@ -10,8 +10,9 @@
   --replay: #a1236b; --replay-bg: #fbe4f1;
   --mono: ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace;
 }
+/* Dark follows the system unless ?theme=light|dark sets data-theme on <html>. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #14171d; --panel: #1d222b; --ink: #e6e9ef; --muted: #9aa4b5; --line: #343b48;
     --accent: #7fb0ff; --accent-bg: #1e2c47;
     --ok: #6fd391; --ok-bg: #173323; --bad: #ff8a80; --bad-bg: #3d1d1b;
@@ -19,6 +20,14 @@
     --dry: #c7a5ff; --dry-bg: #2c2140; --sim: #6fe0d6; --sim-bg: #123635;
     --replay: #ff9fd0; --replay-bg: #40182f;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #14171d; --panel: #1d222b; --ink: #e6e9ef; --muted: #9aa4b5; --line: #343b48;
+  --accent: #7fb0ff; --accent-bg: #1e2c47;
+  --ok: #6fd391; --ok-bg: #173323; --bad: #ff8a80; --bad-bg: #3d1d1b;
+  --warn: #f1c24e; --warn-bg: #3a2f12; --rewrite: #ffb070; --rewrite-bg: #3d2815;
+  --dry: #c7a5ff; --dry-bg: #2c2140; --sim: #6fe0d6; --sim-bg: #123635;
+  --replay: #ff9fd0; --replay-bg: #40182f;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink);
@@ -71,7 +80,7 @@ code, .mono { font-family: var(--mono); font-size: 13px; }
 .compare-side { min-width: 0; }
 .compare-title { display: flex; flex-wrap: wrap; align-items: center; gap: 7px;
   background: var(--panel); border: 1px solid var(--line); padding: 10px; }
-.compare-side iframe { width: 100%; height: calc(100vh - 270px); min-height: 450px;
+.compare-side iframe { width: 100%; height: calc(100vh - 270px); min-height: 320px;
   border: 1px solid var(--line); background: var(--bg); }
 .embed #layout { padding: 8px; }
 .embed #cols { display: block; }
@@ -194,6 +203,9 @@ tr.goal-failed td { background: var(--bad-bg); }
 .bar.over { background: var(--bad); }
 .eval-dim { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; margin-top: 6px; }
 .eval-dim.tone-bad { border-color: var(--bad); background: var(--bad-bg); }
+/* Long JSON values have no break points; let them wrap inside the card. */
+.eval-dim td { overflow-wrap: anywhere; }
+.eval-dim td:nth-child(2) { white-space: nowrap; }
 .eval-dim.tone-warn { border-color: var(--warn); background: var(--warn-bg); }
 .big-note { padding: 10px; border-radius: 6px; font-weight: 600; }
 .big-note.warn { background: var(--warn-bg); color: var(--warn); }

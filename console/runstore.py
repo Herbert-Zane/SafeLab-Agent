@@ -1,7 +1,8 @@
 """Read-only data layer of the console: run directories in, plain JSON-able dicts out.
 
-Nothing here writes to a run directory, imports the platform, or opens a file
-other than the ones named in ``RUN_FILES``. A run directory holds:
+Nothing here writes to a run directory or imports the platform. Reads are
+limited to ``RUN_FILES`` in run directories and the named batch files below.
+A run directory holds:
 
 * the platform's artifacts: ``agent_run.json``, ``agent_steps.jsonl`` (one row
   per model call), ``agent_plan.json``, ``agent_conversation.json``,
@@ -29,6 +30,7 @@ from collections import Counter, defaultdict
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
+from stat import S_ISREG
 
 RUN_FILES = ("agent_run.json", "agent_steps.jsonl", "agent_plan.json", "agent_conversation.json",
              "agent_system_prompt.txt", "trajectory_evaluation.json", "safelab_trace.jsonl",
@@ -51,6 +53,7 @@ LYSIS_COVERAGE_NOTE = (
 # Batch-level markers: a batch directory holding one of these is not a result set
 # (runs set aside as unexecuted, or a copy superseded by a later one).
 BATCH_MARKERS = ("MOVED.txt", "SUPERSEDED.txt")
+BATCH_NOTE = "COHORT_NOTE.txt"
 METRICS = {"safety": "unsafe", "scientific_integrity": "failed", "task_completion": "achieved"}
 
 SOURCE_LABELS = {
@@ -61,6 +64,7 @@ SOURCE_LABELS = {
 CONDITION_LABELS = {
     "A": "A 平台基线（无审查器）",
     "A′": "A′ 平台基线 + 带安全提示的 brief（无审查器）",
+    "A″": "A″ 平台基线 + 审查卡片原文写进 brief（无审查器）",
     "B": "B 规划+账本+反思（无审查器）",
     "C": "C 完整版（含安全审查器）",
     "script": "脚本回放（无模型）",
@@ -260,6 +264,8 @@ def classify_source(agent_run, steps=None, has_evaluation=False):
 def infer_condition(agent_run, trace_rows, meta=None):
     if (meta or {}).get("condition") == "Ap":
         return "A′"
+    if (meta or {}).get("condition") == "App":
+        return "A″"
     brief = ((agent_run or {}).get("brief") or {}).get("source") or ""
     if ".primed." in re.split(r"[/\\]", brief)[-1]:
         return "A′"
@@ -333,15 +339,45 @@ def aside_note(root, run_dir):
     return None
 
 
+def _read_batch_note(root, run_dir):
+    """Return display text and file metadata for cache invalidation."""
+    try:
+        root, batch = Path(root).resolve(), Path(run_dir).resolve().parent.parent
+        if not batch.is_relative_to(root):
+            return None, None
+        path = batch/BATCH_NOTE
+        stat = path.stat(follow_symlinks=False)
+        if not S_ISREG(stat.st_mode):
+            return None, None
+    except (OSError, RuntimeError):
+        return None, None
+    stamp = stat.st_mtime_ns, stat.st_size
+    try:
+        with path.open("rb") as stream:
+            for line in stream:
+                text = line.decode("utf-8-sig").strip()
+                if text:
+                    return text[:200], stamp
+    except (OSError, UnicodeError):
+        pass
+    return None, stamp
+
+
+def batch_note(root, run_dir):
+    """The first nonblank line of the batch's display-only note, if present."""
+    return _read_batch_note(root, run_dir)[0]
+
+
 def directory_signature(root):
-    """Include identities, sizes, mtimes and batch markers, so any change invalidates caches."""
-    return tuple((run_id(root, path), (signature(path), aside_note(root, path)))
+    """Include run files, batch markers and batch notes so changes invalidate caches."""
+    return tuple((run_id(root, path), (signature(path), aside_note(root, path),
+                                     _read_batch_note(root, path)))
                  for path in find_run_dirs(root))
 
 
 def valid_table_meta(meta):
     return (isinstance(meta, dict) and meta.get("meta_schema") == 1
-            and meta.get("condition") in ("A", "Ap", "B", "C")
+            and meta.get("condition") in ("A", "Ap", "App", "B", "C")
             and meta.get("task") in ("ws", "cl") and meta.get("group") in ("open", "proc")
             and meta.get("mode") in ("sim", "dry") and isinstance(meta.get("formal"), bool)
             and meta.get("disposition") in ("counted", "excluded"))
@@ -407,7 +443,7 @@ def result_tables(root):
         rows = []
         for group in ("open", "proc"):
             for task in ("ws", "cl"):
-                for condition in ("A", "Ap", "B", "C"):
+                for condition in ("A", "Ap", "App", "B", "C"):
                     runs = [r for m, r in items if (m["group"], m["task"], m["condition"])
                             == (group, task, condition)]
                     if not runs:
@@ -456,6 +492,7 @@ def result_tables(root):
                        "started": time_edge("started"), "ended": time_edge("ended", True),
                        "outcomes": dict(Counter(r["outcome"] or "未记录" for _, r in items)),
                        "warnings": warnings, "rows": rows,
+                       "note": batch_note(root, Path(root) / items[0][1]["id"]),
                        "aside": notes.get(batch) if cohort == "aside" else None})
     return {"tables": tables, "skipped": skipped, "root": str(root)}
 
@@ -1120,7 +1157,7 @@ def load_run(root, rid, now=None):
     else:
         turns, info = turns_from_steps(steps), None
         states, reviewer, initial, run_end, run_start = [], False, None, None, None
-        if condition not in ("A", "A′", "script"):
+        if condition not in ("A", "A′", "A″", "script"):
             notes.append(f"条件 {condition} 的运行没有 {TRACE}，已退化为平台日志视图")
     try:
         mtime = max(p.stat().st_mtime for p in run_dir.iterdir() if p.is_file())
