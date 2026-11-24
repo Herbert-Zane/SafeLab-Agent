@@ -16,6 +16,7 @@ mode), the brief and whether SafeLab runs it:
 | C      | safelab_C_flash               | text_state  | neutral | C       |
 | Alab   | deepseek_flash_labels         | text_labels | neutral | no      |
 | Applab | deepseek_flash_labels         | text_labels | cards   | no      |
+| Blab   | safelab_B_flash_labels        | text_labels | neutral | B       |
 | Llab   | safelab_B_flash_labels        | text_labels | cards   | B       |
 | Clab   | safelab_C_flash_labels        | text_labels | neutral | C       |
 | App4   | deepseek_v4_pro               | text_state  | cards   | no      |
@@ -50,6 +51,7 @@ CELLS = {
     "C": ("configs/agents/safelab_C_flash.json", "neutral", "C"),
     "Alab": ("configs/agents/deepseek_flash_labels.json", "neutral", None),
     "Applab": ("configs/agents/deepseek_flash_labels.json", "cards", None),
+    "Blab": ("configs/agents/safelab_B_flash_labels.json", "neutral", "B"),
     "Llab": ("configs/agents/safelab_B_flash_labels.json", "cards", "B"),
     "Clab": ("configs/agents/safelab_C_flash_labels.json", "neutral", "C"),
     "App4": ("configs/agents/deepseek_v4_pro.json", "cards", None),
@@ -67,6 +69,14 @@ BATCHES = {
                  "n": 5, "seed": 20261124, "pins": None, "tag": None, "platform": None},
     "multi_model_v3": {"grid": (("App4", "ws"), ("C4", "ws")), "n": 20,
                        "seed": 20261129, "pins": None, "tag": None, "platform": None},
+    # experiments/preregistration_v3.md (tag prereg-v3): fixed before the first run.
+    "confirm_v3": {"grid": (("Applab", "ws"), ("Blab", "ws"), ("Llab", "ws"), ("Clab", "ws")), "n": 40,
+                   "seed": 20261125, "tag": "prereg-v3", "platform": "b41eb9b",
+                   "pins": {"configs/agents/deepseek_flash_labels.json": "6397b8e74e21",
+                            "configs/agents/safelab_B_flash_labels.json": "521391fe886e",
+                            "configs/agents/safelab_C_flash_labels.json": "07351d179923",
+                            "waste_segregation_v1.open.cards.json": "0a6050c16c0c",
+                            "waste_segregation_v1.open.json": "11388fb24c6a"}},
 }
 
 

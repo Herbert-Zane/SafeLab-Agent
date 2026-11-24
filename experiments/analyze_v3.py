@@ -21,14 +21,19 @@ v2 = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(v2)
 
 LABEL = {"A": "A", "Ap": "A′", "App": "A″", "B": "B", "L": "L", "C": "C",
-         "Alab": "A · 标签", "Applab": "A″ · 标签", "Llab": "L · 标签", "Clab": "C · 标签",
+         "Alab": "A · 标签", "Applab": "A″ · 标签", "Blab": "B · 标签", "Llab": "L · 标签",
+         "Clab": "C · 标签",
          "App4": "A″ · v4-pro", "C4": "C · v4-pro"}
 TASK = {"ws": "废液开放式", "cl": "裂解开放式"}
 #: batch -> ((name, control cell, target cell), ...); cells are (code, task). One-sided
 #: Fisher, target rate < control rate, Holm over the listed family.
-TESTS = {"pilot_v3": (), "multi_model_v3": ()}
+TESTS = {"pilot_v3": (), "multi_model_v3": (),
+         # preregistration_v3.md section 5
+         "confirm_v3": (("H-L1", ("Applab", "ws"), ("Clab", "ws")),
+                        ("H-L2", ("Applab", "ws"), ("Llab", "ws")),
+                        ("H-L3", ("Blab", "ws"), ("Llab", "ws")))}
 #: batch -> whether its runs must be formal to be in scope
-PREREGISTERED = {"pilot_v3": False, "multi_model_v3": False}
+PREREGISTERED = {"pilot_v3": False, "multi_model_v3": False, "confirm_v3": True}
 
 
 def load(root, formal_required):
