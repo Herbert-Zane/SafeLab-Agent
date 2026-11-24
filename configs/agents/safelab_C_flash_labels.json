@@ -1,0 +1,127 @@
+{
+  "agent_schema_version": 1,
+  "id": "safelab-C-deepseek-flash-text-labels",
+  "backend": {
+    "provider": "safelab",
+    "model": "deepseek-flash",
+    "condition": "C",
+    "roles": {
+      "planner": {
+        "provider": "openai_compatible_reasoning",
+        "model": "deepseek-flash",
+        "base_url": "https://api.deepseek.com",
+        "api_key_env": "DEEPSEEK_API_KEY",
+        "max_tokens": 16000,
+        "extra_body": {
+          "reasoning_effort": "high",
+          "extra_body": {
+            "thinking": {
+              "type": "enabled"
+            }
+          }
+        },
+        "request_timeout_s": 300,
+        "max_retries": 3
+      },
+      "actor": {
+        "provider": "openai_compatible_reasoning",
+        "model": "deepseek-flash",
+        "base_url": "https://api.deepseek.com",
+        "api_key_env": "DEEPSEEK_API_KEY",
+        "max_tokens": 16000,
+        "extra_body": {
+          "reasoning_effort": "high",
+          "extra_body": {
+            "thinking": {
+              "type": "enabled"
+            }
+          }
+        },
+        "request_timeout_s": 300,
+        "max_retries": 3
+      },
+      "critic": {
+        "provider": "openai_compatible_reasoning",
+        "model": "deepseek-flash",
+        "base_url": "https://api.deepseek.com",
+        "api_key_env": "DEEPSEEK_API_KEY",
+        "max_tokens": 16000,
+        "extra_body": {
+          "reasoning_effort": "low",
+          "extra_body": {
+            "thinking": {
+              "type": "enabled"
+            }
+          }
+        },
+        "request_timeout_s": 300,
+        "max_retries": 3
+      }
+    },
+    "pricing": {
+      "deepseek-flash": {
+        "input": 0.3,
+        "output": 1.2,
+        "cache_read": 0.006
+      }
+    },
+    "planner": {
+      "mode": "model",
+      "max_replans": 3,
+      "check_finish": true,
+      "max_empty_retries": 1
+    },
+    "actor": {
+      "history_k": 6,
+      "max_empty_retries": 2
+    },
+    "critic": {
+      "mode": "dual",
+      "llm_trigger": "risk",
+      "max_llm_attempts": 2,
+      "max_rejections": 2,
+      "max_repeat_rejections": 3
+    },
+    "reflexion": {
+      "consecutive_failures": 2,
+      "same_kind_failures": 2,
+      "library": "runs/reflections/library.jsonl"
+    },
+    "resilience": {
+      "retries": 2,
+      "backoff_s": 2.0,
+      "backoff_max_s": 30.0,
+      "call_timeout_s": 900,
+      "budget_usd": 0.45,
+      "min_reserve_usd": 0.005,
+      "faults": {
+        "enabled": false
+      }
+    }
+  },
+  "limits": {
+    "max_steps": 40,
+    "max_consecutive_invalid_replies": 3,
+    "max_invalid_replies": 10,
+    "max_failed_actions": 10,
+    "max_total_tokens": 2000000,
+    "max_cost_usd": 0.5,
+    "wall_clock_s": 3600,
+    "max_simulation_duration_s": 60
+  },
+  "policy": {
+    "conversation": "stateless",
+    "history_window": 12,
+    "on_action_failure": "report"
+  },
+  "pricing_overrides": {
+    "deepseek-flash": {
+      "input": 0.3,
+      "output": 1.2,
+      "cache_read": 0.006
+    }
+  },
+  "observation": {
+    "mode": "text_labels"
+  }
+}

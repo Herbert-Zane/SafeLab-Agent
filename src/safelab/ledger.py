@@ -35,6 +35,20 @@ planner's current stage. Only the planner sets it (``set_stage``); it is never
 inferred from readback and no bench field depends on it. It is in the snapshot
 so that every logged ledger state says which stage it was taken in.
 
+When the observation reads back no contents at all (the platform's ``text_labels``
+mode: no ``components_ul`` on any entity, declared labels under
+``public_information.reagent_labels``), composition is the one value the ledger
+cannot copy. It then *infers* it, and says so (``composition_source:
+"inferred"`` in the snapshot): each container starts from its declared label, and
+every confirmed aspirate, dispense or pour moves the source's inferred mixture in
+proportion to the volume the readback shows leaving it. Volumes, closure, holding
+and devices are still copied from readback; only the names and amounts of what is
+in a container or tip are computed. A label with several names, or a volume change
+no confirmed action explains, makes that entity's composition ``uncertain``: the
+names it may hold are kept (never dropped), and an item is recorded under
+``unconfirmed`` as ``provenance_conflict``. In readback mode none of this runs and
+the snapshot is exactly what it was before inference existed.
+
 The ledger makes no safety judgement and does not need the platform installed.
 """
 from __future__ import annotations
@@ -59,7 +73,12 @@ ITEM_KINDS = (
     "unexplained_change",      # liquid or closure changed; no confirmed action explains it
     "contact_without_tip",     # a transfer was confirmed while the readback showed no tip
     "discarded_tip_reattached",
+    "provenance_conflict",     # inferred composition: readback volumes disagree with the transfer record
 )
+#: Where container and tip compositions come from.
+COMPOSITION_SOURCES = ("readback", "inferred")
+#: Relative volume disagreement above which an inferred composition is marked uncertain.
+PROVENANCE_TOLERANCE_REL = 0.05
 
 _CONTAINER_FIELDS = ("volume_ul", "capacity_ul", "components_ul", "closure_status",
                      "location", "support")
@@ -143,6 +162,14 @@ class Ledger:
         self.actions = []
         #: The planner's current stage (SafeLab state, not bench state).
         self.stage = None
+        #: "readback" until an observation shows no contents readback and declared labels;
+        #: then "inferred" for the rest of the episode.
+        self.composition_source = "readback"
+        #: Inferred compositions (inferred mode only), carried from step to step.
+        self._inferred_containers = {}
+        self._inferred_tips = {}
+        #: Entity ids whose inferred composition is uncertain (inferred mode only).
+        self.uncertain = set()
 
     # -- inputs ----------------------------------------------------------
 
@@ -171,7 +198,11 @@ class Ledger:
         reported = observation.get("last_action")
         self._check_sequence(step, reported, first)
         confirmed, action_step = self._confirm(reported, step)
+        if first and reads_no_contents(observation):
+            self.composition_source = "inferred"
         self._read(observation, step, first)
+        if self.composition_source == "inferred":
+            self._infer(observation, confirmed, prior_containers, prior_tip, step, first)
         if self.held_object != prior_held:
             before_pickup = prior_containers.get(self.held_object)
             self.held_from = before_pickup.support if before_pickup is not None else None
@@ -209,7 +240,21 @@ class Ledger:
                    if row["status"] == "complete" and row["action"].get("action") in names)
 
     def snapshot(self):
-        """The whole ledger as plain, JSON-serializable data (a deep copy)."""
+        """The whole ledger as plain, JSON-serializable data (a deep copy).
+
+        In inferred mode it also says so: ``composition_source: "inferred"`` at the top, and
+        ``composition_inferred`` / ``composition_uncertain`` on every container and tip row.
+        In readback mode it is unchanged."""
+        snapshot = self._snapshot()
+        if self.composition_source == "inferred":
+            snapshot["composition_source"] = "inferred"
+            for section in ("containers", "tips"):
+                for entity_id, row in snapshot[section].items():
+                    row["composition_inferred"] = True
+                    row["composition_uncertain"] = entity_id in self.uncertain
+        return snapshot
+
+    def _snapshot(self):
         return {
             "step_index": self.step_index,
             "source": self.source,
@@ -328,6 +373,129 @@ class Ledger:
         tip.location = row.get("location")
         tip.available = row.get("available")
         tip.attached_to = row.get("attached_to")
+
+    # -- inferred composition (no contents readback) ----------------------
+
+    def _infer(self, observation, confirmed, prior_containers, prior_tip, step, first):
+        """Carry compositions forward by the transfer record and write them into the rows."""
+        if first:
+            self._seed_from_labels(observation, step)
+        involved = set()
+        if confirmed is not None:
+            involved = self._apply_transfer(confirmed, prior_containers, prior_tip, step)
+        for entity_id, container in self.containers.items():
+            self._reconcile(self._inferred_containers, entity_id, container.volume_ul,
+                            entity_id in involved, step)
+            container.components_ul = deepcopy(self._inferred_containers.get(entity_id, {}))
+        for tip_id, tip in self.tips.items():
+            self._reconcile(self._inferred_tips, tip_id, tip.held_volume_ul, tip_id in involved, step)
+            tip.components_ul = deepcopy(self._inferred_tips.get(tip_id, {}))
+
+    def _seed_from_labels(self, observation, step):
+        labels = declared_labels(observation)
+        for entity_id, container in self.containers.items():
+            names = labels.get(entity_id) or []
+            volume = container.volume_ul
+            if names and volume is None:
+                self._inferred_containers[entity_id] = {name: 1. for name in names}
+                self.uncertain.add(entity_id)
+            elif names and volume > 0:
+                share = float(volume)/len(names)
+                self._inferred_containers[entity_id] = {name: share for name in names}
+                if len(names) > 1:
+                    # The label names the components but not their proportions.
+                    self.uncertain.add(entity_id)
+            else:
+                self._inferred_containers[entity_id] = {}
+        for tip_id in self.tips:
+            self._inferred_tips[tip_id] = {}
+
+    def _apply_transfer(self, action, prior_containers, prior_tip, step):
+        """Move the inferred mixture for one confirmed transfer; return the entities it touched."""
+        name = action.get("action")
+        if name in TIP_ACTIONS:
+            target = action.get("target")
+            if prior_tip is None or prior_tip not in self.tips or target not in self.containers:
+                return set()
+            before, after = prior_containers.get(target), self.containers.get(target)
+            change = _volume_change(before, after)
+            requested = action.get("volume_ul")
+            if name == "aspirate":
+                moved = -change if change is not None and change < 0 else requested
+                portion = self._take(self._inferred_containers, target, moved, step)
+                self._add(self._inferred_tips, prior_tip, portion, origin=target)
+            else:
+                moved = change if change is not None and change > 0 else requested
+                portion = self._take(self._inferred_tips, prior_tip, moved, step)
+                self._add(self._inferred_containers, target, portion, origin=prior_tip)
+            return {target, prior_tip}
+        if name == "pour":
+            source, receiver = action.get("target"), action.get("receiver")
+            if source not in self.containers or receiver not in self.containers:
+                return set()
+            change = _volume_change(prior_containers.get(source), self.containers.get(source))
+            moved = -change if change is not None and change < 0 else None
+            portion = self._take(self._inferred_containers, source, moved, step)
+            self._add(self._inferred_containers, receiver, portion, origin=source)
+            return {source, receiver}
+        return set()
+
+    def _take(self, store, entity_id, moved, step):
+        mixture = store.get(entity_id) or {}
+        total = sum(mixture.values())
+        if moved is None or moved <= 0 or total <= 0:
+            return {}
+        if moved > total*(1+PROVENANCE_TOLERANCE_REL)+self.tolerance_ul:
+            self.uncertain.add(entity_id)
+            self._flag("provenance_conflict", step,
+                       f"{_num(moved)} uL left {entity_id}, more than the {_num(total)} uL its "
+                       "transfer record accounts for", **self._entity_key(entity_id))
+        fraction = min(1., float(moved)/total)
+        portion = {name: amount*fraction for name, amount in mixture.items()}
+        store[entity_id] = {name: amount-portion[name] for name, amount in mixture.items()
+                            if amount-portion[name] > 1e-9}
+        return portion
+
+    def _entity_key(self, entity_id):
+        return {"tip": entity_id} if entity_id in self.tips else {"container": entity_id}
+
+    def _add(self, store, entity_id, portion, *, origin):
+        if not portion:
+            return
+        mixture = store.setdefault(entity_id, {})
+        for name, amount in portion.items():
+            mixture[name] = mixture.get(name, 0.)+amount
+        if origin in self.uncertain:
+            self.uncertain.add(entity_id)
+
+    def _reconcile(self, store, entity_id, volume, involved, step):
+        """Hold an inferred mixture to the readback volume of its entity."""
+        if volume is None:
+            return
+        mixture = store.get(entity_id) or {}
+        total = sum(mixture.values())
+        if volume <= self.tolerance_ul:
+            store[entity_id] = {}
+            self.uncertain.discard(entity_id)
+            return
+        if total <= 0:
+            if entity_id not in self.uncertain:
+                self.uncertain.add(entity_id)
+                self._flag("provenance_conflict", step,
+                           f"{entity_id} reads back {_num(volume)} uL but its transfer record "
+                           "accounts for none; what it holds is unknown", **self._entity_key(entity_id))
+            store[entity_id] = {}
+            return
+        if abs(total-volume) > max(self.tolerance_ul, PROVENANCE_TOLERANCE_REL*volume):
+            if entity_id not in self.uncertain:
+                self.uncertain.add(entity_id)
+                cause = ("after a confirmed transfer" if involved
+                         else "with no confirmed transfer to account for it")
+                self._flag("provenance_conflict", step,
+                           f"{entity_id} reads back {_num(volume)} uL; its transfer record gives "
+                           f"{_num(total)} uL ({cause})", **self._entity_key(entity_id))
+        scale = float(volume)/total
+        store[entity_id] = {name: amount*scale for name, amount in mixture.items()}
 
     def _record_device_run(self, action, action_step, prior_devices):
         if action.get("action") != "instrument_start":
@@ -474,6 +642,33 @@ def _held_pipette(rows, robot):
     return held[0] if len(held) == 1 else None
 
 
+def declared_labels(observation):
+    """``{container id: [declared names]}`` from ``public_information.reagent_labels``."""
+    labels = ((observation.get("public_information") or {}).get("reagent_labels"))
+    items = labels.get("items") if isinstance(labels, dict) else labels
+    return {row["entity_id"]: list(row.get("label") or []) for row in (items or [])
+            if isinstance(row, dict) and isinstance(row.get("entity_id"), str)}
+
+
+def reads_no_contents(observation):
+    """True when no entity carries a contents readback and declared labels stand in for it."""
+    rows = observation.get("entities") or []
+    if any("components_ul" in row for row in rows if isinstance(row, dict)):
+        return False
+    labels = (observation.get("public_information") or {}).get("reagent_labels")
+    return labels is not None
+
+
+def _volume_change(before, after):
+    if before is None or after is None or before.volume_ul is None or after.volume_ul is None:
+        return None
+    return after.volume_ul-before.volume_ul
+
+
+def _num(value):
+    return f"{value:g}" if _is_number(value) else str(value)
+
+
 def _require_observation(observation):
     if not isinstance(observation, dict):
         raise ValueError("An observation must be a dict")
@@ -592,6 +787,8 @@ def mismatches(snapshot, observation, *, tolerance=1e-9):
             for name in names:
                 expected = row.get(name)
                 if name == "components_ul":
+                    if name not in row and snapshot.get("composition_source") == "inferred":
+                        continue  # nothing read back to compare an inferred composition with
                     expected = expected or {}
                 if not _equal(held.get(name), expected, tolerance):
                     problems.append(f"{section}.{entity_id}.{name}: ledger "

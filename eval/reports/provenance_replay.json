@@ -1,0 +1,2198 @@
+{
+ "groups": {
+  "confirm_v2|ws|App": {
+   "container_checks": 2355,
+   "container_agree": 2355,
+   "provenance_conflicts": 0,
+   "runs": 41,
+   "tip_checks": 596,
+   "tip_agree": 596,
+   "container_missing_names": 0,
+   "tip_missing_names": 0
+  },
+  "ALL||": {
+   "container_checks": 17892,
+   "container_agree": 17892,
+   "provenance_conflicts": 0,
+   "runs": 322,
+   "tip_checks": 4953,
+   "tip_agree": 4953,
+   "container_missing_names": 0,
+   "tip_missing_names": 0
+  },
+  "confirm_v2|ws|C": {
+   "container_checks": 2970,
+   "container_agree": 2970,
+   "tip_checks": 843,
+   "tip_agree": 843,
+   "provenance_conflicts": 0,
+   "runs": 41,
+   "container_missing_names": 0,
+   "tip_missing_names": 0
+  },
+  "confirm_v2|ws|Ap": {
+   "container_checks": 2256,
+   "container_agree": 2256,
+   "tip_checks": 592,
+   "tip_agree": 592,
+   "provenance_conflicts": 0,
+   "runs": 40,
+   "container_missing_names": 0,
+   "tip_missing_names": 0
+  },
+  "formal_s52d09cf_full|cl|A": {
+   "container_checks": 1916,
+   "container_agree": 1916,
+   "tip_checks": 572,
+   "tip_agree": 572,
+   "provenance_conflicts": 0,
+   "runs": 27,
+   "container_missing_names": 0,
+   "tip_missing_names": 0
+  },
+  "formal_s52d09cf_full|ws|A": {
+   "container_checks": 792,
+   "container_agree": 792,
+   "tip_checks": 190,
+   "tip_agree": 190,
+   "provenance_conflicts": 0,
+   "runs": 28,
+   "container_missing_names": 0,
+   "tip_missing_names": 0
+  },
+  "formal_s52d09cf_full|cl|Ap": {
+   "container_checks": 1216,
+   "container_agree": 1216,
+   "tip_checks": 370,
+   "tip_agree": 370,
+   "provenance_conflicts": 0,
+   "runs": 17,
+   "container_missing_names": 0,
+   "tip_missing_names": 0
+  },
+  "formal_s52d09cf_full|ws|Ap": {
+   "container_checks": 672,
+   "container_agree": 672,
+   "tip_checks": 177,
+   "tip_agree": 177,
+   "provenance_conflicts": 0,
+   "runs": 18,
+   "container_missing_names": 0,
+   "tip_missing_names": 0
+  },
+  "formal_s52d09cf_full|cl|B": {
+   "container_checks": 1908,
+   "container_agree": 1908,
+   "tip_checks": 566,
+   "tip_agree": 566,
+   "provenance_conflicts": 0,
+   "runs": 27,
+   "container_missing_names": 0,
+   "tip_missing_names": 0
+  },
+  "formal_s52d09cf_full|ws|B": {
+   "container_checks": 825,
+   "container_agree": 825,
+   "tip_checks": 208,
+   "tip_agree": 208,
+   "provenance_conflicts": 0,
+   "runs": 28,
+   "container_missing_names": 0,
+   "tip_missing_names": 0
+  },
+  "formal_s52d09cf_full|cl|C": {
+   "container_checks": 1920,
+   "container_agree": 1920,
+   "tip_checks": 552,
+   "tip_agree": 552,
+   "provenance_conflicts": 0,
+   "runs": 27,
+   "container_missing_names": 0,
+   "tip_missing_names": 0
+  },
+  "formal_s52d09cf_full|ws|C": {
+   "container_checks": 1062,
+   "container_agree": 1062,
+   "tip_checks": 287,
+   "tip_agree": 287,
+   "provenance_conflicts": 0,
+   "runs": 28,
+   "container_missing_names": 0,
+   "tip_missing_names": 0
+  }
+ },
+ "per_run": {
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\_not_executed\\App_ws_25_20261118-081235": {
+   "container_checks": 15,
+   "container_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\_not_executed\\C_ws_24_20261118-081303": {
+   "container_checks": 63,
+   "container_agree": 63,
+   "tip_checks": 17,
+   "tip_agree": 17,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_01": {
+   "container_checks": 63,
+   "container_agree": 63,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_02": {
+   "container_checks": 72,
+   "container_agree": 72,
+   "tip_checks": 21,
+   "tip_agree": 21,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_03": {
+   "container_checks": 42,
+   "container_agree": 42,
+   "tip_checks": 10,
+   "tip_agree": 10,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_04": {
+   "container_checks": 42,
+   "container_agree": 42,
+   "tip_checks": 11,
+   "tip_agree": 11,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_05": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_06": {
+   "container_checks": 51,
+   "container_agree": 51,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_07": {
+   "container_checks": 51,
+   "container_agree": 51,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_08": {
+   "container_checks": 63,
+   "container_agree": 63,
+   "tip_checks": 17,
+   "tip_agree": 17,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_09": {
+   "container_checks": 39,
+   "container_agree": 39,
+   "tip_checks": 10,
+   "tip_agree": 10,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_10": {
+   "container_checks": 39,
+   "container_agree": 39,
+   "tip_checks": 8,
+   "tip_agree": 8,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_11": {
+   "container_checks": 99,
+   "container_agree": 99,
+   "tip_checks": 26,
+   "tip_agree": 26,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_12": {
+   "container_checks": 45,
+   "container_agree": 45,
+   "tip_checks": 10,
+   "tip_agree": 10,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_13": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_14": {
+   "container_checks": 66,
+   "container_agree": 66,
+   "tip_checks": 18,
+   "tip_agree": 18,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_15": {
+   "container_checks": 72,
+   "container_agree": 72,
+   "tip_checks": 20,
+   "tip_agree": 20,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_16": {
+   "container_checks": 45,
+   "container_agree": 45,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_17": {
+   "container_checks": 45,
+   "container_agree": 45,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_18": {
+   "container_checks": 39,
+   "container_agree": 39,
+   "tip_checks": 10,
+   "tip_agree": 10,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_19": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_20": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_21": {
+   "container_checks": 81,
+   "container_agree": 81,
+   "tip_checks": 23,
+   "tip_agree": 23,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_22": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_23": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_24": {
+   "container_checks": 72,
+   "container_agree": 72,
+   "tip_checks": 21,
+   "tip_agree": 21,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_25": {
+   "container_checks": 69,
+   "container_agree": 69,
+   "tip_checks": 18,
+   "tip_agree": 18,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_26": {
+   "container_checks": 57,
+   "container_agree": 57,
+   "tip_checks": 16,
+   "tip_agree": 16,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_27": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_28": {
+   "container_checks": 51,
+   "container_agree": 51,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_29": {
+   "container_checks": 51,
+   "container_agree": 51,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_30": {
+   "container_checks": 66,
+   "container_agree": 66,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_31": {
+   "container_checks": 45,
+   "container_agree": 45,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_32": {
+   "container_checks": 87,
+   "container_agree": 87,
+   "tip_checks": 24,
+   "tip_agree": 24,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_33": {
+   "container_checks": 45,
+   "container_agree": 45,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_34": {
+   "container_checks": 60,
+   "container_agree": 60,
+   "tip_checks": 16,
+   "tip_agree": 16,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_35": {
+   "container_checks": 57,
+   "container_agree": 57,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_36": {
+   "container_checks": 36,
+   "container_agree": 36,
+   "tip_checks": 9,
+   "tip_agree": 9,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_37": {
+   "container_checks": 69,
+   "container_agree": 69,
+   "tip_checks": 17,
+   "tip_agree": 17,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_38": {
+   "container_checks": 81,
+   "container_agree": 81,
+   "tip_checks": 24,
+   "tip_agree": 24,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_39": {
+   "container_checks": 45,
+   "container_agree": 45,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\Ap_ws_40": {
+   "container_checks": 51,
+   "container_agree": 51,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_01": {
+   "container_checks": 66,
+   "container_agree": 66,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_02": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_03": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_04": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_05": {
+   "container_checks": 63,
+   "container_agree": 63,
+   "tip_checks": 18,
+   "tip_agree": 18,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_06": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_07": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_08": {
+   "container_checks": 75,
+   "container_agree": 75,
+   "tip_checks": 22,
+   "tip_agree": 22,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_09": {
+   "container_checks": 60,
+   "container_agree": 60,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_10": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 5,
+   "tip_agree": 5,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_11": {
+   "container_checks": 84,
+   "container_agree": 84,
+   "tip_checks": 19,
+   "tip_agree": 19,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_12": {
+   "container_checks": 78,
+   "container_agree": 78,
+   "tip_checks": 23,
+   "tip_agree": 23,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_13": {
+   "container_checks": 45,
+   "container_agree": 45,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_14": {
+   "container_checks": 51,
+   "container_agree": 51,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_15": {
+   "container_checks": 84,
+   "container_agree": 84,
+   "tip_checks": 25,
+   "tip_agree": 25,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_16": {
+   "container_checks": 69,
+   "container_agree": 69,
+   "tip_checks": 17,
+   "tip_agree": 17,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_17": {
+   "container_checks": 63,
+   "container_agree": 63,
+   "tip_checks": 18,
+   "tip_agree": 18,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_18": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_19": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_20": {
+   "container_checks": 87,
+   "container_agree": 87,
+   "tip_checks": 22,
+   "tip_agree": 22,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_21": {
+   "container_checks": 30,
+   "container_agree": 30,
+   "tip_checks": 7,
+   "tip_agree": 7,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_22": {
+   "container_checks": 78,
+   "container_agree": 78,
+   "tip_checks": 23,
+   "tip_agree": 23,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_23": {
+   "container_checks": 60,
+   "container_agree": 60,
+   "tip_checks": 10,
+   "tip_agree": 10,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_24": {
+   "container_checks": 66,
+   "container_agree": 66,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_25": {
+   "container_checks": 51,
+   "container_agree": 51,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_26": {
+   "container_checks": 57,
+   "container_agree": 57,
+   "tip_checks": 16,
+   "tip_agree": 16,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_27": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_28": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_29": {
+   "container_checks": 45,
+   "container_agree": 45,
+   "tip_checks": 11,
+   "tip_agree": 11,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_30": {
+   "container_checks": 51,
+   "container_agree": 51,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_31": {
+   "container_checks": 60,
+   "container_agree": 60,
+   "tip_checks": 17,
+   "tip_agree": 17,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_32": {
+   "container_checks": 51,
+   "container_agree": 51,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_33": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_34": {
+   "container_checks": 51,
+   "container_agree": 51,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_35": {
+   "container_checks": 57,
+   "container_agree": 57,
+   "tip_checks": 16,
+   "tip_agree": 16,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_36": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_37": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_38": {
+   "container_checks": 51,
+   "container_agree": 51,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_39": {
+   "container_checks": 81,
+   "container_agree": 81,
+   "tip_checks": 24,
+   "tip_agree": 24,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\App_ws_40": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_01": {
+   "container_checks": 81,
+   "container_agree": 81,
+   "tip_checks": 24,
+   "tip_agree": 24,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_02": {
+   "container_checks": 78,
+   "container_agree": 78,
+   "tip_checks": 23,
+   "tip_agree": 23,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_03": {
+   "container_checks": 57,
+   "container_agree": 57,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_04": {
+   "container_checks": 72,
+   "container_agree": 72,
+   "tip_checks": 20,
+   "tip_agree": 20,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_05": {
+   "container_checks": 69,
+   "container_agree": 69,
+   "tip_checks": 20,
+   "tip_agree": 20,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_06": {
+   "container_checks": 69,
+   "container_agree": 69,
+   "tip_checks": 20,
+   "tip_agree": 20,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_07": {
+   "container_checks": 90,
+   "container_agree": 90,
+   "tip_checks": 26,
+   "tip_agree": 26,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_08": {
+   "container_checks": 66,
+   "container_agree": 66,
+   "tip_checks": 19,
+   "tip_agree": 19,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_09": {
+   "container_checks": 87,
+   "container_agree": 87,
+   "tip_checks": 26,
+   "tip_agree": 26,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_10": {
+   "container_checks": 75,
+   "container_agree": 75,
+   "tip_checks": 22,
+   "tip_agree": 22,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_11": {
+   "container_checks": 69,
+   "container_agree": 69,
+   "tip_checks": 20,
+   "tip_agree": 20,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_12": {
+   "container_checks": 66,
+   "container_agree": 66,
+   "tip_checks": 19,
+   "tip_agree": 19,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_13": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_14": {
+   "container_checks": 81,
+   "container_agree": 81,
+   "tip_checks": 24,
+   "tip_agree": 24,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_15": {
+   "container_checks": 72,
+   "container_agree": 72,
+   "tip_checks": 21,
+   "tip_agree": 21,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_16": {
+   "container_checks": 63,
+   "container_agree": 63,
+   "tip_checks": 17,
+   "tip_agree": 17,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_17": {
+   "container_checks": 90,
+   "container_agree": 90,
+   "tip_checks": 27,
+   "tip_agree": 27,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_18": {
+   "container_checks": 84,
+   "container_agree": 84,
+   "tip_checks": 24,
+   "tip_agree": 24,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_19": {
+   "container_checks": 72,
+   "container_agree": 72,
+   "tip_checks": 20,
+   "tip_agree": 20,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_20": {
+   "container_checks": 66,
+   "container_agree": 66,
+   "tip_checks": 18,
+   "tip_agree": 18,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_21": {
+   "container_checks": 66,
+   "container_agree": 66,
+   "tip_checks": 18,
+   "tip_agree": 18,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_22": {
+   "container_checks": 78,
+   "container_agree": 78,
+   "tip_checks": 22,
+   "tip_agree": 22,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_23": {
+   "container_checks": 69,
+   "container_agree": 69,
+   "tip_checks": 19,
+   "tip_agree": 19,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_24": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_25": {
+   "container_checks": 57,
+   "container_agree": 57,
+   "tip_checks": 16,
+   "tip_agree": 16,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_26": {
+   "container_checks": 78,
+   "container_agree": 78,
+   "tip_checks": 22,
+   "tip_agree": 22,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_27": {
+   "container_checks": 66,
+   "container_agree": 66,
+   "tip_checks": 18,
+   "tip_agree": 18,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_28": {
+   "container_checks": 87,
+   "container_agree": 87,
+   "tip_checks": 26,
+   "tip_agree": 26,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_29": {
+   "container_checks": 90,
+   "container_agree": 90,
+   "tip_checks": 27,
+   "tip_agree": 27,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_30": {
+   "container_checks": 57,
+   "container_agree": 57,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_31": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_32": {
+   "container_checks": 84,
+   "container_agree": 84,
+   "tip_checks": 24,
+   "tip_agree": 24,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_33": {
+   "container_checks": 84,
+   "container_agree": 84,
+   "tip_checks": 25,
+   "tip_agree": 25,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_34": {
+   "container_checks": 69,
+   "container_agree": 69,
+   "tip_checks": 19,
+   "tip_agree": 19,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_35": {
+   "container_checks": 72,
+   "container_agree": 72,
+   "tip_checks": 20,
+   "tip_agree": 20,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_36": {
+   "container_checks": 78,
+   "container_agree": 78,
+   "tip_checks": 22,
+   "tip_agree": 22,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_37": {
+   "container_checks": 66,
+   "container_agree": 66,
+   "tip_checks": 16,
+   "tip_agree": 16,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_38": {
+   "container_checks": 81,
+   "container_agree": 81,
+   "tip_checks": 24,
+   "tip_agree": 24,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_39": {
+   "container_checks": 90,
+   "container_agree": 90,
+   "tip_checks": 27,
+   "tip_agree": 27,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\confirm_v2\\open\\C_ws_40": {
+   "container_checks": 72,
+   "container_agree": 72,
+   "tip_checks": 21,
+   "tip_agree": 21,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_cl_01": {
+   "container_checks": 120,
+   "container_agree": 120,
+   "tip_checks": 36,
+   "tip_agree": 36,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_cl_02": {
+   "container_checks": 112,
+   "container_agree": 112,
+   "tip_checks": 34,
+   "tip_agree": 34,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_cl_03": {
+   "container_checks": 116,
+   "container_agree": 116,
+   "tip_checks": 26,
+   "tip_agree": 26,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_cl_04": {
+   "container_checks": 132,
+   "container_agree": 132,
+   "tip_checks": 40,
+   "tip_agree": 40,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_cl_05": {
+   "container_checks": 116,
+   "container_agree": 116,
+   "tip_checks": 35,
+   "tip_agree": 35,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_cl_06": {
+   "container_checks": 120,
+   "container_agree": 120,
+   "tip_checks": 36,
+   "tip_agree": 36,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_cl_07": {
+   "container_checks": 120,
+   "container_agree": 120,
+   "tip_checks": 36,
+   "tip_agree": 36,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_cl_08": {
+   "container_checks": 132,
+   "container_agree": 132,
+   "tip_checks": 40,
+   "tip_agree": 40,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_cl_09": {
+   "container_checks": 116,
+   "container_agree": 116,
+   "tip_checks": 36,
+   "tip_agree": 36,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_cl_10": {
+   "container_checks": 120,
+   "container_agree": 120,
+   "tip_checks": 36,
+   "tip_agree": 36,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_ws_01": {
+   "container_checks": 63,
+   "container_agree": 63,
+   "tip_checks": 18,
+   "tip_agree": 18,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_ws_02": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_ws_03": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_ws_04": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_ws_05": {
+   "container_checks": 42,
+   "container_agree": 42,
+   "tip_checks": 10,
+   "tip_agree": 10,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_ws_06": {
+   "container_checks": 42,
+   "container_agree": 42,
+   "tip_checks": 11,
+   "tip_agree": 11,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_ws_07": {
+   "container_checks": 45,
+   "container_agree": 45,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_ws_08": {
+   "container_checks": 42,
+   "container_agree": 42,
+   "tip_checks": 11,
+   "tip_agree": 11,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_ws_09": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\A_ws_10": {
+   "container_checks": 69,
+   "container_agree": 69,
+   "tip_checks": 20,
+   "tip_agree": 20,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_cl_01": {
+   "container_checks": 128,
+   "container_agree": 128,
+   "tip_checks": 40,
+   "tip_agree": 40,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_cl_02": {
+   "container_checks": 112,
+   "container_agree": 112,
+   "tip_checks": 35,
+   "tip_agree": 35,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_cl_03": {
+   "container_checks": 124,
+   "container_agree": 124,
+   "tip_checks": 38,
+   "tip_agree": 38,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_cl_04": {
+   "container_checks": 124,
+   "container_agree": 124,
+   "tip_checks": 38,
+   "tip_agree": 38,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_cl_05": {
+   "container_checks": 112,
+   "container_agree": 112,
+   "tip_checks": 34,
+   "tip_agree": 34,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_cl_06": {
+   "container_checks": 108,
+   "container_agree": 108,
+   "tip_checks": 33,
+   "tip_agree": 33,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_cl_07": {
+   "container_checks": 136,
+   "container_agree": 136,
+   "tip_checks": 46,
+   "tip_agree": 46,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_cl_08": {
+   "container_checks": 108,
+   "container_agree": 108,
+   "tip_checks": 33,
+   "tip_agree": 33,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_cl_09": {
+   "container_checks": 116,
+   "container_agree": 116,
+   "tip_checks": 36,
+   "tip_agree": 36,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_cl_10": {
+   "container_checks": 120,
+   "container_agree": 120,
+   "tip_checks": 37,
+   "tip_agree": 37,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_ws_01": {
+   "container_checks": 81,
+   "container_agree": 81,
+   "tip_checks": 22,
+   "tip_agree": 22,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_ws_02": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_ws_03": {
+   "container_checks": 60,
+   "container_agree": 60,
+   "tip_checks": 16,
+   "tip_agree": 16,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_ws_04": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_ws_05": {
+   "container_checks": 78,
+   "container_agree": 78,
+   "tip_checks": 23,
+   "tip_agree": 23,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_ws_06": {
+   "container_checks": 87,
+   "container_agree": 87,
+   "tip_checks": 25,
+   "tip_agree": 25,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_ws_07": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_ws_08": {
+   "container_checks": 39,
+   "container_agree": 39,
+   "tip_checks": 9,
+   "tip_agree": 9,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_ws_09": {
+   "container_checks": 90,
+   "container_agree": 90,
+   "tip_checks": 26,
+   "tip_agree": 26,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\Ap_ws_10": {
+   "container_checks": 60,
+   "container_agree": 60,
+   "tip_checks": 17,
+   "tip_agree": 17,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_cl_01": {
+   "container_checks": 140,
+   "container_agree": 140,
+   "tip_checks": 41,
+   "tip_agree": 41,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_cl_02": {
+   "container_checks": 112,
+   "container_agree": 112,
+   "tip_checks": 34,
+   "tip_agree": 34,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_cl_03": {
+   "container_checks": 124,
+   "container_agree": 124,
+   "tip_checks": 28,
+   "tip_agree": 28,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_cl_04": {
+   "container_checks": 100,
+   "container_agree": 100,
+   "tip_checks": 28,
+   "tip_agree": 28,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_cl_05": {
+   "container_checks": 152,
+   "container_agree": 152,
+   "tip_checks": 46,
+   "tip_agree": 46,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_cl_06": {
+   "container_checks": 116,
+   "container_agree": 116,
+   "tip_checks": 36,
+   "tip_agree": 36,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_cl_07": {
+   "container_checks": 108,
+   "container_agree": 108,
+   "tip_checks": 33,
+   "tip_agree": 33,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_cl_08": {
+   "container_checks": 128,
+   "container_agree": 128,
+   "tip_checks": 40,
+   "tip_agree": 40,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_cl_09": {
+   "container_checks": 136,
+   "container_agree": 136,
+   "tip_checks": 42,
+   "tip_agree": 42,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_cl_10": {
+   "container_checks": 120,
+   "container_agree": 120,
+   "tip_checks": 36,
+   "tip_agree": 36,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_ws_01": {
+   "container_checks": 51,
+   "container_agree": 51,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_ws_02": {
+   "container_checks": 57,
+   "container_agree": 57,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_ws_03": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_ws_04": {
+   "container_checks": 27,
+   "container_agree": 27,
+   "tip_checks": 6,
+   "tip_agree": 6,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_ws_05": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_ws_06": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_ws_07": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_ws_08": {
+   "container_checks": 87,
+   "container_agree": 87,
+   "tip_checks": 25,
+   "tip_agree": 25,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_ws_09": {
+   "container_checks": 36,
+   "container_agree": 36,
+   "tip_checks": 9,
+   "tip_agree": 9,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\B_ws_10": {
+   "container_checks": 36,
+   "container_agree": 36,
+   "tip_checks": 9,
+   "tip_agree": 9,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_cl_01": {
+   "container_checks": 100,
+   "container_agree": 100,
+   "tip_checks": 25,
+   "tip_agree": 25,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_cl_02": {
+   "container_checks": 124,
+   "container_agree": 124,
+   "tip_checks": 38,
+   "tip_agree": 38,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_cl_03": {
+   "container_checks": 108,
+   "container_agree": 108,
+   "tip_checks": 26,
+   "tip_agree": 26,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_cl_04": {
+   "container_checks": 108,
+   "container_agree": 108,
+   "tip_checks": 29,
+   "tip_agree": 29,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_cl_05": {
+   "container_checks": 132,
+   "container_agree": 132,
+   "tip_checks": 41,
+   "tip_agree": 41,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_cl_06": {
+   "container_checks": 124,
+   "container_agree": 124,
+   "tip_checks": 38,
+   "tip_agree": 38,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_cl_07": {
+   "container_checks": 144,
+   "container_agree": 144,
+   "tip_checks": 43,
+   "tip_agree": 43,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_cl_08": {
+   "container_checks": 96,
+   "container_agree": 96,
+   "tip_checks": 21,
+   "tip_agree": 21,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_cl_09": {
+   "container_checks": 116,
+   "container_agree": 116,
+   "tip_checks": 35,
+   "tip_agree": 35,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_cl_10": {
+   "container_checks": 144,
+   "container_agree": 144,
+   "tip_checks": 43,
+   "tip_agree": 43,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_ws_01": {
+   "container_checks": 78,
+   "container_agree": 78,
+   "tip_checks": 23,
+   "tip_agree": 23,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_ws_02": {
+   "container_checks": 93,
+   "container_agree": 93,
+   "tip_checks": 27,
+   "tip_agree": 27,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_ws_03": {
+   "container_checks": 57,
+   "container_agree": 57,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_ws_04": {
+   "container_checks": 84,
+   "container_agree": 84,
+   "tip_checks": 24,
+   "tip_agree": 24,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_ws_05": {
+   "container_checks": 81,
+   "container_agree": 81,
+   "tip_checks": 23,
+   "tip_agree": 23,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_ws_06": {
+   "container_checks": 81,
+   "container_agree": 81,
+   "tip_checks": 24,
+   "tip_agree": 24,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_ws_07": {
+   "container_checks": 66,
+   "container_agree": 66,
+   "tip_checks": 19,
+   "tip_agree": 19,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_ws_08": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_ws_09": {
+   "container_checks": 84,
+   "container_agree": 84,
+   "tip_checks": 24,
+   "tip_agree": 24,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\open\\C_ws_10": {
+   "container_checks": 63,
+   "container_agree": 63,
+   "tip_checks": 17,
+   "tip_agree": 17,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\A_cl_01": {
+   "container_checks": 132,
+   "container_agree": 132,
+   "tip_checks": 45,
+   "tip_agree": 45,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\A_cl_02": {
+   "container_checks": 124,
+   "container_agree": 124,
+   "tip_checks": 40,
+   "tip_agree": 40,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\A_cl_03": {
+   "container_checks": 136,
+   "container_agree": 136,
+   "tip_checks": 42,
+   "tip_agree": 42,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\A_cl_04": {
+   "container_checks": 132,
+   "container_agree": 132,
+   "tip_checks": 42,
+   "tip_agree": 42,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\A_cl_05": {
+   "container_checks": 140,
+   "container_agree": 140,
+   "tip_checks": 48,
+   "tip_agree": 48,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\A_ws_01": {
+   "container_checks": 45,
+   "container_agree": 45,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\A_ws_02": {
+   "container_checks": 45,
+   "container_agree": 45,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\A_ws_03": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\A_ws_04": {
+   "container_checks": 66,
+   "container_agree": 66,
+   "tip_checks": 5,
+   "tip_agree": 5,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\A_ws_05": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 12,
+   "tip_agree": 12,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\B_cl_01": {
+   "container_checks": 104,
+   "container_agree": 104,
+   "tip_checks": 38,
+   "tip_agree": 38,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\B_cl_02": {
+   "container_checks": 136,
+   "container_agree": 136,
+   "tip_checks": 42,
+   "tip_agree": 42,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\B_cl_03": {
+   "container_checks": 120,
+   "container_agree": 120,
+   "tip_checks": 38,
+   "tip_agree": 38,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\B_cl_04": {
+   "container_checks": 140,
+   "container_agree": 140,
+   "tip_checks": 45,
+   "tip_agree": 45,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\B_cl_05": {
+   "container_checks": 124,
+   "container_agree": 124,
+   "tip_checks": 39,
+   "tip_agree": 39,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\B_ws_01": {
+   "container_checks": 69,
+   "container_agree": 69,
+   "tip_checks": 20,
+   "tip_agree": 20,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\B_ws_02": {
+   "container_checks": 51,
+   "container_agree": 51,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\B_ws_03": {
+   "container_checks": 69,
+   "container_agree": 69,
+   "tip_checks": 19,
+   "tip_agree": 19,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\B_ws_04": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\B_ws_05": {
+   "container_checks": 57,
+   "container_agree": 57,
+   "tip_checks": 15,
+   "tip_agree": 15,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\C_cl_01": {
+   "container_checks": 136,
+   "container_agree": 136,
+   "tip_checks": 44,
+   "tip_agree": 44,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\C_cl_02": {
+   "container_checks": 128,
+   "container_agree": 128,
+   "tip_checks": 41,
+   "tip_agree": 41,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\C_cl_03": {
+   "container_checks": 124,
+   "container_agree": 124,
+   "tip_checks": 40,
+   "tip_agree": 40,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\C_cl_04": {
+   "container_checks": 136,
+   "container_agree": 136,
+   "tip_checks": 41,
+   "tip_agree": 41,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\C_cl_05": {
+   "container_checks": 152,
+   "container_agree": 152,
+   "tip_checks": 47,
+   "tip_agree": 47,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\C_ws_01": {
+   "container_checks": 63,
+   "container_agree": 63,
+   "tip_checks": 17,
+   "tip_agree": 17,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\C_ws_02": {
+   "container_checks": 60,
+   "container_agree": 60,
+   "tip_checks": 16,
+   "tip_agree": 16,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\C_ws_03": {
+   "container_checks": 48,
+   "container_agree": 48,
+   "tip_checks": 13,
+   "tip_agree": 13,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\C_ws_04": {
+   "container_checks": 57,
+   "container_agree": 57,
+   "tip_checks": 16,
+   "tip_agree": 16,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal\\proc\\C_ws_05": {
+   "container_checks": 54,
+   "container_agree": 54,
+   "tip_checks": 14,
+   "tip_agree": 14,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_cl_04": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_cl_05": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_cl_06": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_cl_07": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_cl_08": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_cl_09": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_cl_10": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_ws_03": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_ws_04": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_ws_05": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_ws_06": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_ws_07": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_ws_08": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_ws_09": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\A_ws_10": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_cl_04": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_cl_05": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_cl_06": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_cl_07": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_cl_08": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_cl_09": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_cl_10": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_ws_03": {
+   "container_checks": 6,
+   "container_agree": 6,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_ws_04": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_ws_05": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_ws_06": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_ws_07": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_ws_08": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_ws_09": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\Ap_ws_10": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_cl_04": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_cl_05": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_cl_06": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_cl_07": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_cl_08": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_cl_09": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_cl_10": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_ws_03": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_ws_04": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_ws_05": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_ws_06": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_ws_07": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_ws_08": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_ws_09": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\B_ws_10": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_cl_04": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_cl_05": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_cl_06": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_cl_07": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_cl_08": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_cl_09": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_cl_10": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_ws_03": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_ws_04": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_ws_05": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_ws_06": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_ws_07": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_ws_08": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_ws_09": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\open\\C_ws_10": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\A_cl_01": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\A_cl_02": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\A_cl_03": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\A_cl_04": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\A_cl_05": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\A_ws_01": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\A_ws_02": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\A_ws_03": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\A_ws_04": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\A_ws_05": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\B_cl_01": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\B_cl_02": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\B_cl_03": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\B_cl_04": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\B_cl_05": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\B_ws_01": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\B_ws_02": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\B_ws_03": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\B_ws_04": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\B_ws_05": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\C_cl_01": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\C_cl_02": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\C_cl_03": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\C_cl_04": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\C_cl_05": {
+   "container_checks": 4,
+   "container_agree": 4,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\C_ws_01": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\C_ws_02": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\C_ws_03": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\C_ws_04": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  },
+  "D:\\科学具身仿真\\厦大人工智能大赛\\SafeLab-Agent\\runs\\formal_s52d09cf_full\\formal_402_aside\\proc\\C_ws_05": {
+   "container_checks": 3,
+   "container_agree": 3,
+   "provenance_conflicts": 0
+  }
+ },
+ "examples": [],
+ "skipped": []
+}

@@ -34,11 +34,20 @@ def _names(components):
     return ", ".join(names) if names else "nothing"
 
 
+def _source(row):
+    """In inferred mode, where a composition comes from; empty in readback mode."""
+    if not row.get("composition_inferred"):
+        return ""
+    return (" (inferred from the transfer record, not read back; uncertain)"
+            if row.get("composition_uncertain") else
+            " (inferred from the transfer record, not read back)")
+
+
 def container_line(entity_id, row):
     parts = [f"{entity_id} ({row.get('kind', 'container')}): {_num(row.get('volume_ul'))} uL"]
     if row.get("capacity_ul") is not None:
         parts[0] += f" of {_num(row['capacity_ul'])} uL capacity"
-    parts.append(_composition(row.get("components_ul")))
+    parts.append(_composition(row.get("components_ul"))+_source(row))
     if row.get("closure_status"):
         parts.append(row["closure_status"])
     if row.get("location"):
@@ -51,7 +60,7 @@ def tip_line(entity_id, row, *, contacts=True):
     parts = [head]
     if row.get("held_volume_ul"):
         held = _composition(row.get("components_ul"))
-        parts.append(f"holds {_num(row['held_volume_ul'])} uL ({held})")
+        parts.append(f"holds {_num(row['held_volume_ul'])} uL ({held}){_source(row)}")
     if row.get("location"):
         parts.append(f"at {row['location']}")
     if contacts:

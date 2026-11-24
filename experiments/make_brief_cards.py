@@ -23,7 +23,7 @@ sys.path.insert(0, str(REPO/"src"))
 from safelab.critic.knowledge import load_cards  # noqa: E402
 
 BRIEFS = REPO/"experiments"/"briefs"
-STEMS = ("waste_segregation_v1",)
+STEMS = ("waste_segregation_v1", "cell_lysis_normal_execution_v1")
 HEADING = "Laboratory safety knowledge cards (one JSON object per line):"
 
 
